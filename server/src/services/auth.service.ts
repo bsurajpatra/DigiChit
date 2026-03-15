@@ -1,15 +1,26 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import User, { IUser, UserRole } from '../models/User.js';
+import User, { IUser, UserRole, AccountStatus } from '../models/User.js';
 import Token from '../models/Token.js';
-import { sendVerificationEmail } from '../utils/email.js';
+import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } from '../utils/email.js';
 import { AppError } from '../utils/appError.js';
 
-export const register = async (userData: any) => {
-    const { name, email, password } = userData;
+export const register = async (userData: Record<string, any>) => {
+    const name = userData.name as string;
+    const email = userData.email as string;
+    const password = userData.password as string;
+    const age = userData.age as number;
 
-    const existingUser = await User.findOne({ email });
+    if (!name || !email || !password || !age) {
+        throw new AppError('Name, email, password and age are required', 400, 'AUTH_MISSING_FIELDS');
+    }
+
+    if (age < 21) {
+        throw new AppError('You must be at least 21 years old to register', 400, 'AUTH_INVALID_AGE');
+    }
+
+    const existingUser = await User.findOne({ email: email as string });
     if (existingUser) {
         throw new AppError('Email already registered', 400, 'AUTH_EMAIL_EXISTS');
     }
@@ -19,7 +30,9 @@ export const register = async (userData: any) => {
         name,
         email,
         password: hashedPassword,
-        role: UserRole.USER
+        age,
+        role: UserRole.USER,
+        accountStatus: AccountStatus.REGISTERED
     });
 
     const verificationToken = crypto.randomBytes(32).toString('hex');
@@ -35,7 +48,7 @@ export const register = async (userData: any) => {
 };
 
 export const login = async (email: string, password: string) => {
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: email as string }).select('+password');
     if (!user || !(await bcrypt.compare(password, user.password!))) {
         throw new AppError('Invalid email or password', 401, 'AUTH_INVALID_CREDENTIALS');
     }
@@ -44,12 +57,19 @@ export const login = async (email: string, password: string) => {
         throw new AppError('Please verify your email first', 403, 'AUTH_EMAIL_UNVERIFIED');
     }
 
-    if (user.accountStatus !== 'ACTIVE') {
-        throw new AppError(`Your account is ${user.accountStatus.toLowerCase()}`, 403, 'AUTH_ACCOUNT_STATUS');
+    const isAccountBlocked = [AccountStatus.FROZEN, AccountStatus.SUSPENDED, AccountStatus.DELETED].includes(user.accountStatus);
+    if (isAccountBlocked) {
+        throw new AppError(`Your account is ${user.accountStatus.toLowerCase()}. Access denied.`, 403, 'AUTH_ACCOUNT_BLOCKED');
     }
 
+    if (user.accountStatus === AccountStatus.INACTIVE) {
+        user.accountStatus = AccountStatus.ACTIVE;
+    }
+    user.lastLoginAt = new Date();
+    await user.save({ validateBeforeSave: false });
+
     const token = jwt.sign(
-        { id: user._id, role: user.role },
+        { id: user._id, role: user.role, tokenVersion: user.tokenVersion },
         process.env.JWT_SECRET!,
         { expiresIn: '1d' }
     );
@@ -72,9 +92,20 @@ export const verifyEmail = async (tokenString: string) => {
         throw new AppError('User not found', 404, 'AUTH_USER_NOT_FOUND');
     }
 
-    user.emailVerified = true;
-    await user.save();
-    await Token.deleteMany({ userId: user._id }); // Clean up all tokens for this user
+    if (!user.emailVerified) {
+        user.emailVerified = true;
+        if (user.accountStatus === AccountStatus.REGISTERED) {
+            user.accountStatus = AccountStatus.ACTIVE;
+        }
+        await user.save({ validateBeforeSave: false });
+        
+        // Send a celebratory welcome email
+        await sendWelcomeEmail(user.email, user.name);
+    }
+    
+    // Intentionally not deleting the token to make verification idempotent.
+    // This prevents errors from React Strict Mode double-firing or email scanners pre-fetching.
+    // The token will still be auto-deleted by MongoDB's TTL index when it expires.
 
     return user;
 };
@@ -100,4 +131,50 @@ export const resendVerificationToken = async (email: string) => {
     });
 
     await sendVerificationEmail(email, verificationToken);
+};
+
+export const forgotPassword = async (email: string) => {
+    const user = await User.findOne({ email });
+    if (!user) {
+        throw new AppError('User not found with this email', 404, 'AUTH_USER_NOT_FOUND');
+    }
+
+    // Optional: Only allow active users to reset password
+    if (user.accountStatus !== 'ACTIVE') {
+        throw new AppError('Account is not active', 403, 'AUTH_ACCOUNT_STATUS');
+    }
+
+    // Delete existing tokens for resetting password
+    await Token.deleteMany({ userId: user._id });
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    await Token.create({
+        userId: user._id,
+        token: resetToken,
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000) // 1 hr
+    });
+
+    await sendPasswordResetEmail(email, resetToken);
+};
+
+export const resetPassword = async (tokenString: string, newPassword: string) => {
+    const tokenDoc = await Token.findOne({
+        token: tokenString,
+        expiresAt: { $gt: new Date() }
+    });
+
+    if (!tokenDoc) {
+        throw new AppError('Token invalid or expired', 400, 'AUTH_TOKEN_INVALID');
+    }
+
+    const user = await User.findById(tokenDoc.userId);
+    if (!user) {
+        throw new AppError('User not found', 404, 'AUTH_USER_NOT_FOUND');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    user.password = hashedPassword;
+    await user.save({ validateBeforeSave: false });
+
+    await Token.deleteMany({ userId: user._id }); // Clean up tokens
 };

@@ -8,9 +8,11 @@ const router = Router();
 // Apply rate limiting to all auth endpoints
 router.use(authRateLimiter);
 
-router.post('/register', registerValidation, authController.register);
-router.post('/login', loginValidation, authController.login);
+router.post('/register', ...registerValidation, authController.register);
+router.post('/login', ...loginValidation, authController.login);
 router.get('/verify-email', authController.verifyEmail);
 router.post('/resend-verification', authController.resendVerification);
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-password', authController.resetPassword);
 
 export default router;

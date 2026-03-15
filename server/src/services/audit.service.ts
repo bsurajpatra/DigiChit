@@ -7,8 +7,8 @@ export interface AuditLogOptions {
     actorRole: UserRole;
     action: string;
     targetUserId?: string | undefined;
-    previousValue?: Record<string, any> | any | undefined;
-    newValue?: Record<string, any> | any | undefined;
+    previousValue?: Record<string, unknown> | undefined;
+    newValue?: Record<string, unknown> | undefined;
     ipAddress?: string | undefined;
 }
 

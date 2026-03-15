@@ -1,48 +1,63 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, Eye, EyeOff, Loader2 } from 'lucide-react';
-import logo from '../assets/logo.png';
-import api from '../api/axios';
+import logo from '../../assets/logo.png';
+import api from '../../api/axios';
+import { useAuth } from '../../hooks/useAuth';
 
-const Login = () => {
+const loginSchema = z.object({
+    email: z.string().email('Invalid email address'),
+    password: z.string().min(1, 'Password is required'),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
+
+export const Login = () => {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        email: '',
-        password: ''
-    });
+    const { login } = useAuth();
+    const [apiError, setApiError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting }
+    } = useForm<LoginFormData>({
+        resolver: zodResolver(loginSchema)
+    });
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
-
+    const onSubmit = async (data: LoginFormData) => {
         try {
-            const response = await api.post('/auth/login', formData);
+            setApiError('');
+            const response = await api.post('/auth/login', data);
+            
+            const { token, data: { user } } = response.data;
+            login(token, user);
 
-            if (response.data.success) {
-                localStorage.setItem('token', response.data.token);
-                localStorage.setItem('user', JSON.stringify(response.data.data.user));
-
-                // Redirect to dashboard (to be implemented) or home
-                navigate('/');
+            if (user.role === 'ADMIN') {
+                navigate('/admin/kyc');
+            } else if (!user.emailVerified) {
+                navigate('/verify-email-info');
+            } else if (user.kycStatus !== 'APPROVED') {
+                navigate('/kyc/status');
+            } else {
+                navigate('/dashboard');
             }
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Invalid email or password. Please try again.');
-        } finally {
-            setLoading(false);
+        } catch (error: any) {
+            if (error.response?.data?.errorCode === 'AUTH_EMAIL_UNVERIFIED') {
+                navigate('/verify-email-info');
+            } else {
+                setApiError(error.response?.data?.message || 'Invalid credentials');
+            }
         }
     };
 
     return (
-        <div className="h-screen overflow-hidden grid lg:grid-cols-2 bg-white">
+        <div className="h-screen overflow-hidden grid lg:grid-cols-2 bg-white font-sans">
             <div className="hidden lg:flex flex-col justify-between p-12 bg-slate-900 text-white relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full">
                     <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-600/20 blur-[120px] rounded-full" />
@@ -64,17 +79,17 @@ const Login = () => {
                         <p className="text-base text-slate-600">Enter your credentials to access your account.</p>
                     </div>
 
-                    {error && (
+                    {apiError && (
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             className="p-4 mb-6 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-medium"
                         >
-                            {error}
+                            {apiError}
                         </motion.div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700 ml-1 uppercase tracking-wider">Email Address</label>
                             <div className="relative group">
@@ -83,19 +98,17 @@ const Login = () => {
                                 </div>
                                 <input
                                     type="email"
-                                    name="email"
-                                    required
                                     placeholder="john@example.com"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all text-base"
+                                    className={`w-full pl-12 pr-4 py-4 bg-white border ${errors.email ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} rounded-2xl focus:ring-4 outline-none transition-all text-base`}
+                                    {...register('email')}
                                 />
                             </div>
+                            {errors.email && <p className="text-sm text-red-600 ml-1">{errors.email.message}</p>}
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700 ml-1 flex justify-between uppercase tracking-wider">
                                 <span>Password</span>
-                                <Link to="/forgot-password" disable-button="true" className="text-blue-600 font-bold hover:underline normal-case">Forgot?</Link>
+                                <Link to="/forgot-password" className="text-blue-600 font-bold hover:underline normal-case">Forgot?</Link>
                             </label>
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -103,12 +116,9 @@ const Login = () => {
                                 </div>
                                 <input
                                     type={showPassword ? "text" : "password"}
-                                    name="password"
-                                    required
                                     placeholder="••••••••"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    className="w-full pl-12 pr-12 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all text-base"
+                                    className={`w-full pl-12 pr-12 py-4 bg-white border ${errors.password ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} rounded-2xl focus:ring-4 outline-none transition-all text-base`}
+                                    {...register('password')}
                                 />
                                 <button
                                     type="button"
@@ -118,13 +128,14 @@ const Login = () => {
                                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
                             </div>
+                            {errors.password && <p className="text-sm text-red-600 ml-1">{errors.password.message}</p>}
                         </div>
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={isSubmitting}
                             className="w-full py-4.5 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 text-lg disabled:opacity-70"
                         >
-                            {loading ? (
+                            {isSubmitting ? (
                                 <Loader2 className="w-6 h-6 animate-spin" />
                             ) : (
                                 <>
@@ -142,5 +153,3 @@ const Login = () => {
         </div>
     );
 };
-
-export default Login;

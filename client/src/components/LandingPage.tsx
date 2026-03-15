@@ -35,7 +35,6 @@ const LandingPage = () => {
                         <span className="text-xl font-bold tracking-tight text-slate-900">DigiChit</span>
                     </div>
                     <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-500">
-                        <a href="#features" className="hover:text-blue-600 transition-colors">Features</a>
                         <a href="#how-it-works" className="hover:text-blue-600 transition-colors">How it works</a>
                         <a href="#security" className="hover:text-blue-600 transition-colors">Security</a>
                         <Link to="/signup" className="px-5 py-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all font-semibold shadow-md shadow-blue-200">
@@ -339,25 +338,21 @@ const LandingPage = () => {
                         <div>
                             <h5 className="font-bold mb-6 text-slate-900">Company</h5>
                             <ul className="space-y-3 text-sm text-slate-500">
-                                <li><a href="#" className="hover:text-blue-600 transition-colors">About Us</a></li>
-                                <li><a href="#" className="hover:text-blue-600 transition-colors">Contact</a></li>
+                                <li><Link to="/about-us" className="hover:text-blue-600 transition-colors">About Us</Link></li>
+                                <li><Link to="/contact" className="hover:text-blue-600 transition-colors">Contact</Link></li>
                             </ul>
                         </div>
                         <div>
                             <h5 className="font-bold mb-6 text-slate-900">Legal</h5>
                             <ul className="space-y-3 text-sm text-slate-500">
-                                <li><a href="#" className="hover:text-blue-600 transition-colors">Terms & Conditions</a></li>
-                                <li><a href="#" className="hover:text-blue-600 transition-colors">Privacy Policy</a></li>
-                                <li><a href="#" className="hover:text-blue-600 transition-colors">Disclaimer</a></li>
+                                <li><Link to="/terms-and-conditions" className="hover:text-blue-600 transition-colors">Terms & Conditions</Link></li>
+                                <li><Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link></li>
+                                <li><Link to="/disclaimer" className="hover:text-blue-600 transition-colors">Disclaimer</Link></li>
                             </ul>
                         </div>
                     </div>
-                    <div className="pt-10 border-t border-slate-200 flex flex-col md:row items-center justify-between gap-6 text-xs text-slate-400 uppercase tracking-widest font-bold">
-                        <span>© 2026 DigiChit Technologies Pvt Ltd</span>
-                        <div className="flex gap-8">
-                            <a href="#" className="hover:text-blue-600 transition-colors">Twitter</a>
-                            <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
-                        </div>
+                    <div className="pt-10 border-t border-slate-200 flex items-center justify-center gap-6 text-xs text-slate-400 uppercase tracking-widest font-bold">
+                        <span>© 2026 DigiChit Technologies</span>
                     </div>
                 </div>
             </footer>

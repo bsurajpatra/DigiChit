@@ -48,6 +48,13 @@ Thumbs.db
 coverage/
 
 # =========================
+# Uploads
+# =========================
+server/uploads/documents/
+server/uploads/selfies/
+server/uploads/*
+
+# =========================
 # Optional: Debug
 # =========================
 *.pid

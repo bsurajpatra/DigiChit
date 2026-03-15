@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 import { globalErrorHandler } from './middlewares/error.middleware.js';
 import { apiRateLimiter } from './middlewares/rateLimit.middleware.js';
 import { AppError } from './utils/appError.js';
+import { initInactivityCron } from './utils/cron.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,8 +19,13 @@ dotenv.config();
 
 const app = express();
 
+// Initialize Cron Jobs
+initInactivityCron();
+
 // Security Middlewares
-app.use(helmet()); // Basic security headers
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+})); // Basic security headers with CORP allowed for static uploads
 app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true
@@ -33,6 +39,9 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Apply general API rate limiting
 app.use('/api', apiRateLimiter);
+
+// Silence favicon requests
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // Routes
 app.use('/api/auth', authRoutes);

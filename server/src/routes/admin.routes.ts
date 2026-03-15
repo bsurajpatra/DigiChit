@@ -10,6 +10,9 @@ router.use(protect);
 router.use(restrictTo(UserRole.ADMIN));
 
 router.post('/freeze-account', adminController.freezeAccount);
+router.post('/suspend-account', adminController.suspendAccount);
+router.post('/restore-account', adminController.restoreAccount);
+router.post('/delete-account', adminController.softDeleteAccount);
 router.post('/change-role', adminController.changeRole);
 
 export default router;

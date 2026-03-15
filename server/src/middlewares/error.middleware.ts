@@ -2,34 +2,37 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/appError.js';
 
 export const globalErrorHandler = (
-    err: any,
+    err: unknown,
     req: Request,
     res: Response,
     next: NextFunction
 ) => {
-    err.statusCode = err.statusCode || 500;
-    err.status = err.status || 'error';
+    console.error('GLOBAL ERROR CATCHER:', err);
+    
+    const error = err as AppError;
+    const statusCode = error.statusCode || 500;
+    const status = error.status || 'error';
 
     if (process.env.NODE_ENV === 'development') {
-        res.status(err.statusCode).json({
+        res.status(statusCode).json({
             success: false,
-            status: err.status,
-            error: err,
-            message: err.message,
-            errorCode: err.errorCode,
-            stack: err.stack,
+            status: status,
+            error: error,
+            message: error.message,
+            errorCode: error.errorCode,
+            stack: error.stack,
         });
     } else {
         // Production: Don't leak detail
-        if (err.isOperational) {
-            res.status(err.statusCode).json({
+        if (error.isOperational) {
+            res.status(statusCode).json({
                 success: false,
-                message: err.message,
-                errorCode: err.errorCode,
+                message: error.message,
+                errorCode: error.errorCode,
             });
         } else {
             // Programming or other unknown error: don't leak error details
-            console.error('ERROR 💥', err);
+            console.error('ERROR 💥', error);
             res.status(500).json({
                 success: false,
                 message: 'Something went very wrong!',

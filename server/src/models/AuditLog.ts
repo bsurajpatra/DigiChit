@@ -6,8 +6,8 @@ export interface IAuditLog extends Document {
     actorRole: UserRole;
     action: string;
     targetUserId?: mongoose.Types.ObjectId | undefined;
-    previousValue?: any | undefined;
-    newValue?: any | undefined;
+    previousValue?: Record<string, unknown> | undefined;
+    newValue?: Record<string, unknown> | undefined;
     ipAddress?: string | undefined;
     timestamp: Date;
 }

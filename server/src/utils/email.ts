@@ -1,10 +1,11 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import { getVerificationTemplate, getPasswordResetTemplate, getWelcomeTemplate } from './emailTemplates.js';
 
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // Or use your SMTP config
+    service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -15,15 +16,10 @@ export const sendVerificationEmail = async (email: string, token: string) => {
     const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
 
     const mailOptions = {
-        from: process.env.EMAIL_FROM,
+        from: `DigiChit <${process.env.EMAIL_FROM}>`,
         to: email,
         subject: 'Verify your DigiChit Account',
-        html: `
-      <h2>Welcome to DigiChit!</h2>
-      <p>Please click the link below to verify your email address. This link will expire in 15 minutes.</p>
-      <a href="${verificationLink}">${verificationLink}</a>
-      <p>If you did not request this, please ignore this email.</p>
-    `,
+        html: getVerificationTemplate(verificationLink),
     };
 
     try {
@@ -32,5 +28,41 @@ export const sendVerificationEmail = async (email: string, token: string) => {
     } catch (error) {
         console.error('Error sending email:', error);
         throw new Error('Could not send verification email');
+    }
+};
+
+export const sendPasswordResetEmail = async (email: string, token: string) => {
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+
+    const mailOptions = {
+        from: `DigiChit <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: 'Reset your DigiChit Password',
+        html: getPasswordResetTemplate(resetLink),
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Password reset email sent to ${email}`);
+    } catch (error) {
+        console.error('Error sending email:', error);
+        throw new Error('Could not send password reset email');
+    }
+};
+
+export const sendWelcomeEmail = async (email: string, name: string) => {
+    const mailOptions = {
+        from: `DigiChit <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: 'Welcome to DigiChit!',
+        html: getWelcomeTemplate(name),
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Welcome email sent to ${email}`);
+    } catch (error) {
+        console.error('Error sending welcome email:', error);
+        // We don't throw here to avoid breaking user flows if welcome email fails
     }
 };
