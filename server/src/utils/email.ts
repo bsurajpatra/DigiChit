@@ -1,6 +1,12 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
-import { getVerificationTemplate, getPasswordResetTemplate, getWelcomeTemplate } from './emailTemplates.js';
+import { 
+    getVerificationTemplate, 
+    getPasswordResetTemplate, 
+    getWelcomeTemplate,
+    getKYCApprovedTemplate,
+    getKYCRejectedTemplate
+} from './emailTemplates.js';
 
 dotenv.config();
 
@@ -66,3 +72,36 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
         // We don't throw here to avoid breaking user flows if welcome email fails
     }
 };
+
+export const sendKYCApprovedEmail = async (email: string, name: string) => {
+    const mailOptions = {
+        from: `DigiChit Compliance <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: 'KYC Verified: Account Fully Activated',
+        html: getKYCApprovedTemplate(name),
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`KYC Approval email sent to ${email}`);
+    } catch (error) {
+        console.error('Error sending KYC approval email:', error);
+    }
+};
+
+export const sendKYCRejectedEmail = async (email: string, name: string, reason: string) => {
+    const mailOptions = {
+        from: `DigiChit Compliance <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: 'KYC Action Required: Identity Verification Update',
+        html: getKYCRejectedTemplate(name, reason),
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`KYC Rejection email sent to ${email}`);
+    } catch (error) {
+        console.error('Error sending KYC rejection email:', error);
+    }
+};
+

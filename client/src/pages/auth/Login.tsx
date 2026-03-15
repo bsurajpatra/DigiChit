@@ -39,7 +39,7 @@ export const Login = () => {
             login(token, user);
 
             if (user.role === 'ADMIN') {
-                navigate('/admin/kyc');
+                navigate('/admin/dashboard');
             } else if (!user.emailVerified) {
                 navigate('/verify-email-info');
             } else if (user.kycStatus !== 'APPROVED') {

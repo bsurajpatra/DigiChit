@@ -1,6 +1,6 @@
 import KYC from '../models/KYC.js';
 import User, { KYCStatus, UserRole, AccountStatus } from '../models/User.js';
-import { encrypt } from '../utils/encryption.js';
+import { encrypt, decrypt } from '../utils/encryption.js';
 import crypto from 'crypto';
 import mongoose from 'mongoose';
 import { AppError } from '../utils/appError.js';
@@ -8,6 +8,7 @@ import { logAction } from './audit.service.js';
 import { validateAadhaar } from '../utils/aadhaar.js';
 import * as cloudinaryService from './cloudinary.service.js';
 import axios from 'axios';
+import { sendKYCApprovedEmail, sendKYCRejectedEmail } from '../utils/email.js';
 
 export interface KYCUploadFiles {
     document: Express.Multer.File;
@@ -28,7 +29,7 @@ export const submitKYC = async (userId: string, aadhaar: string, files: KYCUploa
     }
 
     const existingKYC = await KYC.findOne({ userId });
-    
+
     // Guard: Prevent resubmission if already approved
     if (existingKYC && existingKYC.status === KYCStatus.APPROVED) {
         throw new AppError('KYC already approved', 400, 'KYC_ALREADY_APPROVED');
@@ -65,17 +66,17 @@ export const submitKYC = async (userId: string, aadhaar: string, files: KYCUploa
             aadhaarHash,
             aadhaarEncrypted,
             aadhaarLast4,
-            
+
             documentUrl: docResult.secure_url,
             documentPublicId: docResult.public_id,
             documentMimeType: files.document.mimetype,
             documentSize: files.document.size,
-            
+
             selfieUrl: selfieResult.secure_url,
             selfiePublicId: selfieResult.public_id,
             selfieMimeType: files.selfie.mimetype,
             selfieSize: files.selfie.size,
-            
+
             undertakingAccepted,
             status: KYCStatus.PENDING
         },
@@ -101,7 +102,7 @@ export const getKYCDocumentStream = async (userId: string, field: 'document' | '
     const mimeType = field === 'document' ? kyc.documentMimeType : kyc.selfieMimeType;
 
     const response = await axios.get(url, { responseType: 'stream' });
-    
+
     return {
         stream: response.data,
         mimeType
@@ -161,9 +162,30 @@ export const adminReviewKYC = async (
         ipAddress: ipAddress
     });
 
+    // Send Email Notification
+    if (status === KYCStatus.APPROVED) {
+        sendKYCApprovedEmail(targetUser.email, targetUser.name);
+    } else if (status === KYCStatus.REJECTED) {
+        sendKYCRejectedEmail(targetUser.email, targetUser.name, rejectionReason || 'No specific reason provided.');
+    }
+
     return kyc;
 };
 
+// Internal helper for pending list with full decryption
+export interface PendingKYCResponse {
+    pendings: any[];
+}
+
 export const getAllPendingKYC = async () => {
-    return await KYC.find({ status: KYCStatus.PENDING }).populate('userId', 'name email age');
+    const pendings = await KYC.find({ status: KYCStatus.PENDING }).populate('userId', 'name email age');
+    return pendings.map(kyc => {
+        const kycObj: any = kyc.toObject();
+        try {
+            kycObj.aadhaarFull = decrypt(kyc.aadhaarEncrypted);
+        } catch (e) {
+            kycObj.aadhaarFull = 'DECRYPTION_FAILED';
+        }
+        return kycObj;
+    });
 };

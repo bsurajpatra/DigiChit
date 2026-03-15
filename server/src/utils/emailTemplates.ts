@@ -131,3 +131,83 @@ export const getWelcomeTemplate = (name: string) => `
 </body>
 </html>
 `;
+
+export const getKYCApprovedTemplate = (name: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+    <style>${baseStyles}</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="logo">Digi<span>Chit</span></h1>
+        </div>
+        <div class="content">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="display: inline-block; padding: 20px; background-color: #ecfdf5; border-radius: 50%;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+            </div>
+            <h2 style="text-align: center;">Identity Verified!</h2>
+            <p>Hello <span class="highlight">${name}</span>,</p>
+            <p>We are pleased to inform you that your <span class="highlight">KYC Verification</span> has been successfully processed and <span style="color: #10b981; font-weight: bold;">APPROVED</span>.</p>
+            <p>Your account now has full access to the DigiChit ecosystem, including participating in high-value Chits and initiating withdrawals.</p>
+            
+            <div style="text-align: center; margin: 35px 0;">
+                <a href="${process.env.FRONTEND_URL}/dashboard" class="button">Access Full Features</a>
+            </div>
+            
+            <p>Thank you for helping us maintain a secure financial community.</p>
+        </div>
+        <div class="footer">
+            &copy; ${new Date().getFullYear()} DigiChit Technologies<br>
+            Trust & Security Guaranteed.
+        </div>
+    </div>
+</body>
+</html>
+`;
+
+export const getKYCRejectedTemplate = (name: string, reason: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+    <style>${baseStyles}</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header" style="background-color: #fca5a5;">
+            <h1 class="logo">Digi<span>Chit</span></h1>
+        </div>
+        <div class="content">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="display: inline-block; padding: 20px; background-color: #fef2f2; border-radius: 50%;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </div>
+            </div>
+            <h2 style="text-align: center; color: #b91c1c;">KYC Action Required</h2>
+            <p>Hello <span class="highlight">${name}</span>,</p>
+            <p>Your recent <span class="highlight">KYC Verification</span> request could not be approved at this time.</p>
+            
+            <div style="background-color: #fff1f2; border: 1px solid #fecdd3; padding: 24px; margin: 30px 0; border-radius: 12px;">
+                <p style="margin: 0; font-weight: 700; color: #9f1239; margin-bottom: 10px;">Reason for Rejection:</p>
+                <p style="margin: 0; color: #be123c; font-style: italic;">"${reason}"</p>
+            </div>
+            
+            <p>Please log in to your dashboard to review the feedback and resubmit your identification documents with the corrected information.</p>
+            
+            <div style="text-align: center; margin: 35px 0;">
+                <a href="${process.env.FRONTEND_URL}/kyc/submit" class="button" style="background-color: #ef4444;">Resubmit Documents</a>
+            </div>
+            
+            <p>If you have any questions, please reply to this email or contact our support team.</p>
+        </div>
+        <div class="footer">
+            &copy; ${new Date().getFullYear()} DigiChit Technologies<br>
+            Secure Community Finance Ecosystem.
+        </div>
+    </div>
+</body>
+</html>
+`;

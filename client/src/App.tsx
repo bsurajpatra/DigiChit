@@ -22,6 +22,7 @@ import { KYCStatus } from './pages/kyc/KYCStatus';
 // Dashboard & Admin
 import { Dashboard } from './pages/dashboard/Dashboard';
 import { KYCPanel } from './pages/admin/KYCPanel';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
 
 // Legacy components (can be phased out)
 import LandingPage from './components/LandingPage';
@@ -56,6 +57,7 @@ function App() {
                             
                             {/* Admin specific routes */}
                             <Route element={<RoleRoute allowedRoles={['ADMIN']} />}>
+                                <Route path="/admin/dashboard" element={<AdminDashboard />} />
                                 <Route path="/admin/kyc" element={<KYCPanel />} />
                             </Route>
                         </Route>
