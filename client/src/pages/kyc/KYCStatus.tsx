@@ -25,8 +25,8 @@ export const KYCStatus = () => {
             description: "Your KYC documents have been successfully submitted. Our automated system and team are currently reviewing them. This process usually completes within 24-48 hours.",
             action: () => navigate('/dashboard'),
             buttonText: "Go to Dashboard",
-            colorClass: "bg-blue-50 text-blue-600",
-            sidebarTitle: <>Under <span className="text-blue-400">Review</span>.</>,
+            colorClass: "bg-emerald-50 text-emerald-600",
+            sidebarTitle: <>Under <span className="text-emerald-600">Review</span>.</>,
             sidebarSubtitle: "We are carefully reviewing your submitted credentials to ensure the absolute security of the DigiChit ecosystem."
         },
         APPROVED: {
@@ -58,7 +58,7 @@ export const KYCStatus = () => {
         <div className="h-screen overflow-hidden grid lg:grid-cols-2 bg-white font-sans">
             <div className="hidden lg:flex flex-col justify-between p-12 bg-slate-900 text-white relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full">
-                    <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-600/20 blur-[120px] rounded-full" />
+                    <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-emerald-600 blur-[120px] rounded-full" />
                 </div>
                 <Link to="/" className="flex items-center gap-2 relative z-10">
                     <img src={logo} alt="DigiChit Logo" className="w-10 h-10 object-contain" />
@@ -91,14 +91,14 @@ export const KYCStatus = () => {
 
                     <button
                         onClick={uiData.action}
-                        className="w-full py-4.5 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 text-lg active:scale-[0.98]"
+                        className="w-full py-4.5 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 text-lg active:scale-[0.98]"
                     >
                         {uiData.buttonText}
                     </button>
                     
                     {currentStatus === 'PENDING' && (
                         <div className="mt-8 text-center lg:text-left">
-                            <button onClick={() => window.location.reload()} className="text-sm font-bold text-slate-500 hover:text-blue-600">
+                            <button onClick={() => window.location.reload()} className="text-sm font-bold text-slate-500 hover:text-emerald-700">
                                 Refresh Status
                             </button>
                         </div>

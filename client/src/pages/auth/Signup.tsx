@@ -26,7 +26,7 @@ type SignupFormData = z.infer<typeof signupSchema>;
 const LeftSidebar = ({ title, subtitle }: { title: React.ReactNode, subtitle: React.ReactNode }) => (
     <div className="hidden lg:flex flex-col justify-between p-12 bg-slate-900 text-white relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full">
-            <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-600/20 blur-[120px] rounded-full" />
+            <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-emerald-600 blur-[120px] rounded-full" />
             <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-500/10 blur-[100px] rounded-full" />
         </div>
 
@@ -98,7 +98,7 @@ export const Signup = () => {
         return (
             <div className="h-screen overflow-hidden grid lg:grid-cols-2 bg-white font-sans">
                 <LeftSidebar 
-                    title={<>Welcome to <span className="text-blue-400">DigiChit</span>.</>} 
+                    title={<>Welcome to <span className="text-emerald-600">DigiChit</span>.</>} 
                     subtitle="We are preparing your secure digital vault environment." 
                 />
                 <div className="flex items-center justify-center p-6 md:p-10 lg:p-12 bg-slate-50/50">
@@ -117,7 +117,7 @@ export const Signup = () => {
                         </p>
                         <button
                             onClick={() => navigate('/login')}
-                            className="w-full py-4.5 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 text-lg flex items-center justify-center gap-2"
+                            className="w-full py-4.5 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 text-lg flex items-center justify-center gap-2"
                         >
                             <Loader2 className="w-5 h-5 animate-spin" />
                             Redirecting to Login in {countdown}...
@@ -131,7 +131,7 @@ export const Signup = () => {
     return (
         <div className="h-screen overflow-hidden grid lg:grid-cols-2 bg-white font-sans">
             <LeftSidebar 
-                title={<>Join the <span className="text-blue-400">Next Gen</span> of Financial Savings.</>} 
+                title={<>Join the <span className="text-emerald-600">Next Gen</span> of Financial Savings.</>} 
                 subtitle="Secure, transparent, and completely digital. Experience the traditional chit fund redefined for the modern age." 
             />
 
@@ -162,12 +162,12 @@ export const Signup = () => {
                             <label className="text-sm font-bold text-slate-700 ml-1 uppercase tracking-wider">Full Name</label>
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <User className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                                    <User className="w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
                                 </div>
                                 <input
                                     type="text"
                                     placeholder="John Doe"
-                                    className={`w-full pl-12 pr-4 py-4 bg-white border ${errors.fullName ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} rounded-2xl focus:ring-4 outline-none transition-all placeholder:text-slate-300 text-base`}
+                                    className={`w-full pl-12 pr-4 py-4 bg-white border ${errors.fullName ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-emerald-500 focus:border-emerald-500'} rounded-2xl focus:ring-4 outline-none transition-all placeholder:text-slate-300 text-base`}
                                     {...register('fullName')}
                                 />
                             </div>
@@ -179,12 +179,12 @@ export const Signup = () => {
                                 <label className="text-sm font-bold text-slate-700 ml-1 uppercase tracking-wider">Age</label>
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <User className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                                        <User className="w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
                                     </div>
                                     <input
                                         type="number"
                                         placeholder="21"
-                                        className={`w-full pl-12 pr-4 py-4 bg-white border ${errors.age ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} rounded-2xl focus:ring-4 outline-none transition-all placeholder:text-slate-300 text-base`}
+                                        className={`w-full pl-12 pr-4 py-4 bg-white border ${errors.age ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-emerald-500 focus:border-emerald-500'} rounded-2xl focus:ring-4 outline-none transition-all placeholder:text-slate-300 text-base`}
                                         {...register('age')}
                                     />
                                 </div>
@@ -195,12 +195,12 @@ export const Signup = () => {
                                 <label className="text-sm font-bold text-slate-700 ml-1 uppercase tracking-wider">Email Address</label>
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <Mail className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                                        <Mail className="w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
                                     </div>
                                     <input
                                         type="email"
                                         placeholder="john@example.com"
-                                        className={`w-full pl-12 pr-4 py-4 bg-white border ${errors.email ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} rounded-2xl focus:ring-4 outline-none transition-all placeholder:text-slate-300 text-base`}
+                                        className={`w-full pl-12 pr-4 py-4 bg-white border ${errors.email ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-emerald-500 focus:border-emerald-500'} rounded-2xl focus:ring-4 outline-none transition-all placeholder:text-slate-300 text-base`}
                                         {...register('email')}
                                     />
                                 </div>
@@ -213,12 +213,12 @@ export const Signup = () => {
                                 <label className="text-sm font-bold text-slate-700 ml-1 uppercase tracking-wider">Password</label>
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <Lock className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                                        <Lock className="w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
                                     </div>
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         placeholder="••••••••"
-                                        className={`w-full pl-12 pr-10 py-4 bg-white border ${errors.password ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} rounded-2xl focus:ring-4 outline-none transition-all placeholder:text-slate-300 text-base`}
+                                        className={`w-full pl-12 pr-10 py-4 bg-white border ${errors.password ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-emerald-500 focus:border-emerald-500'} rounded-2xl focus:ring-4 outline-none transition-all placeholder:text-slate-300 text-base`}
                                         {...register('password')}
                                     />
                                     <button
@@ -236,12 +236,12 @@ export const Signup = () => {
                                 <label className="text-sm font-bold text-slate-700 ml-1 uppercase tracking-wider">Confirm</label>
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <Lock className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                                        <Lock className="w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
                                     </div>
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         placeholder="••••••••"
-                                        className={`w-full pl-12 pr-4 py-4 bg-white border ${errors.confirmPassword ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} rounded-2xl focus:ring-4 outline-none transition-all placeholder:text-slate-300 text-base`}
+                                        className={`w-full pl-12 pr-4 py-4 bg-white border ${errors.confirmPassword ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-emerald-500 focus:border-emerald-500'} rounded-2xl focus:ring-4 outline-none transition-all placeholder:text-slate-300 text-base`}
                                         {...register('confirmPassword')}
                                     />
                                 </div>
@@ -252,7 +252,7 @@ export const Signup = () => {
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-200 transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 text-lg"
+                            className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-300 transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 text-lg"
                         >
                             {isSubmitting ? (
                                 <Loader2 className="w-6 h-6 animate-spin" />
@@ -266,7 +266,7 @@ export const Signup = () => {
                     </form>
 
                     <div className="mt-8 text-center text-slate-600">
-                        Already have an account? <Link to="/login" className="text-blue-600 font-bold hover:underline">Login</Link>
+                        Already have an account? <Link to="/login" className="text-emerald-600 font-bold hover:underline">Login</Link>
                     </div>
 
                     <div className="mt-10 pt-8 border-t border-slate-200 text-center">

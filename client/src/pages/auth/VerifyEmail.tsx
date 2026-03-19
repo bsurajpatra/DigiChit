@@ -65,7 +65,7 @@ export const VerifyEmail = () => {
                         </p>
                         <button 
                             onClick={() => navigate('/login')}
-                            className="w-full py-4.5 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-blue-700 transition-all text-lg shadow-lg shadow-blue-100"
+                            className="w-full py-4.5 bg-emerald-600 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all text-lg shadow-lg shadow-emerald-200"
                         >
                             Go to Login
                         </button>
@@ -87,7 +87,7 @@ export const VerifyEmail = () => {
                                 Resend Verification Link
                             </button>
                             <p className="text-center">
-                                <button onClick={() => navigate('/login')} className="text-sm font-bold text-slate-500 hover:text-blue-600">
+                                <button onClick={() => navigate('/login')} className="text-sm font-bold text-slate-500 hover:text-emerald-700">
                                     Back to Login
                                 </button>
                             </p>
@@ -104,7 +104,7 @@ export const VerifyEmail = () => {
                         <p className="text-base text-slate-600 mb-8 leading-relaxed">No token was provided in the URL.</p>
                         <button 
                             onClick={() => navigate('/login')}
-                            className="w-full py-4.5 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-blue-700 transition-all text-lg shadow-lg shadow-blue-100"
+                            className="w-full py-4.5 bg-emerald-600 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all text-lg shadow-lg shadow-emerald-200"
                         >
                             Back to Login
                         </button>
@@ -117,14 +117,14 @@ export const VerifyEmail = () => {
         <div className="h-screen overflow-hidden grid lg:grid-cols-2 bg-white font-sans">
             <div className="hidden lg:flex flex-col justify-between p-12 bg-slate-900 text-white relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full">
-                    <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-600/20 blur-[120px] rounded-full" />
+                    <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-emerald-600 blur-[120px] rounded-full" />
                 </div>
                 <Link to="/" className="flex items-center gap-2 relative z-10">
                     <img src={logo} alt="DigiChit Logo" className="w-10 h-10 object-contain" />
                     <span className="text-xl font-bold tracking-tight">DigiChit</span>
                 </Link>
                 <div className="relative z-10 max-w-sm">
-                    <h2 className="text-4xl font-bold leading-tight mb-6">Securing Your <span className="text-blue-400">Account</span>.</h2>
+                    <h2 className="text-4xl font-bold leading-tight mb-6">Securing Your <span className="text-emerald-600">Account</span>.</h2>
                     <p className="text-base text-slate-400">We verify every user to maintain a safe and transparent environment for everyone.</p>
                 </div>
                 <div className="relative z-10 text-[10px] text-slate-500 uppercase tracking-widest font-bold">© 2026 DigiChit Technologies</div>

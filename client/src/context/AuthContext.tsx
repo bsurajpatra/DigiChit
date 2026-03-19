@@ -8,7 +8,9 @@ export interface User {
     role: 'USER' | 'ORGANIZER' | 'ADMIN';
     emailVerified: boolean;
     kycStatus: 'NOT_SUBMITTED' | 'PENDING' | 'APPROVED' | 'REJECTED';
+    organizerStatus: 'NOT_APPLIED' | 'PENDING' | 'APPROVED' | 'REJECTED';
     accountStatus: 'ACTIVE' | 'SUSPENDED' | 'INACTIVE';
+    profilePictureUrl?: string;
 }
 
 interface AuthContextType {

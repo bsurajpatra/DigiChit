@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Card } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
 import { Loader } from '../../components/ui/Loader';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
 import { 
@@ -80,257 +78,189 @@ export const KYCPanel = () => {
     if (isLoading) return <div className="h-[80vh] flex items-center justify-center"><Loader size="lg" /></div>;
 
     return (
-        <div className="h-[calc(100vh-5rem)] flex flex-col gap-6 overflow-hidden animate-in fade-in duration-700">
-            {/* Header: Sticky Top */}
-            <div className="flex-none flex items-center justify-between bg-slate-50/80 backdrop-blur-md p-4 rounded-3xl border border-slate-200/50">
+        <div className="h-full flex flex-col gap-6 animate-in fade-in duration-700">
+            <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">KYC Approvals</h1>
-                    <p className="text-slate-500 font-bold text-sm">Verify human identities to keep the ecosystem safe.</p>
-                </div>
-                <div className="flex items-center gap-3 px-5 py-2.5">
-                    <div className="w-8 h-8 bg-blue-100 text-black rounded-lg flex items-center justify-center font-black text-sm">
-                        {pendingKycs.length}
-                    </div>
-                    <span className="font-black text-black uppercase tracking-widest text-[10px]">Pending Requests</span>
+                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">KYC Approvals</h1>
+                    <p className="text-sm text-slate-500 mt-1">Verify identities to keep the ecosystem safe</p>
                 </div>
             </div>
 
             <ErrorMessage message={error} />
 
-            {/* Unified Command Layout */}
-            <div className="flex-1 flex gap-6 overflow-hidden min-h-0">
-                {/* Master Queue Panel */}
-                <div className="w-full max-w-[380px] flex-none flex flex-col gap-4 overflow-hidden">
-                    <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
-                        <AnimatePresence mode="popLayout">
-                            {pendingKycs.length === 0 ? (
-                                <motion.div 
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="p-10 text-center bg-white/50 border-4 border-dashed border-slate-200 rounded-[3rem]"
-                                >
-                                    <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Check className="w-8 h-8 font-black" />
+            {/* KYC List */}
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+                <AnimatePresence mode="popLayout">
+                    {pendingKycs.length === 0 ? (
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-white border border-slate-100 rounded-[2.5rem] flex flex-col items-center justify-center text-center p-12 min-h-[400px]"
+                        >
+                            <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-6">
+                                <ShieldCheck className="w-10 h-10" />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Queue is Clear</h3>
+                            <p className="text-sm text-slate-400 font-bold max-w-xs mt-2">All identities have been verified. There are no pending KYC requests at the moment.</p>
+                        </motion.div>
+                    ) : (
+                        pendingKycs.map(kyc => (
+                            <motion.div
+                                key={kyc._id}
+                                layout
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                                className="bg-white p-4 rounded-[2rem] border border-slate-100 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-50/50 transition-all group flex items-center justify-between"
+                            >
+                                <div className="flex items-center gap-5">
+                                    <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center font-black text-slate-400 overflow-hidden shadow-inner group-hover:scale-105 transition-transform">
+                                        {kyc.userId.name.charAt(0).toUpperCase()}
                                     </div>
-                                    <p className="font-black text-slate-400">Queue is clear.</p>
-                                </motion.div>
-                            ) : (
-                                pendingKycs.map((kyc) => (
-                                    <motion.div
-                                        key={kyc._id}
-                                        layout
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        onClick={() => {
-                                            setSelectedKyc(kyc);
-                                            setShowFullAadhaar(false);
-                                        }}
-                                        className={`p-5 cursor-pointer rounded-3xl border-2 transition-all duration-300 ${selectedKyc?._id === kyc._id ? 'bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-100 transform scale-[1.02]' : 'bg-white border-transparent hover:border-blue-200 shadow-sm'}`}
-                                    >
-                                        <div className="flex items-center justify-between mb-2">
-                                            <h4 className="font-black text-sm truncate max-w-[180px]">{kyc.userId.name}</h4>
-                                            <span className={`text-[10px] font-black uppercase ${selectedKyc?._id === kyc._id ? 'text-blue-200' : 'text-slate-400'}`}>
-                                                {kyc.aadhaarLast4}
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-0.5">
+                                            <span className="font-extrabold text-slate-900">{kyc.userId.name}</span>
+                                            <span className="px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 text-[9px] font-black uppercase tracking-wider border border-orange-100">
+                                                Pending Review
                                             </span>
                                         </div>
-                                        <div className="flex items-center justify-between">
-                                            <p className={`text-[10px] font-bold ${selectedKyc?._id === kyc._id ? 'text-blue-100' : 'text-slate-500'}`}>
-                                                {new Date(kyc.createdAt).toLocaleDateString()}
-                                            </p>
-                                            <div className={`p-1.5 bg-transparent ${selectedKyc?._id === kyc._id ? 'text-white' : 'text-blue-600'}`}>
-                                                <ArrowRight className="w-4 h-4" />
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                ))
-                            )}
-                        </AnimatePresence>
-                    </div>
-                </div>
-
-                {/* Detail Investigation Workspace */}
-                <Card className="flex-1 rounded-[2.5rem] bg-white border-none shadow-sm overflow-hidden flex flex-col relative">
-                    <AnimatePresence mode="wait">
-                        {selectedKyc ? (
-                            <motion.div 
-                                key={selectedKyc._id}
-                                initial={{ opacity: 0, y: 15 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -15 }}
-                                className="h-full flex flex-col overflow-hidden"
-                            >
-                                {/* Header */}
-                                <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-white flex-none">
-                                    <div className="flex items-center gap-5">
-                                        <div className="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-3xl font-black border-4 border-blue-50">
-                                            {selectedKyc.userId.name.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <h3 className="text-2xl font-black text-slate-900 tracking-tight">{selectedKyc.userId.name}</h3>
-                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                                                <ShieldCheck className="w-3.5 h-3.5 text-blue-500" /> Active Investigation
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <button 
-                                            onClick={() => setRejectingId(selectedKyc._id)}
-                                            className="text-red-600 hover:text-red-700 font-black px-6 h-12 rounded-2xl transition-all flex items-center gap-2 hover:bg-red-50"
-                                        >
-                                            <X className="w-5 h-5" /> Reject
-                                        </button>
-                                        <Button 
-                                            onClick={() => handleReview(selectedKyc._id, 'APPROVED')}
-                                            className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 rounded-2xl font-black text-sm h-12 shadow-lg shadow-emerald-50 transition-all hover:-translate-y-0.5"
-                                        >
-                                            <Check className="w-5 h-5 mr-2" /> Approve
-                                        </Button>
+                                        <p className="text-xs text-slate-400 font-bold">{kyc.userId.email}</p>
                                     </div>
                                 </div>
-
-                                {/* Content Workspace */}
-                                <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
-                                    {/* Data Blocks - MOVED UP */}
-                                    <div className="grid grid-cols-2 gap-8">
-                                        <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">User Metadata Verification</p>
-                                            <div className="space-y-6">
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Full Legal Name</p>
-                                                    <p className="text-lg font-black text-slate-900">{selectedKyc.userId.name}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Identity Secret (Aadhaar)</p>
-                                                    <div className="flex items-center gap-3">
-                                                        <p className="text-xl font-black text-slate-900 font-mono tracking-tighter">
-                                                            {formatAadhaar(selectedKyc.aadhaarFull || '')}
-                                                        </p>
-                                                        <button 
-                                                            onClick={() => setShowFullAadhaar(!showFullAadhaar)}
-                                                            className="p-2 bg-transparent text-slate-400 hover:text-blue-600 transition-all rounded-xl"
-                                                        >
-                                                            {showFullAadhaar ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">System Identity Feed</p>
-                                            <div className="space-y-6">
-                                                <div className="flex justify-between items-end">
-                                                    <div>
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Reported Age</p>
-                                                        <p className="text-lg font-black text-slate-900">{selectedKyc.userId.age} Years</p>
-                                                    </div>
-                                                    <div className="bg-blue-600 text-white px-3 py-1 rounded-lg text-[9px] font-black tracking-widest uppercase shadow-lg shadow-blue-100">
-                                                        Unverified
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Communication Channel</p>
-                                                    <p className="text-[13px] font-bold text-slate-600">{selectedKyc.userId.email}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Physical Evidence - SMALLER PREVIEWS */}
-                                    <div className="grid grid-cols-2 gap-8">
-                                        <div className="space-y-4">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Aadhaar Verification Document</p>
-                                            <button 
-                                                onClick={() => setSelectedImage({ url: getProxyUrl(selectedKyc.userId._id, 'document'), title: 'Primary Documentation' })}
-                                                className="w-full max-w-[320px] relative group rounded-[2.5rem] overflow-hidden border-8 border-slate-50 shadow-inner aspect-[4/3] bg-slate-100"
-                                            >
-                                                <img src={getProxyUrl(selectedKyc.userId._id, 'document')} className="w-full h-full object-cover" alt="Docs" />
-                                                <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                                    <Maximize2 className="text-white w-10 h-10" />
-                                                </div>
-                                            </button>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Real-Time Validation Selfie</p>
-                                            <button 
-                                                onClick={() => setSelectedImage({ url: getProxyUrl(selectedKyc.userId._id, 'selfie'), title: 'Live Likeness' })}
-                                                className="w-full max-w-[320px] relative group rounded-[2.5rem] overflow-hidden border-8 border-slate-50 shadow-inner aspect-[4/3] bg-slate-100"
-                                            >
-                                                <img src={getProxyUrl(selectedKyc.userId._id, 'selfie')} className="w-full h-full object-cover" alt="Selfie" />
-                                                <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                                    <Maximize2 className="text-white w-10 h-10" />
-                                                </div>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Content area is now free of rejection form, which is now a modal */}
-                                </div>
-                            </motion.div>
-                        ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-center p-16">
-                                <motion.div 
-                                    initial={{ scale: 0.8, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    className="w-32 h-32 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mb-10 shadow-inner"
+                                <button 
+                                    onClick={() => setSelectedKyc(kyc)}
+                                    className="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-600 transition-colors flex items-center gap-2 shadow-lg shadow-slate-100"
                                 >
-                                    <ShieldCheck className="w-16 h-16 text-slate-200" />
-                                </motion.div>
-                                <h3 className="text-3xl font-black text-slate-900 mb-2">Protocol Idle</h3>
-                                <p className="text-slate-400 font-bold text-lg max-w-[340px] leading-relaxed">
-                                    Select an identity from the queue to start the verification protocol.
-                                </p>
-                            </div>
-                        )}
-                    </AnimatePresence>
-                </Card>
+                                    Review <ArrowRight className="w-3.5 h-3.5" />
+                                </button>
+                            </motion.div>
+                        ))
+                    )}
+                </AnimatePresence>
             </div>
 
-            {/* Overlays */}
-            {/* Premium Image Preview Lightbox */}
+            {/* KYC Detail Modal */}
             <AnimatePresence>
-                {selectedImage && (
-                    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 md:p-12 overflow-hidden">
+                {selectedKyc && (
+                    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
                         <motion.div 
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            onClick={() => setSelectedImage(null)}
-                            className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl"
+                            onClick={() => setSelectedKyc(null)}
+                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
                         />
                         
                         <motion.div 
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-5xl h-full flex flex-col items-center justify-center z-10 pointer-events-none"
+                            className="relative w-full max-w-4xl bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col flex-none max-h-[90vh]"
                         >
-                            {/* Controls & Title */}
-                            <div className="absolute top-0 inset-x-0 flex items-center justify-between p-6 pointer-events-auto">
-                                <div className="space-y-1">
-                                    <h3 className="text-xl font-black text-white uppercase tracking-tighter">{selectedImage.title}</h3>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Secure View</span>
+                            {/* Modal Header */}
+                            <div className="p-8 border-b border-slate-50 flex items-center justify-between shrink-0">
+                                <div className="flex items-center gap-5">
+                                    <div className="w-16 h-16 rounded-[1.5rem] bg-emerald-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-emerald-100">
+                                        {selectedKyc.userId.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter">{selectedKyc.userId.name}</h3>
+                                        <p className="text-xs font-bold text-slate-400">Identity Verification Request ({selectedKyc.userId.age} years)</p>
                                     </div>
                                 </div>
-                                <button 
-                                    onClick={() => setSelectedImage(null)}
-                                    className="p-4 text-white hover:text-white/70 transition-all hover:rotate-90 active:scale-90"
-                                >
-                                    <X className="w-10 h-10" />
+                                <button onClick={() => { setSelectedKyc(null); setShowFullAadhaar(false); }} className="p-3 bg-slate-50 rounded-2xl text-slate-400 hover:text-slate-900 transition-colors">
+                                    <X className="w-6 h-6" />
                                 </button>
                             </div>
 
-                            {/* Image Frame */}
-                            <div className="w-full h-full flex items-center justify-center p-12 lg:p-24">
-                                <motion.img 
-                                    layoutId={`img-${selectedImage.url}`}
-                                    src={selectedImage.url} 
-                                    className="max-w-full max-h-full object-contain rounded-3xl shadow-[0_0_80px_rgba(0,0,0,0.5)] border-4 border-white/5 pointer-events-auto"
-                                    alt="DetailView" 
-                                />
+                            {/* Modal Body */}
+                            <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+                                {/* Aadhaar Display */}
+                                <div className="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 flex items-center justify-between">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Aadhaar Identity</p>
+                                        <p className="text-2xl font-black text-slate-900 font-mono tracking-wider">
+                                            {formatAadhaar(selectedKyc.aadhaarFull || '')}
+                                        </p>
+                                    </div>
+                                    <button 
+                                        onClick={() => setShowFullAadhaar(!showFullAadhaar)}
+                                        className="w-12 h-12 flex items-center justify-center bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-emerald-600 transition-colors"
+                                    >
+                                        {showFullAadhaar ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
+                                </div>
+
+                                {/* Evidence Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-4">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Identification Document</p>
+                                        <button 
+                                            onClick={() => setSelectedImage({ url: getProxyUrl(selectedKyc.userId._id, 'document'), title: 'Primary ID' })}
+                                            className="w-full relative group rounded-[2.5rem] overflow-hidden border-4 border-slate-50 aspect-video bg-slate-100 shadow-inner"
+                                        >
+                                            <img src={getProxyUrl(selectedKyc.userId._id, 'document')} className="w-full h-full object-cover" alt="" />
+                                            <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                <Maximize2 className="text-white w-8 h-8" />
+                                            </div>
+                                        </button>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Likeness Check</p>
+                                        <button 
+                                            onClick={() => setSelectedImage({ url: getProxyUrl(selectedKyc.userId._id, 'selfie'), title: 'Selfie Validation' })}
+                                            className="w-full relative group rounded-[2.5rem] overflow-hidden border-4 border-slate-50 aspect-video bg-slate-100 shadow-inner"
+                                        >
+                                            <img src={getProxyUrl(selectedKyc.userId._id, 'selfie')} className="w-full h-full object-cover" alt="" />
+                                            <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                <Maximize2 className="text-white w-8 h-8" />
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
+
+                            {/* Action Footer */}
+                            <div className="p-8 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
+                                <button 
+                                    onClick={() => setRejectingId(selectedKyc._id)}
+                                    className="h-14 px-8 border-2 border-red-100 text-red-600 bg-white hover:bg-red-50 font-black rounded-2xl text-xs uppercase tracking-widest flex items-center gap-2 transition"
+                                >
+                                    <X className="w-4 h-4" /> Decline
+                                </button>
+                                <button 
+                                    onClick={() => handleReview(selectedKyc._id, 'APPROVED')}
+                                    className="h-14 px-10 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest flex items-center gap-2 transition shadow-xl shadow-emerald-100"
+                                >
+                                    <Check className="w-4 h-4" /> Approve Identity
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Premium Overlays */}
+            <AnimatePresence>
+                {selectedImage && (
+                    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedImage(null)}
+                            className="absolute inset-0 bg-slate-950/95 backdrop-blur-2xl"
+                        />
+                        <button onClick={() => setSelectedImage(null)} className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors z-10">
+                            <X className="w-10 h-10" />
+                        </button>
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="relative z-10 w-full max-w-5xl aspect-video"
+                        >
+                            <img src={selectedImage.url} className="w-full h-full object-contain rounded-3xl" alt="" />
                         </motion.div>
                     </div>
                 )}
@@ -339,40 +269,32 @@ export const KYCPanel = () => {
             {/* Rejection Feedback Modal */}
             <AnimatePresence>
                 {rejectingId && (
-                    <div className="fixed inset-0 z-[1001] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-[2001] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
                         <motion.div 
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="w-full max-w-xl bg-white rounded-[3rem] shadow-2xl overflow-hidden p-10"
+                            className="bg-white rounded-[3rem] w-full max-w-md overflow-hidden shadow-2xl p-10"
                         >
-                            <div className="flex flex-col mb-8">
-                                <h4 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Reject Application</h4>
-                                <p className="text-xs font-bold text-slate-400">Provide feedback to the user regarding the rejection.</p>
+                            <div className="mb-8">
+                                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Reject Verification</h3>
+                                <p className="text-xs font-bold text-slate-400 mt-1">Provide feedback for the user</p>
                             </div>
-
                             <textarea 
                                 className="w-full p-6 bg-slate-50 border-4 border-transparent rounded-[2rem] text-sm font-bold text-slate-800 outline-none focus:bg-white focus:border-red-100 transition-all placeholder:text-slate-300 min-h-[160px]"
-                                placeholder="State the discrepancy or missing information..."
+                                placeholder="State the reason (e.g., Blur image)..."
                                 value={rejectReason}
                                 onChange={(e) => setRejectReason(e.target.value)}
                             />
-
-                            <div className="grid grid-cols-2 gap-4 mt-8">
-                                <Button 
-                                    variant="ghost" 
-                                    onClick={() => setRejectingId(null)}
-                                    className="h-14 rounded-2xl font-black text-slate-400 hover:bg-slate-50"
-                                >
-                                    Cancel
-                                </Button>
-                                <Button 
+                            <div className="grid grid-cols-2 gap-3 mt-8">
+                                <button onClick={() => setRejectingId(null)} className="h-14 rounded-2xl font-black text-slate-400 hover:bg-slate-50">Cancel</button>
+                                <button 
                                     onClick={() => handleReview(rejectingId, 'REJECTED', rejectReason)}
-                                    className="bg-red-600 hover:bg-red-700 text-white h-14 rounded-2xl font-black shadow-xl shadow-red-100"
+                                    className="bg-red-600 hover:bg-red-700 text-white h-14 rounded-2xl font-black shadow-xl shadow-red-100 disabled:opacity-50"
                                     disabled={!rejectReason.trim()}
                                 >
-                                    Confirm Rejection
-                                </Button>
+                                    Confirm
+                                </button>
                             </div>
                         </motion.div>
                     </div>

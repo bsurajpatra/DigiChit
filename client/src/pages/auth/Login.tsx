@@ -60,14 +60,14 @@ export const Login = () => {
         <div className="h-screen overflow-hidden grid lg:grid-cols-2 bg-white font-sans">
             <div className="hidden lg:flex flex-col justify-between p-12 bg-slate-900 text-white relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full">
-                    <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-600/20 blur-[120px] rounded-full" />
+                    <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-emerald-600 blur-[120px] rounded-full" />
                 </div>
                 <Link to="/" className="flex items-center gap-2 relative z-10">
                     <img src={logo} alt="DigiChit Logo" className="w-10 h-10 object-contain" />
                     <span className="text-xl font-bold tracking-tight">DigiChit</span>
                 </Link>
                 <div className="relative z-10 max-w-sm">
-                    <h2 className="text-4xl font-bold leading-tight mb-6">Welcome Back to the <span className="text-blue-400">Future</span>.</h2>
+                    <h2 className="text-4xl font-bold leading-tight mb-6">Welcome Back to the <span className="text-emerald-600">Future</span>.</h2>
                     <p className="text-base text-slate-400">Access your digital chit fund dashboard and participate in live auctions securely.</p>
                 </div>
                 <div className="relative z-10 text-[10px] text-slate-500 uppercase tracking-widest font-bold">© 2026 DigiChit Technologies</div>
@@ -94,12 +94,12 @@ export const Login = () => {
                             <label className="text-sm font-bold text-slate-700 ml-1 uppercase tracking-wider">Email Address</label>
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Mail className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                                    <Mail className="w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
                                 </div>
                                 <input
                                     type="email"
                                     placeholder="john@example.com"
-                                    className={`w-full pl-12 pr-4 py-4 bg-white border ${errors.email ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} rounded-2xl focus:ring-4 outline-none transition-all text-base`}
+                                    className={`w-full pl-12 pr-4 py-4 bg-white border ${errors.email ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-emerald-500 focus:border-emerald-500'} rounded-2xl focus:ring-4 outline-none transition-all text-base`}
                                     {...register('email')}
                                 />
                             </div>
@@ -108,16 +108,16 @@ export const Login = () => {
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700 ml-1 flex justify-between uppercase tracking-wider">
                                 <span>Password</span>
-                                <Link to="/forgot-password" className="text-blue-600 font-bold hover:underline normal-case">Forgot?</Link>
+                                <Link to="/forgot-password" className="text-emerald-600 font-bold hover:underline normal-case">Forgot?</Link>
                             </label>
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Lock className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                                    <Lock className="w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
                                 </div>
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     placeholder="••••••••"
-                                    className={`w-full pl-12 pr-12 py-4 bg-white border ${errors.password ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} rounded-2xl focus:ring-4 outline-none transition-all text-base`}
+                                    className={`w-full pl-12 pr-12 py-4 bg-white border ${errors.password ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-emerald-500 focus:border-emerald-500'} rounded-2xl focus:ring-4 outline-none transition-all text-base`}
                                     {...register('password')}
                                 />
                                 <button
@@ -133,7 +133,7 @@ export const Login = () => {
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="w-full py-4.5 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 text-lg disabled:opacity-70"
+                            className="w-full py-4.5 bg-emerald-600 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 text-lg disabled:opacity-70"
                         >
                             {isSubmitting ? (
                                 <Loader2 className="w-6 h-6 animate-spin" />
@@ -146,7 +146,7 @@ export const Login = () => {
                         </button>
                     </form>
                     <div className="mt-10 text-center text-slate-600">
-                        Don't have an account? <Link to="/signup" className="text-blue-600 font-bold hover:underline">Create Account</Link>
+                        Don't have an account? <Link to="/signup" className="text-emerald-600 font-bold hover:underline">Create Account</Link>
                     </div>
                 </motion.div>
             </div>

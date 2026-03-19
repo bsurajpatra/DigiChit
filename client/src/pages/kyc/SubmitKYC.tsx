@@ -115,7 +115,7 @@ export const SubmitKYC = () => {
         <div className="h-screen overflow-hidden grid lg:grid-cols-2 bg-white font-sans">
             <div className="hidden lg:flex flex-col justify-between p-12 bg-slate-900 text-white relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full">
-                    <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-600/20 blur-[120px] rounded-full" />
+                    <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-emerald-600 blur-[120px] rounded-full" />
                 </div>
                 <div className="relative z-10">
                     <Link to="/" className="flex items-center gap-2 mb-16">
@@ -123,28 +123,28 @@ export const SubmitKYC = () => {
                         <span className="text-xl font-bold tracking-tight">DigiChit</span>
                     </Link>
                     <div className="max-w-sm">
-                        <h2 className="text-4xl font-bold leading-tight mb-6">Complete Your <span className="text-blue-400">Profile</span>.</h2>
+                        <h2 className="text-4xl font-bold leading-tight mb-6">Complete Your <span className="text-emerald-600">Profile</span>.</h2>
                         <p className="text-base text-slate-400 leading-relaxed mb-10">
                             We use advanced encryption and bank-grade storage to protect your most sensitive data. We NEVER store plaintext Aadhaar numbers on our servers.
                         </p>
                         
                         <div className="space-y-6">
                             <div className="flex gap-4 items-start">
-                                <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 font-bold">1</div>
+                                <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-emerald-600 shrink-0 font-bold">1</div>
                                 <div>
                                     <h4 className="font-bold mb-1">Government ID</h4>
                                     <p className="text-sm text-slate-400">12-digit permanent identity</p>
                                 </div>
                             </div>
                             <div className="flex gap-4 items-start">
-                                <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 font-bold">2</div>
+                                <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-emerald-600 shrink-0 font-bold">2</div>
                                 <div>
                                     <h4 className="font-bold mb-1">Document Scanner</h4>
                                     <p className="text-sm text-slate-400">Secure automated review</p>
                                 </div>
                             </div>
                             <div className="flex gap-4 items-start">
-                                <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 font-bold">3</div>
+                                <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-emerald-600 shrink-0 font-bold">3</div>
                                 <div>
                                     <h4 className="font-bold mb-1">Liveness Check</h4>
                                     <p className="text-sm text-slate-400">Match identity with reality</p>
@@ -174,7 +174,7 @@ export const SubmitKYC = () => {
                             <label className="text-sm font-bold text-slate-700 ml-1 uppercase tracking-wider mb-2 block">Aadhaar Number <span className="text-[10px] text-slate-400 normal-case ml-2 font-medium">(12 Digits)</span></label>
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <CreditCard className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                                    <CreditCard className="w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
                                 </div>
                                 <input
                                     type="text"
@@ -184,7 +184,7 @@ export const SubmitKYC = () => {
                                         const target = e.target as HTMLInputElement;
                                         target.value = target.value.replace(/[^0-9]/g, '');
                                     }}
-                                    className={`w-full pl-12 pr-4 py-4 bg-white border ${errors.aadhaar ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} rounded-2xl focus:ring-4 outline-none transition-all text-base tracking-widest font-mono`}
+                                    className={`w-full pl-12 pr-4 py-4 bg-white border ${errors.aadhaar ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-emerald-500 focus:border-emerald-500'} rounded-2xl focus:ring-4 outline-none transition-all text-base tracking-widest font-mono`}
                                     {...register('aadhaar')}
                                 />
                             </div>
@@ -194,7 +194,7 @@ export const SubmitKYC = () => {
                         <div className="grid sm:grid-cols-2 gap-6">
                             <div>
                                 <label className="text-sm font-bold text-slate-700 ml-1 uppercase tracking-wider mb-2 block">Aadhaar Card</label>
-                                <div className={`relative flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-2xl transition-all cursor-pointer bg-white ${watchDocument && watchDocument.length > 0 ? 'border-blue-500 shadow-lg shadow-blue-100' : 'border-slate-200 hover:border-blue-400 hover:bg-slate-50'}`}>
+                                <div className={`relative flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-2xl transition-all cursor-pointer bg-white ${watchDocument && watchDocument.length > 0 ? 'border-emerald-300 shadow-lg shadow-emerald-200' : 'border-slate-200 hover:border-emerald-400 hover:bg-slate-50'}`}>
                                     <input type="file" accept=".jpg,.jpeg,.png" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" {...register('document')} />
                                     {watchDocument && watchDocument.length > 0 ? (
                                         <div className="absolute inset-2 z-0 pointer-events-none">{renderPreview(watchDocument)}</div>
@@ -211,7 +211,7 @@ export const SubmitKYC = () => {
 
                             <div>
                                 <label className="text-sm font-bold text-slate-700 ml-1 uppercase tracking-wider mb-2 block">Clear Selfie</label>
-                                <div className={`relative flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-2xl transition-all cursor-pointer bg-white ${watchSelfie && watchSelfie.length > 0 ? 'border-blue-500 shadow-lg shadow-blue-100' : 'border-slate-200 hover:border-blue-400 hover:bg-slate-50'}`}>
+                                <div className={`relative flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-2xl transition-all cursor-pointer bg-white ${watchSelfie && watchSelfie.length > 0 ? 'border-emerald-300 shadow-lg shadow-emerald-200' : 'border-slate-200 hover:border-emerald-400 hover:bg-slate-50'}`}>
                                     <input type="file" accept=".jpg,.jpeg,.png" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" {...register('selfie')} />
                                     {watchSelfie && watchSelfie.length > 0 ? (
                                         <div className="absolute inset-2 z-0 pointer-events-none">{renderPreview(watchSelfie)}</div>
@@ -228,9 +228,9 @@ export const SubmitKYC = () => {
                         </div>
 
                         <div>
-                            <label className="flex items-start gap-4 p-5 bg-white border border-slate-200 rounded-2xl cursor-pointer hover:border-blue-300 transition-colors">
+                            <label className="flex items-start gap-4 p-5 bg-white border border-slate-200 rounded-2xl cursor-pointer hover:border-emerald-400 transition-colors">
                                 <div className="flex items-center h-6">
-                                    <input type="checkbox" className="w-5 h-5 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer" {...register('undertakingAccepted')} />
+                                    <input type="checkbox" className="w-5 h-5 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 cursor-pointer" {...register('undertakingAccepted')} />
                                 </div>
                                 <div className="text-sm text-slate-600 leading-relaxed font-medium">
                                     I hereby declare that the details furnished above are true and correct to the best of my knowledge and belief. I completely agree to the DigiChit Terms & Conditions.
@@ -241,14 +241,14 @@ export const SubmitKYC = () => {
 
                         {isSubmitting && uploadProgress > 0 && (
                             <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden shadow-inner">
-                                <div className="bg-blue-600 h-full rounded-full transition-all duration-300 ease-out" style={{ width: `${uploadProgress}%` }} />
+                                <div className="bg-emerald-600 h-full rounded-full transition-all duration-300 ease-out" style={{ width: `${uploadProgress}%` }} />
                             </div>
                         )}
 
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="w-full py-4.5 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 text-lg disabled:opacity-70 active:scale-[0.99]"
+                            className="w-full py-4.5 bg-emerald-600 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 text-lg disabled:opacity-70 active:scale-[0.99]"
                         >
                             {isSubmitting ? (
                                 <>

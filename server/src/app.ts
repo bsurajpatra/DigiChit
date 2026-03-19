@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes.js';
 import kycRoutes from './routes/kyc.routes.js';
 import adminRoutes from './routes/admin.routes.js';
+import userRoutes from './routes/user.routes.js';
+import organizerRoutes from './routes/organizer.routes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { globalErrorHandler } from './middlewares/error.middleware.js';
@@ -45,6 +47,8 @@ app.get('/favicon.ico', (req, res) => res.status(204).end());
 app.use('/api/auth', authRoutes);
 app.use('/api/kyc', kycRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/organizer', organizerRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

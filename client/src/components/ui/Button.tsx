@@ -20,7 +20,7 @@ export const Button: React.FC<ButtonProps> = ({
     const stateStyles = disabled || isLoading ? 'opacity-50 cursor-not-allowed' : 'active:scale-[0.98]';
 
     const variants = {
-        primary: 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm shadow-blue-200',
+        primary: 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm shadow-emerald-200',
         secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200',
         outline: 'border border-slate-200 bg-transparent text-slate-700 hover:bg-slate-50',
         ghost: 'bg-transparent text-slate-600 hover:bg-slate-100',

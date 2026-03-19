@@ -7,7 +7,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         res.status(201).json({
             success: true,
             message: 'Registration successful. Please check your email for verification.',
-            data: { user: { id: user._id, email: user.email, name: user.name, role: user.role, emailVerified: user.emailVerified, kycStatus: user.kycStatus, accountStatus: user.accountStatus } }
+            data: { user: { id: user._id, email: user.email, name: user.name, role: user.role, emailVerified: user.emailVerified, kycStatus: user.kycStatus, organizerStatus: user.organizerStatus, accountStatus: user.accountStatus, profilePictureUrl: user.profilePictureUrl } }
         });
     } catch (error) {
         next(error);
@@ -21,7 +21,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
         res.status(200).json({
             success: true,
             token,
-            data: { user: { id: user._id, email: user.email, name: user.name, role: user.role, emailVerified: user.emailVerified, kycStatus: user.kycStatus, accountStatus: user.accountStatus } }
+            data: { user: { id: user._id, email: user.email, name: user.name, role: user.role, emailVerified: user.emailVerified, kycStatus: user.kycStatus, organizerStatus: user.organizerStatus, accountStatus: user.accountStatus, profilePictureUrl: user.profilePictureUrl } }
         });
     } catch (error) {
         next(error);

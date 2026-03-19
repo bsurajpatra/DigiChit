@@ -11,7 +11,7 @@ const AboutUs = () => {
                         <img src={logo} alt="DigiChit Logo" className="w-10 h-10 object-contain" />
                         <span className="text-xl font-bold tracking-tight text-slate-900">DigiChit</span>
                     </Link>
-                    <Link to="/" className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
+                    <Link to="/" className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-emerald-700 transition-colors">
                         <ArrowLeft className="w-4 h-4" /> Back to Home
                     </Link>
                 </div>

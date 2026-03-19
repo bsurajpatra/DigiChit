@@ -17,7 +17,7 @@ export const Dashboard = () => {
                 <Card className="!p-6">
                     <div className="text-slate-500 text-sm font-semibold mb-2 flex items-center justify-between">
                         Upcoming Chit
-                        <Clock className="w-4 h-4 text-blue-500" />
+                        <Clock className="w-4 h-4 text-emerald-600" />
                     </div>
                     <div className="text-2xl font-bold text-slate-900">₹25,000</div>
                     <div className="text-xs text-slate-500 mt-2">Due in 5 days</div>

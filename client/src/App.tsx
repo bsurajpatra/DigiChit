@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/routes/ProtectedRoute';
 import { RoleRoute } from './components/routes/RoleRoute';
+import { RoleProtectedRoute } from './components/routes/RoleProtectedRoute';
 
 // Layouts
 import { DashboardLayout } from './components/layouts/DashboardLayout';
@@ -21,19 +22,40 @@ import { KYCStatus } from './pages/kyc/KYCStatus';
 
 // Dashboard & Admin
 import { Dashboard } from './pages/dashboard/Dashboard';
+import { Profile } from './pages/dashboard/Profile';
+import { OrganizerStatus } from './pages/dashboard/OrganizerStatus';
 import { KYCPanel } from './pages/admin/KYCPanel';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { OrganizerApplications } from './pages/admin/OrganizerApplications';
 
 // Legacy components (can be phased out)
 import LandingPage from './components/LandingPage';
+
+// Utilities
+import ScrollToTop from './components/ScrollToTop';
+
+// Informational / Legal Pages
+import AboutUs from './components/AboutUs';
+import Contact from './pages/legal/Contact';
+import TermsAndConditions from './pages/legal/TermsAndConditions';
+import PrivacyPolicy from './pages/legal/PrivacyPolicy';
+import Disclaimer from './pages/legal/Disclaimer';
 
 function App() {
     return (
         <AuthProvider>
             <BrowserRouter>
+                <ScrollToTop />
                 <Routes>
                     {/* Public Landing Page */}
                     <Route path="/" element={<LandingPage />} />
+
+                    {/* Public Info / Legal Pages */}
+                    <Route path="/about-us" element={<AboutUs />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                    <Route path="/disclaimer" element={<Disclaimer />} />
 
                     {/* Standalone Auth Routes */}
                     <Route path="/login" element={<Login />} />
@@ -54,11 +76,19 @@ function App() {
                         {/* Dashboard Layout includes the Sidebar */}
                         <Route element={<DashboardLayout />}>
                             <Route path="/dashboard" element={<Dashboard />} />
-                            
+                            <Route path="/profile" element={<Profile />} />
+                            <Route path="/organizer-status" element={<OrganizerStatus />} />
+
+                            {/* Organizer specific routes */}
+                            <Route element={<RoleProtectedRoute allowedRoles={['ORGANIZER']} />}>
+                                {/* Future: <Route path="/organizer/dashboard" element={<OrganizerDashboard />} /> */}
+                            </Route>
+
                             {/* Admin specific routes */}
                             <Route element={<RoleRoute allowedRoles={['ADMIN']} />}>
                                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
                                 <Route path="/admin/kyc" element={<KYCPanel />} />
+                                <Route path="/admin/organizers" element={<OrganizerApplications />} />
                             </Route>
                         </Route>
                     </Route>

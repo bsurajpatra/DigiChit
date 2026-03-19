@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import User, { UserRole, AccountStatus, KYCStatus } from '../models/User.js';
+import User, { UserRole, AccountStatus, KYCStatus, OrganizerStatus } from '../models/User.js';
 import { AppError } from '../utils/appError.js';
 
 export interface AuthRequest extends Request {
@@ -9,6 +9,7 @@ export interface AuthRequest extends Request {
         role: UserRole;
         accountStatus: AccountStatus;
         kycStatus: KYCStatus;
+        organizerStatus: OrganizerStatus;
     };
 }
 
@@ -50,7 +51,8 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
             id: decoded.id, 
             role: decoded.role,
             accountStatus: currentUser.accountStatus,
-            kycStatus: currentUser.kycStatus
+            kycStatus: currentUser.kycStatus,
+            organizerStatus: currentUser.organizerStatus
         };
         next();
     } catch (error) {
@@ -85,6 +87,27 @@ export const checkKYCApproved = (req: AuthRequest, res: Response, next: NextFunc
 
     if (req.user.kycStatus !== KYCStatus.APPROVED) {
         throw new AppError('Identity verification required for this action. Please complete your KYC.', 403, 'KYC_REQUIRED');
+    }
+
+    next();
+};
+
+/**
+ * Ensures user is eligible to apply for organizer status.
+ */
+export const checkOrganizerEligible = (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) return next(new AppError('Authentication required', 401, 'AUTH_REQUIRED'));
+
+    if (req.user.accountStatus !== AccountStatus.ACTIVE) {
+        return next(new AppError('Your account must be ACTIVE to apply.', 403, 'ACCOUNT_NOT_ACTIVE'));
+    }
+
+    if (req.user.kycStatus !== KYCStatus.APPROVED) {
+        return next(new AppError('Your identity must be fully verified (KYC Approved) to apply.', 403, 'KYC_NOT_APPROVED'));
+    }
+
+    if (req.user.organizerStatus === OrganizerStatus.PENDING || req.user.organizerStatus === OrganizerStatus.APPROVED) {
+        return next(new AppError('You have already applied or are an approved Organizer.', 400, 'ALREADY_APPLIED'));
     }
 
     next();

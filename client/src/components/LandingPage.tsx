@@ -26,7 +26,7 @@ const LandingPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-100 font-sans">
+        <div className="min-h-screen bg-white text-slate-900 selection:bg-emerald-600 font-sans">
             {/* Navbar */}
             <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -35,9 +35,9 @@ const LandingPage = () => {
                         <span className="text-xl font-bold tracking-tight text-slate-900">DigiChit</span>
                     </div>
                     <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-500">
-                        <a href="#how-it-works" className="hover:text-blue-600 transition-colors">How it works</a>
-                        <a href="#security" className="hover:text-blue-600 transition-colors">Security</a>
-                        <Link to="/signup" className="px-5 py-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all font-semibold shadow-md shadow-blue-200">
+                        <a href="#how-it-works" className="hover:text-emerald-700 transition-colors">How it works</a>
+                        <a href="#security" className="hover:text-emerald-700 transition-colors">Security</a>
+                        <Link to="/signup" className="px-5 py-2.5 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition-all font-semibold shadow-md shadow-emerald-200">
                             Get Started
                         </Link>
                     </div>
@@ -48,7 +48,6 @@ const LandingPage = () => {
                 {/* 1️⃣ Hero Section */}
                 <section className="relative pt-32 pb-20 overflow-hidden bg-slate-50">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none">
-                        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full" />
                         <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-teal-500/5 blur-[100px] rounded-full" />
                     </div>
 
@@ -58,22 +57,22 @@ const LandingPage = () => {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.8 }}
                         >
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold uppercase tracking-wider mb-6">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-600 border border-emerald-300 text-white text-xs font-bold uppercase tracking-wider mb-6">
                                 <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
                                 </span>
                                 The Future of Chit Funds
                             </div>
                             <h1 className="text-5xl lg:text-7xl font-bold text-slate-900 leading-[1.1] mb-6">
                                 Digital Chit Funds. <br />
-                                <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">Transparent. Secure.</span>
+                                <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">Transparent. Secure.</span>
                             </h1>
                             <p className="text-lg text-slate-600 mb-10 max-w-xl leading-relaxed">
                                 DigiChit brings traditional chit funds into a secure digital ecosystem with automated auctions, verified members, and full financial transparency.
                             </p>
                             <div className="flex flex-wrap gap-4">
-                                <Link to="/signup" className="group px-8 py-4 bg-blue-600 text-white rounded-2xl flex items-center gap-2 font-bold hover:shadow-xl hover:shadow-blue-200 transition-all active:scale-95 text-center justify-center">
+                                <Link to="/signup" className="group px-8 py-4 bg-emerald-600 text-white rounded-2xl flex items-center gap-2 font-bold hover:shadow-xl hover:shadow-emerald-300 transition-all active:scale-95 text-center justify-center">
                                     🚀 Get Started
                                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                 </Link>
@@ -97,7 +96,7 @@ const LandingPage = () => {
                                 />
                             </div>
                             {/* Decorative elements */}
-                            <div className="absolute -top-6 -right-6 w-32 h-32 bg-blue-200/40 blur-3xl" />
+                            <div className="absolute -top-6 -right-6 w-32 h-32 bg-emerald-600 blur-3xl" />
                             <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-teal-200/40 blur-3xl" />
                         </motion.div>
                     </div>
@@ -139,7 +138,7 @@ const LandingPage = () => {
                                 </p>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
-                                        <div className="text-2xl font-bold text-blue-600">100%</div>
+                                        <div className="text-2xl font-bold text-emerald-600">100%</div>
                                         <div className="text-xs text-slate-500 uppercase font-bold">Transparent</div>
                                     </div>
                                     <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
@@ -172,12 +171,12 @@ const LandingPage = () => {
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ delay: i * 0.1 }}
-                                    className="relative p-8 rounded-3xl bg-white border border-slate-200 hover:border-blue-500 hover:shadow-lg transition-all group"
+                                    className="relative p-8 rounded-3xl bg-white border border-slate-200 hover:border-emerald-400 hover:shadow-lg transition-all group"
                                 >
-                                    <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors">
-                                        <item.icon className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
+                                    <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center mb-6">
+                                        <item.icon className="w-6 h-6 text-white" />
                                     </div>
-                                    <div className="text-5xl font-extrabold text-blue-600/80 mb-2">{item.step}</div>
+                                    <div className="text-5xl font-extrabold text-emerald-600 mb-2">{item.step}</div>
                                     <h4 className="text-xl font-bold leading-tight text-slate-900">{item.title}</h4>
                                 </motion.div>
                             ))}
@@ -189,7 +188,7 @@ const LandingPage = () => {
                 <section className="py-24 bg-white" id="security">
                     <div className="max-w-7xl mx-auto px-6">
                         <div className="bg-slate-900 text-white rounded-[3rem] p-8 md:p-16 relative overflow-hidden shadow-2xl">
-                            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/10 blur-[100px] -mr-64 -mt-64" />
+                            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-600 blur-[100px] -mr-64 -mt-64" />
 
                             <div className="grid lg:grid-cols-2 gap-16 items-center">
                                 <div>
@@ -232,7 +231,7 @@ const LandingPage = () => {
                                                     initial={{ width: 0 }}
                                                     whileInView={{ width: '92%' }}
                                                     transition={{ duration: 1.5, delay: 0.5 }}
-                                                    className="h-full bg-gradient-to-r from-teal-500 to-blue-500"
+                                                    className="h-full bg-gradient-to-r from-teal-500 to-emerald-400"
                                                 />
                                             </div>
                                             <div className="flex justify-between text-xs text-slate-500">
@@ -253,7 +252,7 @@ const LandingPage = () => {
                         <div className="grid lg:grid-cols-2 gap-8">
                             {/* Organizer Benefits */}
                             <motion.div {...fadeIn} className="p-8 md:p-12 rounded-[2.5rem] bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mb-8 shadow-lg shadow-blue-200">
+                                <div className="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center mb-8 shadow-lg shadow-emerald-200">
                                     <BarChart3 className="w-7 h-7 text-white" />
                                 </div>
                                 <h3 className="text-3xl font-bold mb-6 text-slate-900">Organizer Benefits</h3>
@@ -265,7 +264,7 @@ const LandingPage = () => {
                                         "Risk monitoring"
                                     ].map(item => (
                                         <li key={item} className="flex items-center gap-3 text-slate-600">
-                                            <CheckCircle2 className="w-5 h-5 text-blue-600" />
+                                            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                                             <span>{item}</span>
                                         </li>
                                     ))}
@@ -303,17 +302,17 @@ const LandingPage = () => {
                             initial={{ opacity: 0, scale: 0.95 }}
                             whileInView={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.6 }}
-                            className="bg-blue-600 text-white rounded-[3rem] p-12 md:p-20 relative overflow-hidden shadow-2xl shadow-blue-200"
+                            className="bg-emerald-600 text-white rounded-[3rem] p-12 md:p-20 relative overflow-hidden shadow-2xl shadow-emerald-200"
                         >
                             <h2 className="text-4xl md:text-5xl font-bold mb-8 relative z-10">
                                 Ready to Digitize Your <br />Chit Fund?
                             </h2>
                             <div className="flex flex-wrap justify-center gap-4 relative z-10">
-                                <Link to="/signup" className="px-10 py-4 bg-white text-blue-600 rounded-2xl font-bold hover:bg-slate-50 transition-all active:scale-95 flex items-center gap-2 shadow-lg">
+                                <Link to="/signup" className="px-10 py-4 bg-white text-emerald-600 rounded-2xl font-bold hover:bg-slate-50 transition-all active:scale-95 flex items-center gap-2 shadow-lg">
                                     Start as Member
                                     <ChevronRight className="w-5 h-5" />
                                 </Link>
-                                <button className="px-10 py-4 bg-blue-700 text-white border border-blue-500 rounded-2xl font-bold hover:bg-blue-800 transition-all active:scale-95">
+                                <button className="px-10 py-4 bg-emerald-600 text-white border border-emerald-300 rounded-2xl font-bold hover:bg-emerald-700 transition-all active:scale-95">
                                     Apply as Organizer
                                 </button>
                             </div>
@@ -338,16 +337,16 @@ const LandingPage = () => {
                         <div>
                             <h5 className="font-bold mb-6 text-slate-900">Company</h5>
                             <ul className="space-y-3 text-sm text-slate-500">
-                                <li><Link to="/about-us" className="hover:text-blue-600 transition-colors">About Us</Link></li>
-                                <li><Link to="/contact" className="hover:text-blue-600 transition-colors">Contact</Link></li>
+                                <li><Link to="/about-us" className="hover:text-emerald-700 transition-colors">About Us</Link></li>
+                                <li><Link to="/contact" className="hover:text-emerald-700 transition-colors">Contact</Link></li>
                             </ul>
                         </div>
                         <div>
                             <h5 className="font-bold mb-6 text-slate-900">Legal</h5>
                             <ul className="space-y-3 text-sm text-slate-500">
-                                <li><Link to="/terms-and-conditions" className="hover:text-blue-600 transition-colors">Terms & Conditions</Link></li>
-                                <li><Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link></li>
-                                <li><Link to="/disclaimer" className="hover:text-blue-600 transition-colors">Disclaimer</Link></li>
+                                <li><Link to="/terms-and-conditions" className="hover:text-emerald-700 transition-colors">Terms & Conditions</Link></li>
+                                <li><Link to="/privacy-policy" className="hover:text-emerald-700 transition-colors">Privacy Policy</Link></li>
+                                <li><Link to="/disclaimer" className="hover:text-emerald-700 transition-colors">Disclaimer</Link></li>
                             </ul>
                         </div>
                     </div>
