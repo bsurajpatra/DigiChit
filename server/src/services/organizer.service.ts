@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import User, { OrganizerStatus, UserRole } from '../models/User.js';
 import AuditLog from '../models/AuditLog.js';
 import { AppError } from '../utils/appError.js';
+import { sendOrganizerApprovedEmail, sendOrganizerRejectedEmail } from '../utils/email.js';
 
 interface ApplyData {
     organizerApplicationReason: string;
@@ -88,6 +89,12 @@ export const approveOrganizer = async (adminId: string, adminRole: UserRole, tar
         }], { session });
 
         await session.commitTransaction();
+
+        // Send confirmation email (non-blocking)
+        sendOrganizerApprovedEmail(user.email, user.name).catch(err => 
+            console.error('Failed to send organizer approval email:', err)
+        );
+
         return user;
     } catch (error) {
         await session.abortTransaction();
@@ -123,6 +130,12 @@ export const rejectOrganizer = async (adminId: string, adminRole: UserRole, targ
         }], { session });
 
         await session.commitTransaction();
+
+        // Send rejection email (non-blocking)
+        sendOrganizerRejectedEmail(user.email, user.name, reason).catch(err => 
+            console.error('Failed to send organizer rejection email:', err)
+        );
+
         return user;
     } catch (error) {
         await session.abortTransaction();

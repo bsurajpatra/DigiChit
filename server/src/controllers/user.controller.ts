@@ -13,7 +13,7 @@ import * as cloudinaryService from '../services/cloudinary.service.js';
 export const getProfile = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         const user = await User.findById(req.user!.id).select(
-            'name email role age kycStatus accountStatus emailVerified lastLoginAt createdAt profilePictureUrl organizerStatus organizerRejectedReason'
+            'name email role age kycStatus accountStatus emailVerified lastLoginAt createdAt profilePictureUrl organizerStatus organizerRejectedReason city occupation incomeRange expectedChitValueRange expectedGroupSizeRange organizerApplicationReason'
         );
 
         if (!user) {

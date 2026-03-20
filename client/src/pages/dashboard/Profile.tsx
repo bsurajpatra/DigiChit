@@ -5,7 +5,7 @@ import { Loader } from '../../components/ui/Loader';
 import {
     Mail, Shield, Clock, Calendar, AlertTriangle,
     KeyRound, Eye, EyeOff, Lock, CheckCircle2, XCircle,
-    Loader2, FileText, Camera, X, UserCircle, Briefcase, Users
+    Loader2, FileText, Camera, X, UserCircle, Briefcase
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -29,21 +29,6 @@ interface ProfileData {
     expectedGroupSizeRange?: string;
     organizerApplicationReason?: string;
 }
-
-const CHIT_VALUE_LABELS: Record<string, string> = {
-    UP_TO_1_LAKH: 'Up to ₹1 Lakh',
-    ONE_TO_FIVE_LAKH: '₹1–5 Lakhs',
-    FIVE_TO_TEN_LAKH: '₹5–10 Lakhs',
-    TEN_TO_TWENTY_FIVE_LAKH: '₹10–25 Lakhs',
-    ABOVE_TWENTY_FIVE_LAKH: 'Above ₹25 Lakhs'
-};
-
-const GROUP_SIZE_LABELS: Record<string, string> = {
-    SMALL_5_TO_10: '5–10 Members',
-    MEDIUM_10_TO_20: '10–20 Members',
-    LARGE_20_TO_50: '20–50 Members',
-    VERY_LARGE_50_PLUS: '50+ Members'
-};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -410,16 +395,6 @@ export const Profile = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
                                 <Row icon={Briefcase} label="Operation City" value={profile.city} />
                                 <Row icon={UserCircle} label="Primary Profession" value={profile.occupation} />
-                                <Row icon={FileText} label="Income Group" value={profile.incomeRange} />
-                                <Row icon={Shield} label="Anticipated Scale" value={profile.expectedChitValueRange ? CHIT_VALUE_LABELS[profile.expectedChitValueRange] : '-'} />
-                                <Row icon={Users} label="Target Group Size" value={profile.expectedGroupSizeRange ? GROUP_SIZE_LABELS[profile.expectedGroupSizeRange] : '-'} />
-                            </div>
-                            
-                            <div className="mt-4 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100">
-                                <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1.5 leading-none">Management Pitch</p>
-                                <p className="text-xs text-slate-700 italic border-l-2 border-emerald-200 pl-3 leading-relaxed">
-                                    "{profile.organizerApplicationReason}"
-                                </p>
                             </div>
                         </div>
                     )}

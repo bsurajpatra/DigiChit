@@ -5,7 +5,9 @@ import {
     getPasswordResetTemplate, 
     getWelcomeTemplate,
     getKYCApprovedTemplate,
-    getKYCRejectedTemplate
+    getKYCRejectedTemplate,
+    getOrganizerApprovedTemplate,
+    getOrganizerRejectedTemplate
 } from './emailTemplates.js';
 
 dotenv.config();
@@ -105,3 +107,34 @@ export const sendKYCRejectedEmail = async (email: string, name: string, reason: 
     }
 };
 
+export const sendOrganizerApprovedEmail = async (email: string, name: string) => {
+    const mailOptions = {
+        from: `DigiChit Governance <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: 'Organizer Privileges Granted: Start Managing Chits',
+        html: getOrganizerApprovedTemplate(name),
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Organizer Approval email sent to ${email}`);
+    } catch (error) {
+        console.error('Error sending organizer approval email:', error);
+    }
+};
+
+export const sendOrganizerRejectedEmail = async (email: string, name: string, reason: string) => {
+    const mailOptions = {
+        from: `DigiChit Governance <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: 'Organizer Application Update: Audit Feedback',
+        html: getOrganizerRejectedTemplate(name, reason),
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Organizer Rejection email sent to ${email}`);
+    } catch (error) {
+        console.error('Error sending organizer rejection email:', error);
+    }
+};
