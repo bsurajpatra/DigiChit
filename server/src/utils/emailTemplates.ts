@@ -299,3 +299,50 @@ export const getOrganizerRejectedTemplate = (name: string, reason: string) => `
 </body>
 </html>
 `;
+export const getContactReplyTemplate = (name: string, originalMessage: string, adminResponse: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+    <style>${baseStyles}</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header" style="background-color: ${primaryColor};">
+            <h1 class="logo">Digi<span>Chit</span></h1>
+        </div>
+        <div class="content">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="display: inline-block; padding: 20px; background-color: #f0f9ff; border-radius: 50%;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                </div>
+            </div>
+            <h2 style="text-align: center;">Response to your Inquiry</h2>
+            <p>Hello <span class="highlight">${name}</span>,</p>
+            <p>Thank you for reaching out to <span class="highlight">DigiChit Support</span>. Our team have reviewed your query and here is our response:</p>
+            
+            <div style="background-color: #f8fafc; border-left: 4px solid ${primaryColor}; padding: 24px; margin: 30px 0; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-weight: 700; color: ${secondaryColor}; margin-bottom: 12px;">Audit/Support Team Reply:</p>
+                <p style="margin: 0; color: #334155; line-height: 1.7; white-space: pre-wrap;">${adminResponse}</p>
+            </div>
+            
+            <div style="background-color: #f1f5f9; padding: 20px; border-radius: 12px; font-size: 14px; color: #64748b;">
+                <p style="margin: 0; font-weight: 600; margin-bottom: 6px;">Your Original Inquiry:</p>
+                <p style="margin: 0; font-style: italic;">"${originalMessage}"</p>
+            </div>
+            
+            <p style="margin-top: 30px;">To experience our full suite of automated Chit features and to chat with our experts in real-time, we invite you to join our growing community.</p>
+            
+            <div style="text-align: center; margin: 35px 0;">
+                <a href="${process.env.FRONTEND_URL}/signup" class="button" style="background-color: #10b981;">Create Free Account</a>
+            </div>
+            
+            <p>Best Regards,<br>Team DigiChit Support</p>
+        </div>
+        <div class="footer">
+            &copy; ${new Date().getFullYear()} DigiChit Technologies<br>
+            Secure Community Finance Ecosystem.
+        </div>
+    </div>
+</body>
+</html>
+`;

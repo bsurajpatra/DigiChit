@@ -9,7 +9,7 @@ const sections = [
     },
     {
         title: '2. Eligibility',
-        body: 'You must be at least 18 years old and a resident of India to use DigiChit. By registering, you confirm that all information provided is accurate and complete.',
+        body: 'You must be at least 21 years old and a resident of India to use DigiChit. By registering, you confirm that all information provided is accurate and complete.',
     },
     {
         title: '3. KYC Verification',

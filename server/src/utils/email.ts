@@ -7,7 +7,8 @@ import {
     getKYCApprovedTemplate,
     getKYCRejectedTemplate,
     getOrganizerApprovedTemplate,
-    getOrganizerRejectedTemplate
+    getOrganizerRejectedTemplate,
+    getContactReplyTemplate
 } from './emailTemplates.js';
 
 dotenv.config();
@@ -71,7 +72,6 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
         console.log(`Welcome email sent to ${email}`);
     } catch (error) {
         console.error('Error sending welcome email:', error);
-        // We don't throw here to avoid breaking user flows if welcome email fails
     }
 };
 
@@ -136,5 +136,21 @@ export const sendOrganizerRejectedEmail = async (email: string, name: string, re
         console.log(`Organizer Rejection email sent to ${email}`);
     } catch (error) {
         console.error('Error sending organizer rejection email:', error);
+    }
+};
+
+export const sendContactReplyEmail = async (email: string, name: string, originalMessage: string, response: string) => {
+    const mailOptions = {
+        from: `DigiChit Support <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: 'Update on your DigiChit Inquiry',
+        html: getContactReplyTemplate(name, originalMessage, response),
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Contact reply email sent to ${email}`);
+    } catch (error) {
+        console.error('Error sending contact reply email:', error);
     }
 };

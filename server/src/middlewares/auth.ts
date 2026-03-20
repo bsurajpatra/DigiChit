@@ -6,6 +6,8 @@ import { AppError } from '../utils/appError.js';
 export interface AuthRequest extends Request {
     user?: {
         id: string;
+        name: string;
+        email: string;
         role: UserRole;
         accountStatus: AccountStatus;
         kycStatus: KYCStatus;
@@ -45,14 +47,15 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
             return next(new AppError('This account has been deleted.', 403, 'AUTH_ACCOUNT_DELETED'));
         }
 
-        // Allow REGISTERED users to only access verification routes if we check in the router
-        // but generally block protected routes for non-active users
+        // Populate req.user with all necessary fields
         req.user = { 
-            id: decoded.id, 
-            role: decoded.role,
-            accountStatus: currentUser.accountStatus,
-            kycStatus: currentUser.kycStatus,
-            organizerStatus: currentUser.organizerStatus
+            id: currentUser._id.toString(), 
+            name: currentUser.name,
+            email: currentUser.email,
+            role: currentUser.role as UserRole,
+            accountStatus: currentUser.accountStatus as AccountStatus,
+            kycStatus: currentUser.kycStatus as KYCStatus,
+            organizerStatus: currentUser.organizerStatus as OrganizerStatus
         };
         next();
     } catch (error) {
@@ -62,7 +65,6 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
 
 /**
  * Ensures account is in ACTIVE state for sensitive operations.
- * Block: FROZEN, SUSPENDED, REGISTERED
  */
 export const checkAccountActive = (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) return next(new AppError('Authentication required', 401, 'AUTH_REQUIRED'));
@@ -80,7 +82,6 @@ export const checkAccountActive = (req: AuthRequest, res: Response, next: NextFu
 
 /**
  * Ensures user identity is verified (Fintech Guard).
- * Block financial actions if KYC is not APPROVED.
  */
 export const checkKYCApproved = (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) return next(new AppError('Authentication required', 401, 'AUTH_REQUIRED'));

@@ -312,9 +312,9 @@ const LandingPage = () => {
                                     Start as Member
                                     <ChevronRight className="w-5 h-5" />
                                 </Link>
-                                <button className="px-10 py-4 bg-emerald-600 text-white border border-emerald-300 rounded-2xl font-bold hover:bg-emerald-700 transition-all active:scale-95">
+                                <Link to="/signup" className="px-10 py-4 bg-emerald-600 text-white border border-emerald-300 rounded-2xl font-bold hover:bg-emerald-700 transition-all active:scale-95">
                                     Apply as Organizer
-                                </button>
+                                </Link>
                             </div>
                         </motion.div>
                     </div>

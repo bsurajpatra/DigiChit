@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Loader } from '../../components/ui/Loader';
-import { CheckCircle2, AlertTriangle, ArrowRight, Loader2, Briefcase, XCircle } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, ArrowRight, Loader2, Briefcase, XCircle, Users, MapPin, IndianRupee } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const applySchema = z.object({
@@ -69,148 +69,159 @@ export const OrganizerStatus = () => {
     if (status === 'NOT_APPLIED' || status === 'REJECTED') {
         if (!isEligible) {
             return (
-                <div className="h-full flex flex-col items-center justify-center p-8 bg-white/40 backdrop-blur-md rounded-[3rem] border border-white/40 shadow-xl text-center overflow-hidden">
-                    <div className="w-20 h-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mb-6 shadow-inner">
-                        <AlertTriangle className="w-10 h-10" />
+                <div className="h-full flex flex-col items-center justify-center p-8 bg-white/40 backdrop-blur-md rounded-3xl border border-white/40 shadow-xl shadow-slate-100/50 text-center relative overflow-hidden animate-in zoom-in duration-500">
+                    <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mb-6 shadow-inner transform rotate-12 transition-transform hover:rotate-0 duration-500">
+                        <AlertTriangle className="w-8 h-8" />
                     </div>
-                    <h2 className="text-3xl font-medium text-slate-900 mb-3 uppercase tracking-tight">Not Eligible</h2>
-                    <p className="text-slate-500 font-medium max-w-sm mb-8 leading-relaxed">
-                        You must have an fully Active account and an Approved KYC to apply for Organizer status.
+                    <h2 className="text-xl font-bold text-slate-900 mb-2 uppercase tracking-tight leading-none">Not Eligible</h2>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest max-w-[280px] mb-8 leading-relaxed">
+                        You must have a fully <span className="text-slate-900">Active Account</span> and an <span className="text-slate-900">Approved KYC</span> to apply for Organizer status.
                     </p>
-                    <Link to="/profile" className="inline-flex items-center gap-2 px-8 py-3.5 bg-slate-900 text-white font-bold rounded-2xl shadow-xl shadow-slate-200 hover:bg-emerald-600 transition-all active:scale-95 uppercase tracking-widest text-xs">
-                        Check Profile Status <ArrowRight className="w-4 h-4" />
+                    <Link to="/profile" className="inline-flex items-center gap-2 px-8 py-3.5 bg-slate-900 text-white font-black rounded-xl shadow-lg shadow-slate-200 hover:bg-emerald-600 transition-all active:scale-95 uppercase tracking-widest text-[9px]">
+                        Check Credentials <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                 </div>
             );
         }
 
         return (
-            <div className="h-full flex flex-col gap-6">
-                <div className="shrink-0 flex items-center justify-between bg-white/40 backdrop-blur-md p-6 rounded-[2.5rem] border border-white/40 shadow-xl shadow-slate-100 mb-2">
-                    <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-emerald-600 rounded-[1.5rem] flex items-center justify-center text-white font-black text-xl shadow-lg shadow-emerald-100 flex-none overflow-hidden">
-                            <Briefcase className="w-8 h-8 text-white" />
-                        </div>
-                        <div>
-                            <h1 className="text-3xl font-medium text-slate-900 tracking-tight uppercase leading-none">Become an Organizer</h1>
-                            <p className="text-xs font-medium text-slate-400 mt-2 uppercase tracking-widest text-[#10b981]">FOUND YOUR OWN FINANCIAL COMMUNITY</p>
-                        </div>
+            <div className="h-full flex flex-col gap-4 animate-in fade-in duration-500">
+                {/* Compact Header */}
+                <div className="flex items-center justify-between bg-white/50 backdrop-blur-md px-6 py-4 rounded-3xl border border-white/40 shadow-lg shadow-slate-100/50">
+                    <div>
+                        <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight uppercase leading-tight">Become an Organizer</h1>
+                        <p className="text-[9px] font-black text-slate-400 mt-0.5 uppercase tracking-widest leading-none">Scale financial circles efficiently.</p>
                     </div>
-                    <div className="hidden sm:flex items-center gap-3 px-5 py-2.5 bg-transparent">
-                        <div className="w-8 h-8 bg-emerald-100 text-black rounded-lg flex items-center justify-center font-black text-sm">
-                            <Briefcase className="w-4 h-4" />
+                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-100 rounded-2xl">
+                        <div className="w-6 h-6 bg-emerald-100 text-emerald-700 rounded-lg flex items-center justify-center">
+                            <Briefcase className="w-3.5 h-3.5" />
                         </div>
-                        <span className="font-black text-black uppercase tracking-widest text-[10px]">Application Form</span>
+                        <span className="font-black text-slate-600 uppercase tracking-widest text-[9px]">Application</span>
                     </div>
                 </div>
 
-                <div className="flex-1 min-h-0 bg-white rounded-[3rem] shadow-sm border border-slate-100 overflow-y-auto">
+                <div className="flex-1 min-h-0 bg-white/60 backdrop-blur-sm rounded-3xl border border-white/60 shadow-xl shadow-slate-100/50 overflow-y-auto custom-scrollbar flex flex-col">
                     {status === 'REJECTED' && (
-                        <div className="m-8 p-6 bg-red-50/50 border-2 border-red-100 rounded-[2.5rem] flex items-start gap-4">
-                            <XCircle className="w-6 h-6 text-red-500 shrink-0 mt-0.5" />
+                        <div className="mx-6 mt-6 p-4 bg-red-50/30 border border-red-100 rounded-2xl flex items-start gap-3">
+                            <XCircle className="w-4 h-4 text-red-500 shrink-0" />
                             <div>
-                                <h3 className="text-red-900 font-black uppercase text-xs tracking-widest">Previous Application Rejected</h3>
-                                <p className="text-red-600 mt-1 text-sm font-medium leading-relaxed">{rejectionReason}</p>
-                                <p className="text-red-400 mt-3 text-[10px] font-black uppercase tracking-widest">You may reapply below by addressing these points.</p>
+                                <h3 className="text-red-900 font-black uppercase text-[9px] tracking-widest">Feedback on previous app</h3>
+                                <p className="text-red-600 mt-1 text-[11px] font-bold leading-relaxed">{rejectionReason}</p>
                             </div>
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit(onSubmit)} className="p-10 space-y-10">
+                    <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-8 flex-1">
                         {submitError && (
-                            <div className="p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm font-bold flex items-center gap-2">
-                                <AlertTriangle className="w-4 h-4 shrink-0" /> {submitError}
+                            <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
+                                <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> {submitError}
                             </div>
                         )}
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">City of Operation</label>
-                                <input {...register('city')} className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-emerald-100 outline-none transition text-slate-900 font-bold placeholder:text-slate-300 shadow-inner" placeholder="E.g., Mumbai" />
-                                {errors.city && <p className="text-red-500 text-xs mt-2 ml-1 font-bold">{errors.city.message}</p>}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">HQ City</label>
+                                <div className="relative">
+                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                                    <input {...register('city')} className="w-full pl-10 pr-4 py-3 bg-white/80 border border-slate-100 rounded-xl focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 outline-none transition text-xs font-bold placeholder:text-slate-300" placeholder="E.g., Mumbai" />
+                                </div>
+                                {errors.city && <p className="text-red-500 text-[9px] mt-1 ml-1 font-black uppercase tracking-widest">{errors.city.message}</p>}
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Primary Occupation</label>
-                                <input {...register('occupation')} className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-emerald-100 outline-none transition text-slate-900 font-bold placeholder:text-slate-300 shadow-inner" placeholder="E.g., Business Owner" />
-                                {errors.occupation && <p className="text-red-500 text-xs mt-2 ml-1 font-bold">{errors.occupation.message}</p>}
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Profession</label>
+                                <div className="relative">
+                                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                                    <input {...register('occupation')} className="w-full pl-10 pr-4 py-3 bg-white/80 border border-slate-100 rounded-xl focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 outline-none transition text-xs font-bold placeholder:text-slate-300" placeholder="E.g., Business Owner" />
+                                </div>
+                                {errors.occupation && <p className="text-red-500 text-[9px] mt-1 ml-1 font-black uppercase tracking-widest">{errors.occupation.message}</p>}
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Income Range</label>
-                                <select {...register('incomeRange')} className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-emerald-100 outline-none transition text-slate-900 font-bold appearance-none shadow-inner">
-                                    <option value="">Select an option</option>
-                                    <option value="< 5 Lakhs">Less than 5 Lakhs</option>
-                                    <option value="5-10 Lakhs">5 - 10 Lakhs</option>
-                                    <option value="10-25 Lakhs">10 - 25 Lakhs</option>
-                                    <option value="25+ Lakhs">25+ Lakhs</option>
-                                </select>
-                                {errors.incomeRange && <p className="text-red-500 text-xs mt-2 ml-1 font-bold">{errors.incomeRange.message}</p>}
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Income Level</label>
+                                <div className="relative">
+                                    <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                                    <select {...register('incomeRange')} className="w-full pl-10 pr-4 py-3 bg-white/80 border border-slate-100 rounded-xl focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 outline-none transition text-xs font-bold appearance-none">
+                                        <option value="">Range</option>
+                                        <option value="< 5 Lakhs">Less than 5 Lakhs</option>
+                                        <option value="5-10 Lakhs">5 - 10 Lakhs</option>
+                                        <option value="10-25 Lakhs">10 - 25 Lakhs</option>
+                                        <option value="25+ Lakhs">25+ Lakhs</option>
+                                    </select>
+                                </div>
+                                {errors.incomeRange && <p className="text-red-500 text-[9px] mt-1 ml-1 font-black uppercase tracking-widest">{errors.incomeRange.message}</p>}
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-4">
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-3 mb-1">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Expected Total Chit Value</label>
-                                    <span className="text-[9px] font-black bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full uppercase tracking-tighter">Scale Indicator</span>
-                                </div>
-                                <select {...register('expectedChitValueRange')} className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-emerald-100 outline-none transition text-slate-900 font-bold appearance-none shadow-inner">
-                                    <option value="">Select Value Range</option>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Anticipated Value Ratio</label>
+                                <select {...register('expectedChitValueRange')} className="w-full px-4 py-3 bg-white/80 border border-slate-100 rounded-xl focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 outline-none transition text-xs font-bold appearance-none">
+                                    <option value="">Select Value Scale</option>
                                     <option value="UP_TO_1_LAKH">Up to ₹1 Lakh</option>
                                     <option value="ONE_TO_FIVE_LAKH">₹1–5 Lakhs</option>
                                     <option value="FIVE_TO_TEN_LAKH">₹5–10 Lakhs</option>
                                     <option value="TEN_TO_TWENTY_FIVE_LAKH">₹10–25 Lakhs</option>
                                     <option value="ABOVE_TWENTY_FIVE_LAKH">Above ₹25 Lakhs</option>
                                 </select>
-                                {errors.expectedChitValueRange && <p className="text-red-500 text-xs mt-2 ml-1 font-bold">{errors.expectedChitValueRange.message}</p>}
+                                {errors.expectedChitValueRange && <p className="text-red-500 text-[9px] mt-1 ml-1 font-black uppercase tracking-widest">{errors.expectedChitValueRange.message}</p>}
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Expected Group Size</label>
-                                <select {...register('expectedGroupSizeRange')} className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-emerald-100 outline-none transition text-slate-900 font-bold appearance-none shadow-inner">
-                                    <option value="">Any Size (Select Range)</option>
-                                    <option value="SMALL_5_TO_10">Small (5–10 Members)</option>
-                                    <option value="MEDIUM_10_TO_20">Medium (10–20 Members)</option>
-                                    <option value="LARGE_20_TO_50">Large (20–50 Members)</option>
-                                    <option value="VERY_LARGE_50_PLUS">Very Large (50+ Members)</option>
-                                </select>
-                                {errors.expectedGroupSizeRange && <p className="text-red-500 text-xs mt-2 ml-1 font-bold">{errors.expectedGroupSizeRange.message}</p>}
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Target Group Volume</label>
+                                <div className="relative">
+                                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                                    <select {...register('expectedGroupSizeRange')} className="w-full pl-10 pr-4 py-3 bg-white/80 border border-slate-100 rounded-xl focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 outline-none transition text-xs font-bold appearance-none">
+                                        <option value="">Any Size</option>
+                                        <option value="SMALL_5_TO_10">Small (5–10 Members)</option>
+                                        <option value="MEDIUM_10_TO_20">Medium (10–20 Members)</option>
+                                        <option value="LARGE_20_TO_50">Large (20–50 Members)</option>
+                                        <option value="VERY_LARGE_50_PLUS">Very Large (50+ Members)</option>
+                                    </select>
+                                </div>
+                                {errors.expectedGroupSizeRange && <p className="text-red-500 text-[9px] mt-1 ml-1 font-black uppercase tracking-widest">{errors.expectedGroupSizeRange.message}</p>}
                             </div>
                         </div>
 
-                        <div className="space-y-2 pt-4">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Organizer Pitch & Vision</label>
-                            <textarea {...register('organizerApplicationReason')} rows={5} className="w-full resize-none px-6 py-5 bg-slate-50 border-2 border-transparent rounded-[2.5rem] focus:bg-white focus:border-emerald-100 outline-none transition text-slate-900 font-bold placeholder:text-slate-300 shadow-inner" placeholder="Explain your experience with Chit funds and your intention to host transparent financial groups..." />
-                            {errors.organizerApplicationReason && <p className="text-red-500 text-xs mt-2 ml-1 font-bold">{errors.organizerApplicationReason.message}</p>}
+                        <div className="space-y-1.5 pt-2">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Strategy & Implementation Pitch</label>
+                            <textarea {...register('organizerApplicationReason')} rows={3} className="w-full resize-none px-6 py-4 bg-white/80 border border-slate-100 rounded-3xl focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 outline-none transition text-xs font-bold placeholder:text-slate-300" placeholder="Identify your experience and strategy for host transparency..." />
+                            {errors.organizerApplicationReason && <p className="text-red-500 text-[9px] mt-1 ml-1 font-black uppercase tracking-widest">{errors.organizerApplicationReason.message}</p>}
                         </div>
 
-                        <div className="pt-10 border-t border-slate-100 flex justify-end">
-                            <button type="submit" disabled={isSubmitting} className="h-16 px-12 bg-slate-900 text-white rounded-[1.5rem] font-black hover:bg-emerald-600 transition-all active:scale-95 shadow-2xl shadow-slate-200 flex items-center gap-3 uppercase tracking-widest text-xs">
-                                {isSubmitting ? <><Loader2 className="w-5 h-5 animate-spin" /> Submitting Application...</> : <><Briefcase className="w-4 h-4" /> Finalize Application</>}
+                        <div className="pt-8 border-t border-slate-50 flex justify-end shrink-0">
+                            <button type="submit" disabled={isSubmitting} className="h-12 px-10 bg-slate-900 text-white rounded-xl font-black hover:bg-emerald-600 transition-all active:scale-95 shadow-xl shadow-slate-200 flex items-center gap-2 uppercase tracking-widest text-[9px]">
+                                {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Verifying Credentials...</> : <><Briefcase className="w-4 h-4" /> Dispatch Application</>}
                             </button>
                         </div>
                     </form>
                 </div>
+                
+                <style>{`
+                    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.05); border-radius: 10px; }
+                    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.1); }
+                `}</style>
             </div>
         );
     }
 
     if (status === 'PENDING') {
         return (
-            <div className="h-full flex flex-col items-center justify-center p-12 bg-white/40 backdrop-blur-md rounded-[4rem] border border-white/40 shadow-2xl shadow-slate-200 text-center relative overflow-hidden animate-in zoom-in duration-700">
-                <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-amber-500/10 blur-[100px] rounded-full translate-x-1/2 -translate-y-1/2" />
-                <div className="w-32 h-32 bg-amber-50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-inner">
-                    <Loader2 className="w-16 h-16 text-amber-500 animate-[spin_4s_linear_infinite]" />
+            <div className="h-full flex flex-col items-center justify-center p-8 bg-white/40 backdrop-blur-md rounded-3xl border border-white/40 shadow-2xl shadow-slate-100/50 text-center relative overflow-hidden animate-in zoom-in duration-500">
+                <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-amber-500/5 blur-[80px] rounded-full translate-x-1/2 -translate-y-1/2" />
+                <div className="w-20 h-20 bg-amber-50/50 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-inner relative z-10">
+                    <Loader2 className="w-10 h-10 text-amber-500 animate-[spin_4s_linear_infinite]" />
                 </div>
-                <h2 className="text-4xl font-medium text-slate-900 mb-4 tracking-tight uppercase">Application Under Review</h2>
-                <p className="text-slate-400 font-medium text-xl leading-relaxed max-w-sm mx-auto">
-                    Global compliance is verifying your organizer credentials. We will notify you once you're ready to host.
+                <h2 className="text-xl font-bold text-slate-900 mb-2 tracking-tight uppercase leading-none relative z-10">Review Status: Pending</h2>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest max-w-[300px] mx-auto leading-relaxed relative z-10">
+                    Audit is verifying your infrastructure capacity. We will unlock your dashboard shortly.
                 </p>
-                <div className="mt-12 flex justify-center gap-3">
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse delay-75" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse delay-150" />
+                <div className="mt-8 flex justify-center gap-2 relative z-10">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse delay-75" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse delay-150" />
                 </div>
             </div>
         );
@@ -218,17 +229,17 @@ export const OrganizerStatus = () => {
 
     if (status === 'APPROVED') {
         return (
-            <div className="h-full flex flex-col items-center justify-center p-16 bg-white/40 backdrop-blur-md rounded-[5rem] border border-white/40 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] text-center relative overflow-hidden animate-in zoom-in duration-1000">
-                <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-emerald-500/10 blur-[120px] rounded-full translate-x-1/2 -translate-y-1/2" />
-                <div className="w-32 h-32 bg-emerald-600 rounded-[3rem] flex items-center justify-center mx-auto mb-12 shadow-2xl shadow-emerald-200 transform -rotate-6">
-                    <CheckCircle2 className="w-16 h-16 text-white" />
+            <div className="h-full flex flex-col items-center justify-center p-8 bg-white/40 backdrop-blur-md rounded-3xl border border-white/40 shadow-2xl shadow-slate-100/50 text-center relative overflow-hidden animate-in zoom-in duration-700">
+                <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-emerald-500/5 blur-[80px] rounded-full translate-x-1/2 -translate-y-1/2" />
+                <div className="w-20 h-20 bg-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-emerald-500/20 transform -rotate-3 relative z-10">
+                    <CheckCircle2 className="w-10 h-10 text-white" />
                 </div>
-                <h2 className="text-5xl font-medium text-slate-900 mb-6 tracking-tight uppercase">Status Verified!</h2>
-                <p className="text-slate-400 font-medium text-2xl leading-relaxed max-w-md mx-auto mb-14">
-                    Your financial circle is ready. Transition to your dashboard to build your first group.
+                <h2 className="text-xl font-bold text-slate-900 mb-2 tracking-tight uppercase leading-none relative z-10">Credentials Verified</h2>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest max-w-[300px] mx-auto leading-relaxed mb-10 relative z-10">
+                    Infrastructure audit complete. Your organizer instruments are now active.
                 </p>
-                <Link to="/dashboard" className="inline-flex items-center justify-center px-16 py-6 bg-slate-900 text-white font-black rounded-3xl shadow-2xl shadow-slate-300 hover:bg-emerald-600 transition-all hover:scale-105 active:scale-95 text-lg uppercase tracking-widest">
-                    Build Groups <ArrowRight className="w-7 h-7 ml-4" />
+                <Link to="/dashboard" className="inline-flex items-center justify-center px-10 py-4 bg-slate-900 text-white font-black rounded-xl shadow-xl shadow-slate-100 hover:bg-emerald-600 transition-all hover:scale-105 active:scale-95 text-[10px] uppercase tracking-widest relative z-10">
+                    Enter Pulse Dashboard <ArrowRight className="w-4 h-4 ml-3" />
                 </Link>
             </div>
         );

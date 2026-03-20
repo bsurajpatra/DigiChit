@@ -24,9 +24,11 @@ import { KYCStatus } from './pages/kyc/KYCStatus';
 import { Dashboard } from './pages/dashboard/Dashboard';
 import { Profile } from './pages/dashboard/Profile';
 import { OrganizerStatus } from './pages/dashboard/OrganizerStatus';
+import { Support } from './pages/dashboard/Support';
 import { KYCPanel } from './pages/admin/KYCPanel';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { OrganizerApplications } from './pages/admin/OrganizerApplications';
+import ContactQueries from './pages/admin/ContactQueries';
 
 // Legacy components (can be phased out)
 import LandingPage from './components/LandingPage';
@@ -78,6 +80,7 @@ function App() {
                             <Route path="/dashboard" element={<Dashboard />} />
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/organizer-status" element={<OrganizerStatus />} />
+                            <Route path="/support" element={<Support />} />
 
                             {/* Organizer specific routes */}
                             <Route element={<RoleProtectedRoute allowedRoles={['ORGANIZER']} />}>
@@ -89,6 +92,7 @@ function App() {
                                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
                                 <Route path="/admin/kyc" element={<KYCPanel />} />
                                 <Route path="/admin/organizers" element={<OrganizerApplications />} />
+                                <Route path="/admin/queries" element={<ContactQueries />} />
                             </Route>
                         </Route>
                     </Route>

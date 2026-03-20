@@ -1,6 +1,6 @@
 import {
     UserCheck, Briefcase, UserCircle,
-    PlusCircle, FolderKanban, Search, Wallet, ShieldPlus, ShieldAlert
+    PlusCircle, FolderKanban, Search, Wallet, ShieldPlus, ShieldAlert, Inbox, MessageSquare
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -16,9 +16,13 @@ export const getSidebarMenu = (role: string, organizerStatus: string): MenuItem[
         return [
             { label: 'KYC Approvals', path: '/admin/kyc', icon: UserCheck },
             { label: 'Organizer Apps', path: '/admin/organizers', icon: Briefcase },
-            { label: 'Profile', path: '/profile', icon: UserCircle },
+            { label: 'Inquiry Inbox', path: '/admin/queries', icon: Inbox },
+            { label: 'Profile Settings', path: '/profile', icon: UserCircle },
         ];
     }
+
+    // Common for both USER and ORGANIZER
+    const supportItem = { label: 'Support', path: '/support', icon: MessageSquare };
 
     if (role === 'ORGANIZER') {
         return [
@@ -34,6 +38,7 @@ export const getSidebarMenu = (role: string, organizerStatus: string): MenuItem[
                 ]
             },
             { label: 'Profile', path: '/profile', icon: UserCircle },
+            supportItem
         ];
     }
 
@@ -56,6 +61,7 @@ export const getSidebarMenu = (role: string, organizerStatus: string): MenuItem[
     }
 
     baseMenu.push({ label: 'Profile', path: '/profile', icon: UserCircle });
+    baseMenu.push(supportItem);
 
     return baseMenu;
 };
