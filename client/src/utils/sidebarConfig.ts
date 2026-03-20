@@ -8,6 +8,7 @@ export type MenuItem = {
     label: string;
     path: string;
     icon: LucideIcon;
+    subItems?: MenuItem[];
 };
 
 export const getSidebarMenu = (role: string, organizerStatus: string): MenuItem[] => {
@@ -21,18 +22,29 @@ export const getSidebarMenu = (role: string, organizerStatus: string): MenuItem[
 
     if (role === 'ORGANIZER') {
         return [
-            { label: 'Create Chit', path: '/organizer/create-chit', icon: PlusCircle },
-            { label: 'My Organized Chits', path: '/organizer/my-chits', icon: FolderKanban },
-            { label: 'Join Chit', path: '/join-chit', icon: Search },
-            { label: 'My Chits', path: '/dashboard', icon: Wallet },
+            { 
+                label: 'Chits', 
+                path: '#chits', 
+                icon: Wallet,
+                subItems: [
+                    { label: 'Create Chit', path: '/organizer/create-chit', icon: PlusCircle },
+                    { label: 'My Organized Chits', path: '/organizer/my-chits', icon: FolderKanban },
+                    { label: 'Join Chit', path: '/join-chit', icon: Search },
+                    { label: 'My Chits', path: '/dashboard', icon: Wallet },
+                ]
+            },
             { label: 'Profile', path: '/profile', icon: UserCircle },
         ];
     }
 
     // Default to USER
-    const baseMenu: MenuItem[] = [
+    const chitsSubItems: MenuItem[] = [
         { label: 'Join Chit', path: '/join-chit', icon: Search },
         { label: 'My Chits', path: '/my-chits', icon: Wallet },
+    ];
+
+    const baseMenu: MenuItem[] = [
+        { label: 'Chits', path: '#chits', icon: Wallet, subItems: chitsSubItems },
     ];
 
     if (organizerStatus === 'NOT_APPLIED') {

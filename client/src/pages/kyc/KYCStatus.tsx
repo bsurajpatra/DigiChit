@@ -71,13 +71,21 @@ export const KYCStatus = () => {
                 <div className="relative z-10 text-[10px] text-slate-500 uppercase tracking-widest font-bold">© 2026 DigiChit Technologies</div>
             </div>
 
-            <div className="flex items-center justify-center p-6 md:p-10 lg:p-12 bg-slate-50/50">
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="max-w-lg w-full text-center lg:text-left">
-                    <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto lg:mx-0 mb-8 ${uiData.colorClass}`}>
-                        {uiData.icon}
+            <div className="flex-1 flex flex-col min-h-0 bg-slate-50/50">
+                <div className="shrink-0 flex items-center justify-between bg-white/40 backdrop-blur-md p-6 rounded-[2.5rem] border border-white/40 shadow-xl shadow-slate-100 m-6 mb-0">
+                    <div>
+                        <h2 className="text-3xl font-medium text-slate-900 tracking-tight uppercase leading-none">{uiData.title}</h2>
+                        <p className="text-xs font-medium text-slate-400 mt-2 uppercase tracking-widest tracking-widest">Global Verification Status</p>
                     </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto flex items-center justify-center p-6 md:p-10 lg:p-12">
+                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="max-w-lg w-full text-center lg:text-left">
+                        <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mx-auto lg:mx-0 mb-8 shadow-inner ${uiData.colorClass}`}>
+                            {uiData.icon}
+                        </div>
                     
-                    <h2 className="text-4xl font-bold text-slate-900 mb-4">{uiData.title}</h2>
+                    <h2 className="text-4xl font-medium text-slate-900 mb-4 tracking-tight uppercase">{uiData.title}</h2>
                     
                     <div className="mb-6 flex justify-center lg:justify-start">
                         <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ${uiData.colorClass}`}>
@@ -106,5 +114,6 @@ export const KYCStatus = () => {
                 </motion.div>
             </div>
         </div>
-    );
+    </div>
+);
 };

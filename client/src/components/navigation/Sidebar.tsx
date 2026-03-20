@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { LogOut, X } from 'lucide-react';
+import { LogOut, X, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getSidebarMenu, type MenuItem } from '../../utils/sidebarConfig';
 import logo from '../../assets/logo.png';
 
@@ -17,15 +19,25 @@ export const Sidebar = ({ isMobileOpen, setMobileOpen }: SidebarProps) => {
 
     const menuItems = getSidebarMenu(user.role, user.organizerStatus);
 
-    const navItemStyles = (path: string) => {
+    const [expandedApps, setExpandedApps] = useState<string[]>(['Chits']); // default expanded
+    
+    const navItemStyles = (path: string, hasSubItems?: boolean) => {
         const isActive = location.pathname === path;
         return `
             flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all duration-300
             ${isActive 
-                ? 'text-emerald-600 translate-x-1' 
-                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                ? 'text-emerald-600 bg-emerald-50 translate-x-1 outline-none' 
+                : hasSubItems
+                    ? 'text-slate-900 border-none outline-none'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
             }
         `;
+    };
+
+    const toggleExpand = (label: string) => {
+        setExpandedApps(prev => 
+            prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]
+        );
     };
 
     const handleLogout = () => {
@@ -70,15 +82,61 @@ export const Sidebar = ({ isMobileOpen, setMobileOpen }: SidebarProps) => {
                 {/* Navigation Links */}
                 <nav className="p-4 flex-1 space-y-2 overflow-y-auto">
                     {menuItems.map((item: MenuItem) => (
-                        <Link 
-                            key={item.label} 
-                            to={item.path} 
-                            className={navItemStyles(item.path)}
-                            onClick={() => setMobileOpen(false)}
-                        >
-                            <item.icon className="w-5 h-5 shrink-0" />
-                            <span className="truncate">{item.label}</span>
-                        </Link>
+                        <div key={item.label} className="space-y-1">
+                            {item.subItems ? (
+                                <>
+                                    <button 
+                                        onClick={() => toggleExpand(item.label)}
+                                        className={`w-full ${navItemStyles(item.path, true)} justify-between cursor-pointer`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <item.icon className="w-5 h-5 shrink-0" />
+                                            <span className="truncate">{item.label}</span>
+                                        </div>
+                                        <ChevronDown 
+                                            className={`w-4 h-4 transition-transform duration-300 ${expandedApps.includes(item.label) ? 'rotate-180' : ''}`} 
+                                        />
+                                    </button>
+                                    <AnimatePresence>
+                                        {expandedApps.includes(item.label) && (
+                                            <motion.div 
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                className="overflow-hidden pl-4 space-y-1"
+                                            >
+                                                {item.subItems.map(sub => (
+                                                    <Link 
+                                                        key={sub.label}
+                                                        to={sub.path}
+                                                        className={`
+                                                            flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all
+                                                            ${location.pathname === sub.path 
+                                                                ? 'text-emerald-600 bg-emerald-50/50' 
+                                                                : 'text-slate-400 hover:bg-slate-50 hover:text-slate-700'
+                                                            }
+                                                        `}
+                                                        onClick={() => setMobileOpen(false)}
+                                                    >
+                                                        <sub.icon className="w-4 h-4 shrink-0" />
+                                                        <span className="truncate">{sub.label}</span>
+                                                    </Link>
+                                                ))}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </>
+                            ) : (
+                                <Link 
+                                    to={item.path} 
+                                    className={navItemStyles(item.path)}
+                                    onClick={() => setMobileOpen(false)}
+                                >
+                                    <item.icon className="w-5 h-5 shrink-0" />
+                                    <span className="truncate">{item.label}</span>
+                                </Link>
+                            )}
+                        </div>
                     ))}
                 </nav>
 

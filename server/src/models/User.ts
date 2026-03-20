@@ -60,7 +60,7 @@ export interface IUser extends Document {
     incomeRange?: string;
     organizerRejectedReason?: string;
     organizerApprovedAt?: Date;
-    age: number;
+    age?: number;
     accountStatus: AccountStatus;
     tokenVersion: number;
     profilePictureUrl?: string;
@@ -89,7 +89,12 @@ const UserSchema: Schema = new Schema({
     incomeRange: { type: String },
     organizerRejectedReason: { type: String },
     organizerApprovedAt: { type: Date },
-    age: { type: Number, required: true },
+    age: { 
+        type: Number, 
+        required: function(this: any) { 
+            return this.role !== 'ADMIN'; 
+        } 
+    },
     accountStatus: { type: String, enum: Object.values(AccountStatus), default: AccountStatus.REGISTERED },
     tokenVersion: { type: Number, default: 0 },
     profilePictureUrl: { type: String },

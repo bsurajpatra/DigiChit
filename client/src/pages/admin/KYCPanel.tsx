@@ -79,10 +79,16 @@ export const KYCPanel = () => {
 
     return (
         <div className="h-full flex flex-col gap-6 animate-in fade-in duration-700">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between bg-white/40 backdrop-blur-md p-6 rounded-[2.5rem] border border-white/40 shadow-xl shadow-slate-100">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">KYC Approvals</h1>
-                    <p className="text-sm text-slate-500 mt-1">Verify identities to keep the ecosystem safe</p>
+                    <h1 className="text-3xl font-medium text-slate-900 tracking-tight uppercase">KYC Approvals</h1>
+                    <p className="text-xs font-medium text-slate-400 mt-1 uppercase tracking-widest">Verify identities to keep the ecosystem safe.</p>
+                </div>
+                <div className="flex items-center gap-3 px-5 py-2.5 bg-transparent">
+                    <div className="w-8 h-8 bg-blue-100 text-black rounded-lg flex items-center justify-center font-black text-sm">
+                        {pendingKycs.length}
+                    </div>
+                    <span className="font-black text-black uppercase tracking-widest text-[10px]">Pending Requests</span>
                 </div>
             </div>
 
@@ -111,7 +117,7 @@ export const KYCPanel = () => {
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: 20 }}
-                                className="bg-white p-4 rounded-[2rem] border border-slate-100 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-50/50 transition-all group flex items-center justify-between"
+                                className="bg-white p-4 rounded-[2rem] border border-slate-100 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-50/50 transition-all group flex items-center justify-between"
                             >
                                 <div className="flex items-center gap-5">
                                     <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center font-black text-slate-400 overflow-hidden shadow-inner group-hover:scale-105 transition-transform">
@@ -160,7 +166,7 @@ export const KYCPanel = () => {
                             {/* Modal Header */}
                             <div className="p-8 border-b border-slate-50 flex items-center justify-between shrink-0">
                                 <div className="flex items-center gap-5">
-                                    <div className="w-16 h-16 rounded-[1.5rem] bg-emerald-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-emerald-100">
+                                    <div className="w-16 h-16 rounded-[1.5rem] bg-blue-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-100">
                                         {selectedKyc.userId.name.charAt(0).toUpperCase()}
                                     </div>
                                     <div>
@@ -230,7 +236,7 @@ export const KYCPanel = () => {
                                 </button>
                                 <button 
                                     onClick={() => handleReview(selectedKyc._id, 'APPROVED')}
-                                    className="h-14 px-10 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest flex items-center gap-2 transition shadow-xl shadow-emerald-100"
+                                    className="h-14 px-10 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest flex items-center gap-2 transition shadow-xl shadow-blue-100"
                                 >
                                     <Check className="w-4 h-4" /> Approve Identity
                                 </button>

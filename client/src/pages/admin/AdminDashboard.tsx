@@ -45,9 +45,9 @@ export const AdminDashboard = () => {
                 <motion.h1
                     initial={{ y: -10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight"
+                    className="text-3xl md:text-5xl font-medium text-slate-900 tracking-tight uppercase"
                 >
-                    Welcome back, <span className="text-emerald-600">{user?.name || 'Admin'}</span>
+                    Welcome back, <span className="text-[#3b82f6] capitalize">{user?.name || 'Admin'}</span>
                 </motion.h1>
                 <motion.p
                     initial={{ y: -5, opacity: 0 }}
@@ -68,10 +68,10 @@ export const AdminDashboard = () => {
                 >
                     <Card
                         onClick={() => navigate('/admin/kyc')}
-                        className="p-8 rounded-[2.5rem] border-none shadow-2xl shadow-emerald-200/50 bg-white hover:shadow-emerald-300/50 transition-all cursor-pointer group relative overflow-hidden"
+                        className="p-8 rounded-[2.5rem] border-none shadow-2xl shadow-blue-200/50 bg-white hover:shadow-blue-300/50 transition-all cursor-pointer group relative overflow-hidden"
                     >
                         <div className="flex items-center gap-6">
-                            <div className="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200 group-hover:scale-105 transition-transform flex-none">
+                            <div className="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200 group-hover:scale-105 transition-transform flex-none">
                                 <UserCheck className="w-8 h-8" />
                             </div>
                             <div>
@@ -79,7 +79,7 @@ export const AdminDashboard = () => {
                                 <h2 className="text-4xl font-black text-slate-900 tracking-tighter">{stats.pendingKyc}</h2>
                             </div>
                             <div className="ml-auto p-2 bg-transparent group-hover:translate-x-1 transition-transform">
-                                <ArrowRight className="w-5 h-5 text-emerald-600" />
+                                <ArrowRight className="w-5 h-5 text-blue-600" />
                             </div>
                         </div>
                     </Card>
@@ -91,11 +91,11 @@ export const AdminDashboard = () => {
                     transition={{ delay: 0.3 }}
                 >
                     <Card
-                        onClick={() => navigate('/admin/applications')}
-                        className="p-8 rounded-[2.5rem] border-none shadow-2xl shadow-blue-200/50 bg-white hover:shadow-blue-300/50 transition-all cursor-pointer group relative overflow-hidden"
+                        onClick={() => navigate('/admin/organizers')}
+                        className="p-8 rounded-[2.5rem] border-none shadow-2xl shadow-emerald-200/50 bg-white hover:shadow-emerald-300/50 transition-all cursor-pointer group relative overflow-hidden"
                     >
                         <div className="flex items-center gap-6">
-                            <div className="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200 group-hover:scale-105 transition-transform flex-none">
+                            <div className="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200 group-hover:scale-105 transition-transform flex-none">
                                 <Users className="w-8 h-8" />
                             </div>
                             <div>
@@ -103,7 +103,7 @@ export const AdminDashboard = () => {
                                 <h2 className="text-4xl font-black text-slate-900 tracking-tighter">{stats.organizerApps}</h2>
                             </div>
                             <div className="ml-auto p-2 bg-transparent group-hover:translate-x-1 transition-transform">
-                                <ArrowRight className="w-5 h-5 text-blue-600" />
+                                <ArrowRight className="w-5 h-5 text-emerald-600" />
                             </div>
                         </div>
                     </Card>

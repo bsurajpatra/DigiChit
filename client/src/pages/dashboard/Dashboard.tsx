@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card } from '../../components/ui/Card';
 import { useAuth } from '../../hooks/useAuth';
 import { Clock, Users, ArrowUpRight } from 'lucide-react';
@@ -8,10 +7,17 @@ export const Dashboard = () => {
 
     return (
         <div className="space-y-6">
-            <header className="mb-8">
-                <h1 className="text-3xl font-bold text-slate-900 mb-2">Hello, {user?.name.split(' ')[0]} 👋</h1>
-                <p className="text-slate-500">Welcome to your DigiChit dashboard. Your wallet looks healthy.</p>
-            </header>
+            <div className="shrink-0 flex items-center justify-between bg-white/40 backdrop-blur-md p-6 rounded-[2.5rem] border border-white/40 shadow-xl shadow-slate-100 mb-8">
+                <div>
+                    <h1 className="text-3xl font-medium text-slate-900 tracking-tight uppercase leading-none">Hello, {user?.name.split(' ')[0]} 👋</h1>
+                    <p className="text-xs font-medium text-slate-400 mt-2 uppercase tracking-widest">Workspace Insights & Financial Health</p>
+                </div>
+                <div className="hidden sm:flex items-center gap-3 px-5 py-2.5 bg-transparent">
+                    <div className="w-8 h-8 bg-emerald-100 text-black rounded-lg flex items-center justify-center font-black text-sm">
+                        <Clock className="w-4 h-4 text-emerald-600" />
+                    </div>
+                </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <Card className="!p-6">

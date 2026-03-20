@@ -44,6 +44,7 @@ export const OrganizerApplications = () => {
     
     // Modal state for rejection
     const [rejectingApp, setRejectingApp] = useState<Application | null>(null);
+    const [confirmingApp, setConfirmingApp] = useState<Application | null>(null);
     const [rejectionReason, setRejectionReason] = useState('');
     const [processingId, setProcessingId] = useState<string | null>(null);
 
@@ -63,8 +64,9 @@ export const OrganizerApplications = () => {
         fetchApps();
     }, []);
 
-    const handleApprove = async (id: string, name: string) => {
-        if (!confirm(`Are you sure you want to approve ${name} as an organizer?`)) return;
+    const handleApprove = async () => {
+        if (!confirmingApp) return;
+        const id = confirmingApp._id;
         setProcessingId(id);
         setError('');
         try {
@@ -72,6 +74,7 @@ export const OrganizerApplications = () => {
             // Remove from list
             setApplications(apps => apps.filter(a => a._id !== id));
             if (expandedId === id) setExpandedId(null);
+            setConfirmingApp(null);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to approve application');
         } finally {
@@ -108,10 +111,16 @@ export const OrganizerApplications = () => {
 
     return (
         <div className="h-full flex flex-col gap-6 animate-in fade-in duration-700">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between bg-white/40 backdrop-blur-md p-6 rounded-[2.5rem] border border-white/40 shadow-xl shadow-slate-100">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Organizer Applications</h1>
-                    <p className="text-sm text-slate-500 mt-1">Review pending requests to start Chit groups</p>
+                    <h1 className="text-3xl font-medium text-slate-900 tracking-tight uppercase">Organizer Applications</h1>
+                    <p className="text-xs font-medium text-slate-400 mt-1 uppercase tracking-widest">Review pending requests to initiate financial circles.</p>
+                </div>
+                <div className="flex items-center gap-3 px-5 py-2.5 bg-transparent">
+                    <div className="w-8 h-8 bg-emerald-100 text-black rounded-lg flex items-center justify-center font-black text-sm">
+                        {applications.length}
+                    </div>
+                    <span className="font-black text-black uppercase tracking-widest text-[10px]">Pending Requests</span>
                 </div>
             </div>
 
@@ -275,11 +284,11 @@ export const OrganizerApplications = () => {
                                             <XCircle className="w-4 h-4" /> Reject Applicant
                                         </button>
                                         <button 
-                                            onClick={() => handleApprove(app._id, app.name)}
+                                            onClick={() => setConfirmingApp(app)}
                                             disabled={processingId === app._id}
                                             className="h-14 px-10 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest flex items-center gap-2 transition shadow-xl shadow-emerald-100"
                                         >
-                                            {processingId === app._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />} Approve Organizer
+                                            <CheckCircle className="w-4 h-4" /> Approve Organizer
                                         </button>
                                     </div>
                                 </motion.div>
@@ -289,7 +298,43 @@ export const OrganizerApplications = () => {
                 )}
             </AnimatePresence>
 
-            {/* Rejection Modal */}
+            {/* Confirmation Modal for Approval */}
+            <AnimatePresence>
+                {confirmingApp && (
+                    <div className="fixed inset-0 z-[2005] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-white rounded-[3.5rem] w-full max-w-md overflow-hidden shadow-2xl p-12 text-center"
+                        >
+                            <div className="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-inner transform rotate-3">
+                                <CheckCircle className="w-12 h-12" />
+                            </div>
+                            <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tighter mb-4 leading-none">Confirm Approval</h3>
+                            <p className="text-slate-500 font-bold mb-10 leading-relaxed px-4">
+                                You are about to grant <span className="text-emerald-600">Full Organizer Privileges</span> to {confirmingApp.name}. This will allow them to host and manage chit groups.
+                            </p>
+                            <div className="grid grid-cols-2 gap-4">
+                                <button 
+                                    onClick={() => setConfirmingApp(null)} 
+                                    className="h-16 rounded-3xl font-black text-slate-400 hover:bg-slate-50 transition uppercase tracking-widest text-[10px]"
+                                >
+                                    Go Back
+                                </button>
+                                <button 
+                                    onClick={handleApprove}
+                                    disabled={processingId === confirmingApp._id}
+                                    className="h-16 bg-emerald-600 text-white font-black rounded-3xl hover:bg-emerald-700 transition flex items-center justify-center gap-3 shadow-2xl shadow-emerald-200 uppercase tracking-widest text-[10px]"
+                                >
+                                    {processingId === confirmingApp._id ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Briefcase className="w-4 h-4" /> Finalize</>}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+            
             <AnimatePresence>
                 {rejectingApp && (
                     <div className="fixed inset-0 z-[2000] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">

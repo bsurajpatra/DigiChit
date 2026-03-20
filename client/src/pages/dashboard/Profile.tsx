@@ -5,7 +5,7 @@ import { Loader } from '../../components/ui/Loader';
 import {
     Mail, Shield, Clock, Calendar, AlertTriangle,
     KeyRound, Eye, EyeOff, Lock, CheckCircle2, XCircle,
-    Loader2, FileText, Camera, X
+    Loader2, FileText, Camera, X, UserCircle, Briefcase, Users
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -21,7 +21,29 @@ interface ProfileData {
     lastLoginAt?: string;
     createdAt: string;
     profilePictureUrl?: string;
+    organizerStatus: 'NOT_APPLIED' | 'PENDING' | 'APPROVED' | 'REJECTED';
+    city?: string;
+    occupation?: string;
+    incomeRange?: string;
+    expectedChitValueRange?: string;
+    expectedGroupSizeRange?: string;
+    organizerApplicationReason?: string;
 }
+
+const CHIT_VALUE_LABELS: Record<string, string> = {
+    UP_TO_1_LAKH: 'Up to ₹1 Lakh',
+    ONE_TO_FIVE_LAKH: '₹1–5 Lakhs',
+    FIVE_TO_TEN_LAKH: '₹5–10 Lakhs',
+    TEN_TO_TWENTY_FIVE_LAKH: '₹10–25 Lakhs',
+    ABOVE_TWENTY_FIVE_LAKH: 'Above ₹25 Lakhs'
+};
+
+const GROUP_SIZE_LABELS: Record<string, string> = {
+    SMALL_5_TO_10: '5–10 Members',
+    MEDIUM_10_TO_20: '10–20 Members',
+    LARGE_20_TO_50: '20–50 Members',
+    VERY_LARGE_50_PLUS: '50+ Members'
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -245,9 +267,16 @@ export const Profile = () => {
         <div className="h-full flex flex-col gap-4">
 
             {/* ── Page title (compact) ── */}
-            <div className="shrink-0">
-                <h1 className="text-2xl font-bold text-slate-900">My Profile</h1>
-                <p className="text-sm text-slate-400">Account details &amp; KYC information</p>
+            <div className="shrink-0 flex items-center justify-between bg-white/40 backdrop-blur-md p-6 rounded-[2.5rem] border border-white/40 shadow-xl shadow-slate-100 mb-2">
+                <div>
+                    <h1 className="text-3xl font-medium text-slate-900 tracking-tight uppercase">My Profile</h1>
+                    <p className="text-xs font-medium text-slate-400 mt-1 uppercase tracking-widest leading-none">Account metadata & Secure Credentials</p>
+                </div>
+                <div className="flex items-center gap-3 px-5 py-2.5 bg-transparent">
+                    <div className="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center font-black text-sm">
+                        <UserCircle className="w-5 h-5" />
+                    </div>
+                </div>
             </div>
 
             {/* ── Main grid ── */}
@@ -371,6 +400,29 @@ export const Profile = () => {
                         } />
                         <Row icon={Clock}    label="Last Login"       value={fmt(profile?.lastLoginAt)} />
                     </div>
+
+                    {/* Organizer Profile */}
+                    {profile?.role === 'ORGANIZER' && (
+                        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 animate-in slide-in-from-right duration-500">
+                            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1 flex items-center gap-2">
+                                <Shield className="w-3 h-3" /> Organizer Profile
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                                <Row icon={Briefcase} label="Operation City" value={profile.city} />
+                                <Row icon={UserCircle} label="Primary Profession" value={profile.occupation} />
+                                <Row icon={FileText} label="Income Group" value={profile.incomeRange} />
+                                <Row icon={Shield} label="Anticipated Scale" value={profile.expectedChitValueRange ? CHIT_VALUE_LABELS[profile.expectedChitValueRange] : '-'} />
+                                <Row icon={Users} label="Target Group Size" value={profile.expectedGroupSizeRange ? GROUP_SIZE_LABELS[profile.expectedGroupSizeRange] : '-'} />
+                            </div>
+                            
+                            <div className="mt-4 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100">
+                                <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1.5 leading-none">Management Pitch</p>
+                                <p className="text-xs text-slate-700 italic border-l-2 border-emerald-200 pl-3 leading-relaxed">
+                                    "{profile.organizerApplicationReason}"
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     {/* KYC not-submitted notice */}
                     {profile?.kycStatus === 'NOT_SUBMITTED' && (

@@ -156,12 +156,16 @@ export const SubmitKYC = () => {
                 <div className="relative z-10 text-[10px] text-slate-500 uppercase tracking-widest font-bold">© 2026 DigiChit Technologies</div>
             </div>
 
-            <div className="flex items-center justify-center p-6 md:p-10 lg:p-12 bg-slate-50/50 overflow-y-auto">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-lg w-full py-8">
-                    <div className="mb-10">
-                        <h2 className="text-4xl font-bold text-slate-900 mb-2">Identity Verification</h2>
-                        <p className="text-base text-slate-600">Please provide accurate information.</p>
+            <div className="flex-1 flex flex-col min-h-0 bg-slate-50/50">
+                <div className="shrink-0 flex items-center justify-between bg-white/40 backdrop-blur-md p-6 rounded-[2.5rem] border border-white/40 shadow-xl shadow-slate-100 m-6 mb-0">
+                    <div>
+                        <h2 className="text-3xl font-medium text-slate-900 tracking-tight uppercase leading-none">Identity Verification</h2>
+                        <p className="text-xs font-medium text-slate-400 mt-2 uppercase tracking-widest">Document & Identity Check</p>
                     </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto px-6 py-6 scroll-smooth">
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto py-8">
 
                     {apiError && (
                         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-4 mb-6 bg-red-50 text-red-600 border border-red-100 rounded-xl text-sm font-medium">
@@ -264,6 +268,7 @@ export const SubmitKYC = () => {
                         </button>
                     </form>
                 </motion.div>
+            </div>
             </div>
         </div>
     );
