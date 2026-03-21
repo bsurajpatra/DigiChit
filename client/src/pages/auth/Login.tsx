@@ -34,7 +34,7 @@ export const Login = () => {
         try {
             setApiError('');
             const response = await api.post('/auth/login', data);
-            
+
             const { token, data: { user } } = response.data;
             login(token, user);
 

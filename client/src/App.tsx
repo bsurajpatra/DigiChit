@@ -1,8 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/routes/ProtectedRoute';
-import { RoleRoute } from './components/routes/RoleRoute';
-import { RoleProtectedRoute } from './components/routes/RoleProtectedRoute';
+import { GuestRoute } from './components/routes/GuestRoute';
 
 // Layouts
 import { DashboardLayout } from './components/layouts/DashboardLayout';
@@ -25,10 +24,16 @@ import { Dashboard } from './pages/dashboard/Dashboard';
 import { Profile } from './pages/dashboard/Profile';
 import { OrganizerStatus } from './pages/dashboard/OrganizerStatus';
 import { Support } from './pages/dashboard/Support';
+import { CreateChit } from './pages/organizer/CreateChit';
+import { MyOrganizedChits } from './pages/organizer/MyChits';
+import { ChitDiscovery } from './pages/dashboard/ChitDiscovery';
+import { UserChits } from './pages/dashboard/UserChits';
+import { ChitDetails } from './pages/dashboard/ChitDetails';
 import { KYCPanel } from './pages/admin/KYCPanel';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { OrganizerApplications } from './pages/admin/OrganizerApplications';
 import ContactQueries from './pages/admin/ContactQueries';
+import { JoinInvite } from './pages/dashboard/JoinInvite';
 
 // Legacy components (can be phased out)
 import LandingPage from './components/LandingPage';
@@ -59,15 +64,18 @@ function App() {
                     <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                     <Route path="/disclaimer" element={<Disclaimer />} />
 
-                    {/* Standalone Auth Routes */}
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<Signup />} />
-                    <Route path="/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
+                    {/* Guest Only Routes (Login, Signup, Reset) */}
+                    <Route element={<GuestRoute />}>
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/signup" element={<Signup />} />
+                        <Route path="/forgot-password" element={<ForgotPassword />} />
+                        <Route path="/reset-password" element={<ResetPassword />} />
+                    </Route>
 
                     <Route path="/verify-email" element={<VerifyEmail />} />
                     <Route path="/verify-email-info" element={<VerifyEmailInfo />} />
                     <Route path="/resend-verification" element={<ResendVerification />} />
+                    <Route path="/join/:id" element={<JoinInvite />} />
 
                     {/* Protected Routes Wrapper */}
                     <Route element={<ProtectedRoute />}>
@@ -81,14 +89,18 @@ function App() {
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/organizer-status" element={<OrganizerStatus />} />
                             <Route path="/support" element={<Support />} />
+                            <Route path="/join-chit" element={<ChitDiscovery />} />
+                            <Route path="/my-chits" element={<UserChits />} />
+                            <Route path="/chit-details/:id" element={<ChitDetails />} />
 
                             {/* Organizer specific routes */}
-                            <Route element={<RoleProtectedRoute allowedRoles={['ORGANIZER']} />}>
-                                {/* Future: <Route path="/organizer/dashboard" element={<OrganizerDashboard />} /> */}
+                            <Route element={<ProtectedRoute allowedRoles={['ORGANIZER']} />}>
+                                <Route path="/organizer/create-chit" element={<CreateChit />} />
+                                <Route path="/organizer/my-chits" element={<MyOrganizedChits />} />
                             </Route>
 
                             {/* Admin specific routes */}
-                            <Route element={<RoleRoute allowedRoles={['ADMIN']} />}>
+                            <Route element={<ProtectedRoute allowedRoles={['ADMIN']} unauthorizedRedirect="/" />}>
                                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
                                 <Route path="/admin/kyc" element={<KYCPanel />} />
                                 <Route path="/admin/organizers" element={<OrganizerApplications />} />

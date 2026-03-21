@@ -17,7 +17,7 @@ export const Sidebar = ({ isMobileOpen, setMobileOpen }: SidebarProps) => {
 
     if (!user) return null;
 
-    const menuItems = getSidebarMenu(user.role, user.organizerStatus);
+    const menuItems = getSidebarMenu(user.role, user.organizerStatus, user.kycStatus);
 
     const [expandedApps, setExpandedApps] = useState<string[]>(['Chits']); // default expanded
     

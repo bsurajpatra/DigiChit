@@ -93,17 +93,17 @@ export const Support = () => {
 
     return (
         <div className="h-full flex flex-col gap-4 animate-in fade-in duration-500">
-            {/* Header */}
+            {/* Compact Header */}
             <div className="flex items-center justify-between bg-white/50 backdrop-blur-md px-6 py-4 rounded-3xl border border-white/40 shadow-lg shadow-slate-100/50">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 tracking-tight uppercase">Support & Help</h1>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Connect with our engineering team.</p>
+                    <h1 className="text-xl font-bold text-slate-900 tracking-tight uppercase leading-tight">Support & Help</h1>
+                    <p className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest leading-none">Connect with our engineering team for operational assistance</p>
                 </div>
                 <button 
                     onClick={() => setShowNew(true)}
                     className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-2xl shadow-lg shadow-slate-200 hover:bg-emerald-600 transition-all font-black uppercase tracking-widest text-[9px]"
                 >
-                    <Plus className="w-3.5 h-3.5" /> Open Ticket
+                    <Plus className="w-3.5 h-3.5" /> Dispatch Ticket
                 </button>
             </div>
 

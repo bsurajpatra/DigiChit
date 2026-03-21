@@ -11,7 +11,7 @@ export type MenuItem = {
     subItems?: MenuItem[];
 };
 
-export const getSidebarMenu = (role: string, organizerStatus: string): MenuItem[] => {
+export const getSidebarMenu = (role: string, organizerStatus: string, kycStatus?: string): MenuItem[] => {
     if (role === 'ADMIN') {
         return [
             { label: 'KYC Approvals', path: '/admin/kyc', icon: UserCheck },
@@ -22,6 +22,14 @@ export const getSidebarMenu = (role: string, organizerStatus: string): MenuItem[
     }
 
     // Common for both USER and ORGANIZER
+    const baseItems: MenuItem[] = [];
+
+    if (kycStatus === 'REJECTED') {
+        baseItems.push({ label: 'Fix ID Issue', path: '/kyc/status', icon: ShieldAlert });
+    } else if (kycStatus === 'NOT_SUBMITTED') {
+        baseItems.push({ label: 'Verify Identity', path: '/kyc/status', icon: UserCheck });
+    }
+
     const supportItem = { label: 'Support', path: '/support', icon: MessageSquare };
 
     if (role === 'ORGANIZER') {
@@ -34,9 +42,10 @@ export const getSidebarMenu = (role: string, organizerStatus: string): MenuItem[
                     { label: 'Create Chit', path: '/organizer/create-chit', icon: PlusCircle },
                     { label: 'My Organized Chits', path: '/organizer/my-chits', icon: FolderKanban },
                     { label: 'Join Chit', path: '/join-chit', icon: Search },
-                    { label: 'My Chits', path: '/dashboard', icon: Wallet },
+                    { label: 'My Chits', path: '/my-chits', icon: Wallet },
                 ]
             },
+            ...baseItems,
             { label: 'Profile', path: '/profile', icon: UserCircle },
             supportItem
         ];
@@ -50,6 +59,7 @@ export const getSidebarMenu = (role: string, organizerStatus: string): MenuItem[
 
     const baseMenu: MenuItem[] = [
         { label: 'Chits', path: '#chits', icon: Wallet, subItems: chitsSubItems },
+        ...baseItems
     ];
 
     if (organizerStatus === 'NOT_APPLIED') {

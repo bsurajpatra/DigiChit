@@ -59,6 +59,7 @@ export interface IUser extends Document {
     occupation?: string;
     incomeRange?: string;
     organizerRejectedReason?: string;
+    kycRejectedReason?: string;
     organizerApprovedAt?: Date;
     age?: number;
     accountStatus: AccountStatus;
@@ -88,6 +89,7 @@ const UserSchema: Schema = new Schema({
     occupation: { type: String },
     incomeRange: { type: String },
     organizerRejectedReason: { type: String },
+    kycRejectedReason: { type: String },
     organizerApprovedAt: { type: Date },
     age: { 
         type: Number, 

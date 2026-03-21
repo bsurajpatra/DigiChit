@@ -42,7 +42,7 @@ export const KYCStatus = () => {
         REJECTED: {
             icon: <XCircle className="w-10 h-10" />,
             title: "Verification Rejected",
-            description: "Unfortunately, we couldn't verify your latest document submission. This can happen if the photos were blurry or fields were incorrect. Please review your documents and try again.",
+            description: user?.kycRejectedReason || "Unfortunately, we couldn't verify your latest document submission. This can happen if the photos were blurry or fields were incorrect. Please review your documents and try again.",
             action: () => navigate('/kyc/submit'),
             buttonText: "Resubmit KYC",
             colorClass: "bg-red-50 text-red-600",

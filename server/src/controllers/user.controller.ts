@@ -13,7 +13,7 @@ import * as cloudinaryService from '../services/cloudinary.service.js';
 export const getProfile = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         const user = await User.findById(req.user!.id).select(
-            'name email role age kycStatus accountStatus emailVerified lastLoginAt createdAt profilePictureUrl organizerStatus organizerRejectedReason city occupation incomeRange expectedChitValueRange expectedGroupSizeRange organizerApplicationReason'
+            'name email role age kycStatus accountStatus emailVerified lastLoginAt createdAt profilePictureUrl organizerStatus organizerRejectedReason kycRejectedReason city occupation incomeRange expectedChitValueRange expectedGroupSizeRange organizerApplicationReason'
         );
 
         if (!user) {
@@ -137,6 +137,45 @@ export const uploadProfilePicture = async (req: AuthRequest, res: Response, next
             success: true,
             message: 'Profile picture updated successfully',
             data: { profilePictureUrl: newAvatarUrl }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * GET /api/user/search?email=...
+ * Searches for a user by email, returns only if KYC is APPROVED.
+ */
+export const searchUserByEmail = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+        const { email } = req.query;
+
+        if (!email || typeof email !== 'string') {
+            return next(new AppError('Email is required for searching.', 400, 'VALIDATION_ERROR'));
+        }
+
+        const user = await User.findOne({ 
+            email: email.toLowerCase(), 
+            kycStatus: 'APPROVED',
+            role: { $ne: 'ADMIN' }
+        })
+            .select('name email kycStatus profilePictureUrl');
+
+        if (!user) {
+            return next(new AppError('No KYC-approved user found with this email.', 404, 'USER_NOT_FOUND'));
+        }
+
+        res.status(200).json({
+            success: true,
+            data: { 
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    profilePictureUrl: user.profilePictureUrl
+                }
+            }
         });
     } catch (error) {
         next(error);

@@ -11,6 +11,7 @@ export interface User {
     organizerStatus: 'NOT_APPLIED' | 'PENDING' | 'APPROVED' | 'REJECTED';
     accountStatus: 'ACTIVE' | 'SUSPENDED' | 'INACTIVE';
     profilePictureUrl?: string;
+    kycRejectedReason?: string;
 }
 
 interface AuthContextType {
@@ -70,4 +71,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             {children}
         </AuthContext.Provider>
     );
+};
+
+export const useAuth = () => {
+    const context = React.useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
 };

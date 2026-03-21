@@ -20,4 +20,7 @@ router.get('/kyc/view/:field', userController.viewMyKYCDocument);
 // Profile Picture Upload
 router.post('/profile-picture', upload.single('profilePicture'), userController.uploadProfilePicture);
 
+// Search User (for manual adding to groups)
+router.get('/search', userController.searchUserByEmail);
+
 export default router;

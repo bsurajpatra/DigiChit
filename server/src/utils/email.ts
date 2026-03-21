@@ -8,7 +8,8 @@ import {
     getKYCRejectedTemplate,
     getOrganizerApprovedTemplate,
     getOrganizerRejectedTemplate,
-    getContactReplyTemplate
+    getContactReplyTemplate,
+    getChitGroupCreatedTemplate
 } from './emailTemplates.js';
 
 dotenv.config();
@@ -152,5 +153,21 @@ export const sendContactReplyEmail = async (email: string, name: string, origina
         console.log(`Contact reply email sent to ${email}`);
     } catch (error) {
         console.error('Error sending contact reply email:', error);
+    }
+};
+
+export const sendChitGroupCreatedEmail = async (email: string, name: string, groupName: string, contribution: number, members: number, startDate: string) => {
+    const mailOptions = {
+        from: `DigiChit Circles <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: `Success: Your Financial Circle "${groupName}" is Live`,
+        html: getChitGroupCreatedTemplate(name, groupName, contribution, members, startDate),
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Chit creation email sent to organizer: ${email}`);
+    } catch (error) {
+        console.error('Error sending chit creation email:', error);
     }
 };

@@ -8,6 +8,7 @@ import adminRoutes from './routes/admin.routes.js';
 import userRoutes from './routes/user.routes.js';
 import organizerRoutes from './routes/organizer.routes.js';
 import contactRoutes from './routes/contact.routes.js';
+import chitGroupRoutes from './routes/chitGroup.routes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { globalErrorHandler } from './middlewares/error.middleware.js';
@@ -51,6 +52,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/organizer', organizerRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/chit-groups', chitGroupRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

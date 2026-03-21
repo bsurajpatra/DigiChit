@@ -346,3 +346,63 @@ export const getContactReplyTemplate = (name: string, originalMessage: string, a
 </body>
 </html>
 `;
+
+export const getChitGroupCreatedTemplate = (name: string, groupName: string, contribution: number, members: number, startDate: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+    <style>${baseStyles}</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header" style="background-color: #064e3b;">
+            <h1 class="logo">Digi<span>Chit</span></h1>
+        </div>
+        <div class="content">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="display: inline-block; padding: 20px; background-color: #ecfdf5; border-radius: 50%;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </div>
+            </div>
+            <h2 style="text-align: center; color: #064e3b;">Chit Group Created Successfully!</h2>
+            <p>Hello <span class="highlight">${name}</span>,</p>
+            <p>Your new financial circle, <span class="highlight">${groupName}</span>, has been successfully established and is now visible to the community.</p>
+            
+            <div style="background-color: #f0fdf4; border: 1px solid #dcfce7; padding: 24px; margin: 30px 0; border-radius: 16px;">
+                <p style="margin: 0; font-weight: 700; color: #166534; margin-bottom: 15px; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em;">Group Specifications:</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="margin-bottom: 10px;">
+                        <span style="display: block; font-size: 12px; color: #16a34a; font-weight: 600;">Monthly Contribution</span>
+                        <span style="font-size: 18px; font-weight: 800; color: #064e3b;">₹${contribution.toLocaleString()}</span>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <span style="display: block; font-size: 12px; color: #16a34a; font-weight: 600;">Total Members</span>
+                        <span style="font-size: 18px; font-weight: 800; color: #064e3b;">${members} Seats</span>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <span style="display: block; font-size: 12px; color: #16a34a; font-weight: 600;">Pot Value</span>
+                        <span style="font-size: 18px; font-weight: 800; color: #166534;">₹${(contribution * members).toLocaleString()}</span>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <span style="display: block; font-size: 12px; color: #16a34a; font-weight: 600;">Start Date</span>
+                        <span style="font-size: 18px; font-weight: 800; color: #064e3b;">${startDate}</span>
+                    </div>
+                </div>
+            </div>
+
+            <p>As the organizer, you can now manage member applications and track contributions from your dashboard.</p>
+            
+            <div style="text-align: center; margin: 35px 0;">
+                <a href="${process.env.FRONTEND_URL}/dashboard" class="button" style="background-color: #059669;">Manage Your Group</a>
+            </div>
+            
+            <p>Thank you for leading a trust-based circle on <span class="highlight">DigiChit</span>.</p>
+        </div>
+        <div class="footer">
+            &copy; ${new Date().getFullYear()} DigiChit Technologies<br>
+            Secure Community Finance Ecosystem.
+        </div>
+    </div>
+</body>
+</html>
+`;

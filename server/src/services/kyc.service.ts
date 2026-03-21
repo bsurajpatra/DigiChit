@@ -78,12 +78,16 @@ export const submitKYC = async (userId: string, aadhaar: string, files: KYCUploa
             selfieSize: files.selfie.size,
 
             undertakingAccepted,
-            status: KYCStatus.PENDING
+            status: KYCStatus.PENDING,
+            rejectionReason: null // Clear old reason
         },
         { upsert: true, new: true }
     );
 
-    await User.findByIdAndUpdate(userId, { kycStatus: KYCStatus.PENDING });
+    await User.findByIdAndUpdate(userId, { 
+        kycStatus: KYCStatus.PENDING,
+        kycRejectedReason: null // Clear old reason from profile
+    });
 
     return kyc;
 };
@@ -149,7 +153,16 @@ export const adminReviewKYC = async (
     if (rejectionReason) kyc.rejectionReason = rejectionReason;
 
     await kyc.save();
-    await User.findByIdAndUpdate(kyc.userId, { kycStatus: status });
+    
+    // Sync to user for easy profile fetching
+    const userUpdate: any = { kycStatus: status };
+    if (status === KYCStatus.REJECTED && rejectionReason) {
+        userUpdate.kycRejectedReason = rejectionReason;
+    } else if (status === KYCStatus.APPROVED) {
+        userUpdate.kycRejectedReason = null; // Clear if approved later
+    }
+    
+    await User.findByIdAndUpdate(kyc.userId, userUpdate);
 
     // Auditor Log
     await logAction({

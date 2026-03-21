@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { Loader } from '../../components/ui/Loader';
 import {
     Mail, Shield, Clock, Calendar, AlertTriangle,
     KeyRound, Eye, EyeOff, Lock, CheckCircle2, XCircle,
-    Loader2, FileText, Camera, X, UserCircle, Briefcase
+    Loader2, FileText, Camera, X, UserCircle, Briefcase,
+    RefreshCw
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -22,6 +24,7 @@ interface ProfileData {
     createdAt: string;
     profilePictureUrl?: string;
     organizerStatus: 'NOT_APPLIED' | 'PENDING' | 'APPROVED' | 'REJECTED';
+    kycRejectedReason?: string;
     city?: string;
     occupation?: string;
     incomeRange?: string;
@@ -396,13 +399,39 @@ export const Profile = () => {
                     {/* Alerts */}
                     {profile?.kycStatus === 'NOT_SUBMITTED' && (
                         <div className="bg-amber-50 border border-amber-200 rounded-3xl p-5 flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-                                <AlertTriangle className="w-5 h-5 text-amber-600" />
+                            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 text-amber-600">
+                                <AlertTriangle className="w-5 h-5" />
                             </div>
-                            <div>
+                            <div className="flex-1">
                                 <p className="text-[11px] font-black text-amber-900 uppercase tracking-widest">Compliance Required</p>
                                 <p className="text-[10px] text-amber-700 mt-1 uppercase tracking-tight font-bold">Complete Identity verification to activate financial instruments.</p>
                             </div>
+                            <Link 
+                                to="/kyc/submit"
+                                className="px-4 py-2 bg-amber-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-amber-700 transition shadow-lg shadow-amber-200 shrink-0"
+                            >
+                                Verify Now
+                            </Link>
+                        </div>
+                    )}
+
+                    {profile?.kycStatus === 'REJECTED' && (
+                        <div className="bg-red-50 border border-red-200 rounded-3xl p-5 flex items-start gap-4 animate-in slide-in-from-bottom duration-700">
+                            <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0 text-red-600">
+                                <XCircle className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-[11px] font-black text-red-900 uppercase tracking-widest">Verification Failed</p>
+                                <p className="text-[10px] text-red-700 mt-1 uppercase tracking-tight font-bold leading-relaxed">
+                                    {profile?.kycRejectedReason || "Your previous submission was declined. Please review the requirements and submit clear documents."}
+                                </p>
+                            </div>
+                            <Link 
+                                to="/kyc/submit"
+                                className="px-4 py-2 bg-red-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-700 transition shadow-lg shadow-red-200 shrink-0 flex items-center gap-2"
+                            >
+                                <RefreshCw className="w-3 h-3" /> Resubmit KYC
+                            </Link>
                         </div>
                     )}
                 </div>
