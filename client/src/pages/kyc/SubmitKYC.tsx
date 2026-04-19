@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import api from '../../api/axios';
 import { useAuth } from '../../hooks/useAuth';
 import logo from '../../assets/logo.png';
+import { compressImage } from '../../utils/cloudinary';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
@@ -85,10 +86,16 @@ export const SubmitKYC = () => {
             setApiError('');
             setUploadProgress(0);
 
+            // 1. "Fast Fast" - Compress client-side first
+            const [compressedDoc, compressedSelfie] = await Promise.all([
+                compressImage(data.document[0], 1600, 0.7), // Slightly higher res for legal docs
+                compressImage(data.selfie[0], 1000, 0.7)
+            ]);
+
             const formData = new FormData();
             formData.append('aadhaar', data.aadhaar);
-            formData.append('document', data.document[0]);
-            formData.append('selfie', data.selfie[0]);
+            formData.append('document', compressedDoc, 'document.jpg');
+            formData.append('selfie', compressedSelfie, 'selfie.jpg');
             formData.append('undertakingAccepted', 'true');
 
             await api.post('/kyc/submit', formData, {

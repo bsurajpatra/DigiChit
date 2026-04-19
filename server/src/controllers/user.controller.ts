@@ -104,27 +104,32 @@ export const viewMyKYCDocument = async (req: AuthRequest, res: Response, next: N
  */
 export const uploadProfilePicture = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-        if (!req.file) {
-            return next(new AppError('Please provide an image file.', 400, 'VALIDATION_ERROR'));
-        }
-
         const user = await User.findById(req.user!.id);
         if (!user) {
             return next(new AppError('User not found', 404, 'USER_NOT_FOUND'));
         }
 
-        // 1. Upload to Cloudinary first
-        const folder = `digichit/users/${user._id}`;
-        const uploadResult = await cloudinaryService.uploadToCloudinary(req.file.buffer, folder, 'image');
+        let newAvatarUrl: string;
+        let newPublicId: string;
 
-        const newAvatarUrl = uploadResult.secure_url;
-        const newPublicId = uploadResult.public_id;
+        // Support both direct client-side upload (Fast Fast) and traditional server-side upload
+        if (req.body.publicId && req.body.url) {
+            newPublicId = req.body.publicId;
+            newAvatarUrl = req.body.url;
+        } else if (req.file) {
+            // 1. Upload to Cloudinary (traditional way)
+            const folder = `digichit/users/${user._id}`;
+            const uploadResult = await cloudinaryService.uploadToCloudinary(req.file.buffer, folder, 'image');
+            newAvatarUrl = uploadResult.secure_url;
+            newPublicId = uploadResult.public_id;
+        } else {
+            return next(new AppError('Please provide an image file or direct upload data.', 400, 'VALIDATION_ERROR'));
+        }
 
-        // 2. Delete old image if it existed
+        // 2. Delete old image if it existed locally or in Cloudinary
         if (user.profilePicturePublicId) {
             await cloudinaryService.deleteFromCloudinary(user.profilePicturePublicId).catch(err => {
                 console.error('Failed to delete old profile picture from cloudinary:', err);
-                // Non-blocking error, we still update the new one
             });
         }
 
@@ -176,6 +181,25 @@ export const searchUserByEmail = async (req: AuthRequest, res: Response, next: N
                     profilePictureUrl: user.profilePictureUrl
                 }
             }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * GET /api/user/upload-signature
+ * Generates a signed signature for direct client-side upload to Cloudinary.
+ * This is the FASTEST way to upload.
+ */
+export const getUploadSignature = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+        const folder = `digichit/users/${req.user!.id}`;
+        const signatureData = cloudinaryService.generateSignature(folder);
+
+        res.status(200).json({
+            success: true,
+            data: signatureData
         });
     } catch (error) {
         next(error);

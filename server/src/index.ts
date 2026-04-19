@@ -1,18 +1,15 @@
 import mongoose from 'mongoose';
 import app from './app.js';
-import dotenv from 'dotenv';
+import { config } from './config/env.js';
 
-dotenv.config();
-
-const PORT = process.env.PORT || 5000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/digichit';
+const { port, mongoUri } = config;
 
 mongoose
-    .connect(MONGODB_URI)
+    .connect(mongoUri)
     .then(() => {
         console.log('Connected to MongoDB');
-        app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
+        app.listen(port, () => {
+            console.log(`Server is running on port ${port}`);
         });
     })
     .catch((err) => {

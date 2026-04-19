@@ -1,10 +1,8 @@
 import crypto from 'crypto';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { config } from '../config/env.js';
 
 const ALGORITHM = 'aes-256-cbc';
-const ENCRYPTION_KEY = Buffer.from(process.env.ENCRYPTION_KEY || 'default_secret_key_32_chars_long!!', 'utf8').slice(0, 32);
+const ENCRYPTION_KEY = Buffer.from(config.encryptionKey, 'utf8').slice(0, 32);
 const IV_LENGTH = 16;
 
 export const encrypt = (text: string): string => {

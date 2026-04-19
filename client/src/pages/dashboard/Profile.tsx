@@ -9,6 +9,8 @@ import {
     Loader2, FileText, Camera, X, UserCircle, Briefcase,
     RefreshCw
 } from 'lucide-react';
+import OptimizedImage from '../../components/OptimizedImage';
+import { compressImage, uploadImageDirectly } from '../../utils/cloudinary';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -204,11 +206,19 @@ export const Profile = () => {
         setUploadingAvatar(true);
         setError(null);
         try {
-            const formData = new FormData();
-            formData.append('profilePicture', file);
-            const res = await api.post('/user/profile-picture', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
+            // 1. "Fast Fast" - Compress client-side first
+            const compressedBlob = await compressImage(file, 400, 0.8);
+            
+            // 2. Direct upload to Cloudinary (bypassing app server bottleneck)
+            const uploadResult = await uploadImageDirectly(compressedBlob, `digichit/users/${profile?._id || 'unknown'}`);
+            
+            // 3. Update server with the new image info
+            // We use a new endpoint or update the existing one to handle direct upload results
+            const res = await api.post('/user/profile-picture', {
+                publicId: uploadResult.public_id,
+                url: uploadResult.secure_url
             });
+
             const newUrl = res.data.data.profilePictureUrl;
             setProfile(prev => prev ? { ...prev, profilePictureUrl: newUrl } : null);
             updateUser({ profilePictureUrl: newUrl });
@@ -284,7 +294,13 @@ export const Profile = () => {
                             />
                             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-400 flex items-center justify-center overflow-hidden relative shadow-lg group-hover:scale-105 transition-transform duration-500">
                                 {profile?.profilePictureUrl ? (
-                                    <img src={profile.profilePictureUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                    <OptimizedImage 
+                                        publicId={profile.profilePictureUrl} 
+                                        alt="Avatar" 
+                                        width={80} 
+                                        height={80} 
+                                        priority
+                                    />
                                 ) : (
                                     <span className="text-3xl font-black text-white">
                                         {profile?.name?.charAt(0)?.toUpperCase()}

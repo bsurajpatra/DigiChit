@@ -8,6 +8,7 @@ export interface CloudinaryUploadResult {
     resource_type: string;
     format: string;
     bytes: number;
+    optimized_url?: string;
 }
 
 /**
@@ -38,7 +39,12 @@ export const uploadToCloudinary = (
                     public_id: result.public_id,
                     resource_type: result.resource_type,
                     format: result.format,
-                    bytes: result.bytes
+                    bytes: result.bytes,
+                    optimized_url: cloudinary.url(result.public_id, {
+                        secure: true,
+                        quality: 'auto',
+                        fetch_format: 'auto'
+                    })
                 });
             }
         );
@@ -61,7 +67,6 @@ export const deleteFromCloudinary = async (public_id: string): Promise<void> => 
 
 /**
  * Generates a signed URL for secure document access.
- * Note: For KYC, we prefer proxying the file through our server for absolute control.
  */
 export const getSignedUrl = (public_id: string): string => {
     return cloudinary.url(public_id, {
@@ -69,4 +74,39 @@ export const getSignedUrl = (public_id: string): string => {
         secure: true,
         type: 'authenticated'
     });
+};
+
+/**
+ * Generates an optimized URL for public images.
+ * Uses auto-format and auto-quality for maximum speed.
+ */
+export const getOptimizedUrl = (public_id: string, width?: number, height?: number): string => {
+    return cloudinary.url(public_id, {
+        secure: true,
+        quality: 'auto',
+        fetch_format: 'auto',
+        width: width,
+        height: height,
+        crop: (width || height) ? 'limit' : undefined
+    });
+};
+
+/**
+ * Generates a signature for direct client-side uploads.
+ * This is the FASTEST way to upload as it bypasses the app server.
+ */
+export const generateSignature = (folder: string) => {
+    const timestamp = Math.round((new Date()).getTime() / 1000);
+    const signature = cloudinary.utils.api_sign_request(
+        { timestamp, folder },
+        process.env.CLOUDINARY_API_SECRET as string
+    );
+
+    return {
+        signature,
+        timestamp,
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+        apiKey: process.env.CLOUDINARY_API_KEY,
+        folder
+    };
 };
