@@ -105,12 +105,21 @@ export const getKYCDocumentStream = async (userId: string, field: 'document' | '
 
     const mimeType = field === 'document' ? kyc.documentMimeType : kyc.selfieMimeType;
 
-    const response = await axios.get(url, { responseType: 'stream' });
+    try {
+        const response = await axios.get(url, { responseType: 'stream' });
 
-    return {
-        stream: response.data,
-        mimeType
-    };
+        return {
+            stream: response.data,
+            mimeType
+        };
+    } catch (error: any) {
+        console.error(
+            `KYC_STREAM_ERROR [Field: ${field}, User: ${userId}, URL: ${url}]:`,
+            error.response?.status,
+            error.response?.statusText || error.message
+        );
+        throw new AppError(`Failed to retrieve KYC ${field} stream.`, 500, 'KYC_STREAM_ERROR');
+    }
 };
 
 export const adminReviewKYC = async (

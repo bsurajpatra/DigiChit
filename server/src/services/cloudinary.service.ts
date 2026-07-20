@@ -28,10 +28,11 @@ export const uploadToCloudinary = (
             },
             (error: any, result: any) => {
                 if (error) {
-                    console.error('CLOUDINARY_UPLOAD_ERROR:', error);
-                    return reject(new AppError('Cloudinary upload failed', 500, 'CLOUDINARY_ERROR'));
+                    console.error('CLOUDINARY_UPLOAD_ERROR:', error?.message || error, { folder, resourceType });
+                    return reject(new AppError(error?.message || 'Cloudinary upload failed', 500, 'CLOUDINARY_ERROR'));
                 }
                 if (!result) {
+                    console.error('CLOUDINARY_UPLOAD_NO_RESULT:', { folder, resourceType });
                     return reject(new AppError('Cloudinary upload returned no result', 500, 'CLOUDINARY_ERROR'));
                 }
                 resolve({
@@ -60,7 +61,7 @@ export const deleteFromCloudinary = async (public_id: string): Promise<void> => 
     try {
         await cloudinary.uploader.destroy(public_id);
     } catch (error) {
-        console.error('CLOUDINARY_DELETE_ERROR:', error);
+        console.error('CLOUDINARY_DELETE_ERROR [public_id:', public_id, ']:', error);
         // We don't throw here to avoid blocking flows, but we log it.
     }
 };
@@ -96,6 +97,11 @@ export const getOptimizedUrl = (public_id: string, width?: number, height?: numb
  * This is the FASTEST way to upload as it bypasses the app server.
  */
 export const generateSignature = (folder: string) => {
+    if (!process.env.CLOUDINARY_API_SECRET || !process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY) {
+        console.error('CLOUDINARY_CONFIG_ERROR: Missing Cloudinary environment variables (API Key/Secret/CloudName).');
+        throw new AppError('Cloudinary server configuration missing', 500, 'CLOUDINARY_CONFIG_ERROR');
+    }
+
     const timestamp = Math.round((new Date()).getTime() / 1000);
     const signature = cloudinary.utils.api_sign_request(
         { timestamp, folder },

@@ -223,7 +223,13 @@ export const Profile = () => {
             setProfile(prev => prev ? { ...prev, profilePictureUrl: newUrl } : null);
             updateUser({ profilePictureUrl: newUrl });
         } catch (err: any) {
-            setError(err?.response?.data?.message || 'Failed to upload image.');
+            console.error('Profile picture upload failed:', err);
+            const errorMessage =
+                err?.response?.data?.error?.message ||
+                err?.response?.data?.message ||
+                err?.message ||
+                'Failed to upload image.';
+            setError(errorMessage);
         } finally {
             setUploadingAvatar(false);
             if (avatarInputRef.current) avatarInputRef.current.value = '';

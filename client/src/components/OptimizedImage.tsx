@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getOptimizedImageUrl } from '../utils/cloudinary';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ImageOff } from 'lucide-react';
 
 interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   publicId: string;
@@ -35,6 +35,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       const img = new Image();
       img.src = optimizedUrl;
       img.onload = () => setLoaded(true);
+      img.onerror = () => setError(true);
     }
   }, [optimizedUrl, priority]);
 
@@ -72,8 +73,9 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
       {/* Error state */}
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400 text-xs">
-          Failed to load
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400 p-2 text-center">
+          <ImageOff className="w-5 h-5 mb-0.5 opacity-60" />
+          <span className="text-[9px] font-bold uppercase tracking-wider">Unavailable</span>
         </div>
       )}
     </div>

@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Loader } from '../../components/ui/Loader';
 
 export const UserChits = () => {
@@ -64,10 +65,13 @@ export const UserChits = () => {
                         </div>
                     </div>
 
-                    <button className="flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-600 transition-all shadow-2xl shadow-slate-300 group">
+                    <Link 
+                        to="/join-chit"
+                        className="flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-600 transition-all shadow-2xl shadow-slate-300 group"
+                    >
                         Discover Chits
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </button>
+                    </Link>
                 </motion.div>
             </div>
         </div>

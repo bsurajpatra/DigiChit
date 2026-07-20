@@ -8,15 +8,29 @@ import { config } from '../config/env';
 export const getOptimizedImageUrl = (publicId: string, width?: number, height?: number) => {
   if (!publicId) return '';
   
-  // If it's already a full URL, we try to extract the public ID or just return it
-  if (publicId.startsWith('http')) {
-    // Basic extraction if it's a cloudinary URL
+  // If it's already a full URL, we try to extract the public ID or return non-Cloudinary URLs as-is
+  if (publicId.startsWith('http://') || publicId.startsWith('https://')) {
     if (publicId.includes('cloudinary.com')) {
-      const parts = publicId.split('/');
-      const lastPart = parts[parts.length - 1];
-      // This is a naive implementation, but often works for simple cases
-      // Better to store public_ids in DB
-      publicId = lastPart.split('.')[0];
+      const uploadIndex = publicId.indexOf('/upload/');
+      if (uploadIndex !== -1) {
+        const pathAfterUpload = publicId.substring(uploadIndex + '/upload/'.length);
+        const segments = pathAfterUpload.split('/');
+        
+        // Filter out version prefix (e.g. v1721456789) and transformation tokens (e.g. f_auto, q_auto, w_80)
+        const cleanSegments = segments.filter((seg) => {
+          if (!seg) return false;
+          if (/^v\d+$/.test(seg)) return false; // Version tag
+          if (seg.includes(',') || /^(f|q|w|h|c|e|r|a|b|co|dpr|fl|g|l|o|p|pg|so|u|y|z)_/.test(seg)) return false; // Transformation flag
+          return true;
+        });
+
+        if (cleanSegments.length > 0) {
+          let extractedPublicId = cleanSegments.join('/');
+          // Remove trailing file extension if present (e.g. .jpg, .png)
+          extractedPublicId = extractedPublicId.replace(/\.[a-zA-Z0-9]+$/, '');
+          publicId = extractedPublicId;
+        }
+      }
     } else {
       return publicId;
     }
@@ -107,8 +121,16 @@ export const uploadImageDirectly = async (file: File | Blob, folder: string) => 
       public_id: response.data.public_id,
       optimized_url: getOptimizedImageUrl(response.data.public_id)
     };
-  } catch (error) {
-    console.error('Direct upload failed:', error);
-    throw error;
+  } catch (error: any) {
+    const cloudinaryErrorMessage =
+      error?.response?.data?.error?.message ||
+      error?.response?.data?.message ||
+      error?.message ||
+      'Direct upload failed';
+    console.error('Direct upload failed:', cloudinaryErrorMessage, error);
+    const enhancedError = new Error(cloudinaryErrorMessage);
+    (enhancedError as any).response = error.response;
+    throw enhancedError;
   }
 };
+
