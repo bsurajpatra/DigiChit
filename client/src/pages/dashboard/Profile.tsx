@@ -15,6 +15,8 @@ import { compressImage, uploadImageDirectly } from '../../utils/cloudinary';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ProfileData {
+    _id?: string;
+    id?: string;
     name: string;
     email: string;
     role: string;
