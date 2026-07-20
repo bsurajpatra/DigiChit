@@ -7,7 +7,7 @@ import {
     Mail, Shield, Clock, Calendar, AlertTriangle,
     KeyRound, Eye, EyeOff, Lock, CheckCircle2, XCircle,
     Loader2, FileText, Camera, X, UserCircle, Briefcase,
-    RefreshCw
+    RefreshCw, Trash2
 } from 'lucide-react';
 import OptimizedImage from '../../components/OptimizedImage';
 import { compressImage, uploadImageDirectly } from '../../utils/cloudinary';
@@ -182,6 +182,8 @@ export const Profile = () => {
     const [profile, setProfile] = useState<ProfileData | null>(null);
     const [loading, setLoading] = useState(true);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
+    const [deletingAvatar, setDeletingAvatar] = useState(false);
+
     const avatarInputRef = useRef<HTMLInputElement>(null);
     const [error, setError] = useState<string | null>(null);
     const [kycViewer, setKycViewer] = useState<'document' | 'selfie' | null>(null);
@@ -235,6 +237,29 @@ export const Profile = () => {
         } finally {
             setUploadingAvatar(false);
             if (avatarInputRef.current) avatarInputRef.current.value = '';
+        }
+    };
+
+    const handleRemoveAvatar = async (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        if (!profile?.profilePictureUrl) return;
+
+        setDeletingAvatar(true);
+        setError(null);
+        try {
+            await api.delete('/user/profile-picture');
+            setProfile(prev => prev ? { ...prev, profilePictureUrl: undefined } : null);
+            updateUser({ profilePictureUrl: undefined });
+        } catch (err: any) {
+            console.error('Failed to remove profile picture:', err);
+            const errorMessage =
+                err?.response?.data?.error?.message ||
+                err?.response?.data?.message ||
+                err?.message ||
+                'Failed to remove profile picture.';
+            setError(errorMessage);
+        } finally {
+            setDeletingAvatar(false);
         }
     };
 
@@ -310,17 +335,47 @@ export const Profile = () => {
                                         priority
                                     />
                                 ) : (
-                                    <span className="text-3xl font-black text-white">
+                                    <span className="text-3xl font-black text-white select-none">
                                         {profile?.name?.charAt(0)?.toUpperCase()}
                                     </span>
                                 )}
-                                <button
-                                    onClick={() => avatarInputRef.current?.click()}
-                                    disabled={uploadingAvatar}
-                                    className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-100"
-                                >
-                                    {uploadingAvatar ? <Loader2 className="w-6 h-6 text-white animate-spin" /> : <Camera className="w-6 h-6 text-white" />}
-                                </button>
+
+                                {(uploadingAvatar || deletingAvatar) ? (
+                                    <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
+                                        <Loader2 className="w-6 h-6 text-white animate-spin" />
+                                    </div>
+                                ) : profile?.profilePictureUrl ? (
+                                    <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                avatarInputRef.current?.click();
+                                            }}
+                                            title="Change profile picture"
+                                            className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center backdrop-blur-sm transition-all hover:scale-110 shadow-md"
+                                        >
+                                            <Camera className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleRemoveAvatar}
+                                            title="Remove profile picture"
+                                            className="w-8 h-8 rounded-full bg-red-500/40 hover:bg-red-500/70 text-red-100 hover:text-white flex items-center justify-center backdrop-blur-sm transition-all hover:scale-110 shadow-md"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => avatarInputRef.current?.click()}
+                                        title="Upload profile picture"
+                                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+                                    >
+                                        <Camera className="w-6 h-6 text-white" />
+                                    </button>
+                                )}
                             </div>
                         </div>
                         <div>

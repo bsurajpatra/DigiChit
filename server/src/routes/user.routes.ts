@@ -17,8 +17,9 @@ router.post('/change-password', checkAccountActive, userController.changePasswor
 // User's own KYC document viewer (proxied — never exposes Cloudinary URLs)
 router.get('/kyc/view/:field', userController.viewMyKYCDocument);
 
-// Profile Picture Upload
+// Profile Picture Upload & Removal
 router.post('/profile-picture', upload.single('profilePicture'), userController.uploadProfilePicture);
+router.delete('/profile-picture', userController.deleteProfilePicture);
 
 // Direct Upload Signature
 router.get('/upload-signature', userController.getUploadSignature);

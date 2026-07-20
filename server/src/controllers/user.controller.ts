@@ -149,6 +149,37 @@ export const uploadProfilePicture = async (req: AuthRequest, res: Response, next
 };
 
 /**
+ * DELETE /api/user/profile-picture
+ * Removes the profile picture from Cloudinary and clears User profile picture.
+ */
+export const deleteProfilePicture = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+        const user = await User.findById(req.user!.id);
+        if (!user) {
+            return next(new AppError('User not found', 404, 'USER_NOT_FOUND'));
+        }
+
+        if (user.profilePicturePublicId) {
+            await cloudinaryService.deleteFromCloudinary(user.profilePicturePublicId).catch(err => {
+                console.error('Failed to delete profile picture from cloudinary:', err);
+            });
+        }
+
+        (user as any).profilePictureUrl = undefined;
+        (user as any).profilePicturePublicId = undefined;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Profile picture removed successfully',
+            data: { profilePictureUrl: null }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
  * GET /api/user/search?email=...
  * Searches for a user by email, returns only if KYC is APPROVED.
  */
