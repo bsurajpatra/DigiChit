@@ -139,7 +139,7 @@ const ChangePasswordModal = ({ onClose, onSuccess }: { onClose: () => void; onSu
                     required
                 />
                 <button type="button" onClick={() => setShow(p => ({ ...p, [skey]: !p[skey] }))}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-600">
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 hover:text-emerald-700 transition-colors">
                     {show[skey] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
             </div>
@@ -416,7 +416,7 @@ export const Profile = () => {
                                             <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">{label}</p>
                                             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.1em] mt-0.5">Review current file</p>
                                         </div>
-                                        <Eye className="w-3.5 h-3.5 text-slate-200 group-hover:text-emerald-500 transition-colors" />
+                                        <Eye className="w-3.5 h-3.5 text-emerald-600 group-hover:text-emerald-700 transition-colors" />
                                     </button>
                                 ))}
                             </div>
