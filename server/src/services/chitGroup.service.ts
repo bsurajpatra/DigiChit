@@ -23,8 +23,8 @@ export const createChitGroup = async (organizerId: string, data: ICreateChitGrou
         throw new AppError('Monthly contribution must be greater than 0.', 400);
     }
     
-    if (data.totalMembers && (data.totalMembers < 5 || data.totalMembers > 50)) {
-        throw new AppError('Total members must be between 5 and 50.', 400);
+    if (data.totalMembers && (data.totalMembers < 2 || data.totalMembers > 50)) {
+        throw new AppError('Total members must be between 2 and 50.', 400);
     }
 
     if (data.startDate && new Date(data.startDate) <= new Date()) {

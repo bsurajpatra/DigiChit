@@ -6,19 +6,21 @@ import * as z from 'zod';
 import api from '../../api/axios';
 import { 
     Wallet, Users, Calendar, Coins, 
-    ArrowRight, Loader2, AlertCircle, Info, Hammer
+    ArrowRight, Loader2, AlertCircle, Info, Hammer, ChevronDown
 } from 'lucide-react';
 import { Loader } from '../../components/ui/Loader';
-// import { motion } from 'framer-motion';
 
 const chitSchema = z.object({
     name: z.string().min(3, 'Chit name must be at least 3 characters'),
-    totalMembers: z.number().min(5).max(50),
-    monthlyContribution: z.number().min(500, 'Minimum contribution is 500'),
+    totalMembers: z.number({ invalid_type_error: 'Total members is required' })
+        .min(2, 'Minimum 2 members required')
+        .max(50, 'Maximum 50 members allowed'),
+    monthlyContribution: z.number({ invalid_type_error: 'Monthly contribution is required' })
+        .min(1, 'Monthly contribution must be greater than 0'),
     startDate: z.string().refine((val) => new Date(val) > new Date(), {
         message: 'Start date must be in the future',
     }),
-    commissionPercent: z.number().min(0).max(5),
+    commissionPercent: z.number().min(0, 'Commission cannot be negative').max(5, 'Commission max 5%'),
     auctionType: z.enum(['AUCTION', 'LOTTERY']),
     description: z.string().optional(),
 });
@@ -40,8 +42,12 @@ export const CreateChit = () => {
         }
     });
 
-    const totalMembers = watch('totalMembers');
-    const monthlyContribution = watch('monthlyContribution');
+    const rawTotalMembers = watch('totalMembers');
+    const rawMonthlyContribution = watch('monthlyContribution');
+
+    const totalMembers = Math.max(0, rawTotalMembers || 0);
+    const monthlyContribution = Math.max(0, rawMonthlyContribution || 0);
+    const totalPotValue = totalMembers * monthlyContribution;
 
     const onSubmit = async (data: ChitFormData) => {
         setLoading(true);
@@ -94,27 +100,43 @@ export const CreateChit = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1.5 block">Total Members</label>
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1.5 block">Total Members (Min 2)</label>
                                     <div className="relative">
-                                        <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                                        <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10" />
                                         <input 
                                             type="number"
+                                            min="2"
+                                            max="50"
+                                            onInput={(e) => {
+                                                if (parseFloat(e.currentTarget.value) < 0) e.currentTarget.value = '2';
+                                            }}
                                             {...register('totalMembers', { valueAsNumber: true })}
-                                            className="w-full pl-12 pr-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 outline-none transition-all" 
+                                            className={`w-full pl-12 pr-5 py-4 bg-white border ${errors.totalMembers ? 'border-red-500' : 'border-slate-100'} rounded-2xl text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 outline-none transition-all`} 
                                         />
                                     </div>
-                                    <p className="text-[8px] text-slate-400 font-bold mt-1.5 ml-1 uppercase">Equal to duration in months</p>
+                                    {errors.totalMembers ? (
+                                        <p className="text-red-500 text-[9px] font-bold mt-1.5 ml-1 uppercase">{errors.totalMembers.message}</p>
+                                    ) : (
+                                        <p className="text-[8px] text-slate-400 font-bold mt-1.5 ml-1 uppercase">Equal to duration in months (Min 2)</p>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1.5 block">Contribution (₹)</label>
                                     <div className="relative">
-                                        <Coins className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                                        <Coins className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10" />
                                         <input 
                                             type="number"
+                                            min="0"
+                                            onInput={(e) => {
+                                                if (parseFloat(e.currentTarget.value) < 0) e.currentTarget.value = '0';
+                                            }}
                                             {...register('monthlyContribution', { valueAsNumber: true })}
-                                            className="w-full pl-12 pr-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 outline-none transition-all" 
+                                            className={`w-full pl-12 pr-5 py-4 bg-white border ${errors.monthlyContribution ? 'border-red-500' : 'border-slate-100'} rounded-2xl text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 outline-none transition-all`} 
                                         />
                                     </div>
+                                    {errors.monthlyContribution && (
+                                        <p className="text-red-500 text-[9px] font-bold mt-1.5 ml-1 uppercase">{errors.monthlyContribution.message}</p>
+                                    )}
                                 </div>
                             </div>
 
@@ -122,26 +144,33 @@ export const CreateChit = () => {
                                 <div>
                                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1.5 block">Start Date</label>
                                     <div className="relative">
-                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10" />
                                         <input 
                                             type="date"
                                             {...register('startDate')}
                                             className="w-full pl-12 pr-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 outline-none transition-all" 
                                         />
                                     </div>
+                                    {errors.startDate && <p className="text-red-500 text-[9px] font-bold mt-1.5 ml-1 uppercase">{errors.startDate.message}</p>}
                                 </div>
                                 <div>
                                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1.5 block">Auction Type</label>
-                                    <div className="relative">
-                                        <Hammer className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                                    <div className="relative flex items-center">
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-emerald-600">
+                                            <Hammer className="w-4 h-4" />
+                                        </div>
                                         <select 
                                             {...register('auctionType')}
-                                            className="w-full pl-12 pr-5 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 outline-none appearance-none transition-all"
+                                            className="w-full pl-12 pr-10 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-bold text-slate-800 focus:ring-4 focus:ring-emerald-500/5 outline-none appearance-none transition-all cursor-pointer shadow-sm"
                                         >
                                             <option value="AUCTION">Competitive Auction</option>
                                             <option value="LOTTERY">Simple Lottery</option>
                                         </select>
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400">
+                                            <ChevronDown className="w-4 h-4" />
+                                        </div>
                                     </div>
+                                    {errors.auctionType && <p className="text-red-500 text-[9px] font-bold mt-1.5 ml-1 uppercase">{errors.auctionType.message}</p>}
                                 </div>
                             </div>
                         </div>
@@ -154,7 +183,7 @@ export const CreateChit = () => {
                         <div className="text-center pb-6 border-b border-slate-50">
                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Financial Summary</h3>
                             <div className="text-3xl font-black text-slate-900 tracking-tighter">
-                                ₹{((monthlyContribution || 0) * (totalMembers || 0)).toLocaleString()}
+                                ₹{totalPotValue.toLocaleString()}
                             </div>
                             <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mt-1">Total Pot Value</p>
                         </div>
@@ -166,7 +195,7 @@ export const CreateChit = () => {
                             </div>
                             <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
                                 <span className="text-slate-400">Duration</span>
-                                <span className="text-slate-900">{totalMembers || 0} Months</span>
+                                <span className="text-slate-900">{totalMembers} Months</span>
                             </div>
                         </div>
 
@@ -179,7 +208,7 @@ export const CreateChit = () => {
 
                         <button 
                             disabled={loading}
-                            className="w-full bg-slate-900 text-white h-14 rounded-2xl font-black uppercase tracking-[0.1em] text-xs hover:bg-emerald-600 transition-all flex items-center justify-center gap-3 shadow-xl group"
+                            className="w-full bg-slate-900 text-white h-14 rounded-2xl font-black uppercase tracking-[0.1em] text-xs hover:bg-emerald-600 transition-all flex items-center justify-center gap-3 shadow-xl group cursor-pointer"
                         >
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                                 <>
@@ -194,3 +223,4 @@ export const CreateChit = () => {
         </div>
     );
 };
+

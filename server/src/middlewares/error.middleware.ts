@@ -7,11 +7,16 @@ export const globalErrorHandler = (
     res: Response,
     next: NextFunction
 ) => {
-    console.error('GLOBAL ERROR CATCHER:', err);
-    
     const error = err as AppError;
     const statusCode = error.statusCode || 500;
     const status = error.status || 'error';
+
+    // Only log full stack trace for non-operational or 500 internal server errors
+    if (!error.isOperational || statusCode >= 500) {
+        console.error('GLOBAL ERROR CATCHER (CRITICAL):', err);
+    } else {
+        console.warn(`[${req.method} ${req.originalUrl}] ${statusCode} - ${error.message}`);
+    }
 
     if (process.env.NODE_ENV === 'development') {
         res.status(statusCode).json({

@@ -32,7 +32,7 @@ export interface IChitGroup extends Document {
 const ChitGroupSchema = new Schema<IChitGroup>({
     organizerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     name: { type: String, required: true, trim: true },
-    totalMembers: { type: Number, required: true, min: 5, max: 50 },
+    totalMembers: { type: Number, required: true, min: 2, max: 50 },
     monthlyContribution: { type: Number, required: true, min: 100 },
     durationMonths: { type: Number, required: true },
     startDate: { type: Date, required: true },

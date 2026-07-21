@@ -199,7 +199,13 @@ export const searchUserByEmail = async (req: AuthRequest, res: Response, next: N
             .select('name email kycStatus profilePictureUrl');
 
         if (!user) {
-            return next(new AppError('No KYC-approved user found with this email.', 404, 'USER_NOT_FOUND'));
+            return res.status(200).json({
+                success: true,
+                data: {
+                    user: null,
+                    message: 'No KYC-approved user found with this email.'
+                }
+            });
         }
 
         res.status(200).json({

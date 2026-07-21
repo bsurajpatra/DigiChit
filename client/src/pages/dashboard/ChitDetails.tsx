@@ -99,8 +99,12 @@ export const ChitDetails = () => {
         setSearchError(null);
         setSearchResult(null);
         try {
-            const res = await api.get(`/user/search?email=${searchEmail}`);
-            setSearchResult(res.data.data.user);
+            const res = await api.get(`/user/search?email=${encodeURIComponent(searchEmail.trim())}`);
+            if (res.data.data?.user) {
+                setSearchResult(res.data.data.user);
+            } else {
+                setSearchError(res.data.data?.message || 'No KYC-approved user found with this email.');
+            }
         } catch (err: any) {
             setSearchError(err.response?.data?.message || 'User not found or not KYC approved');
         } finally {

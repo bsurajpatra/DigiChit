@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, ArrowRight, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Eye, EyeOff, Loader2, Plus, Minus } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import api from '../../api/axios';
 
@@ -63,10 +63,29 @@ export const Signup = () => {
         register,
         handleSubmit,
         getValues,
+        setValue,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<SignupFormData>({
-        resolver: zodResolver(signupSchema)
+        resolver: zodResolver(signupSchema),
+        defaultValues: {
+            age: '21'
+        }
     });
+
+    const watchAge = watch('age', '21');
+
+    const handleIncrementAge = () => {
+        const current = parseInt(getValues('age') || '21', 10);
+        const nextAge = isNaN(current) ? 21 : Math.max(21, current + 1);
+        setValue('age', String(nextAge), { shouldValidate: true });
+    };
+
+    const handleDecrementAge = () => {
+        const current = parseInt(getValues('age') || '21', 10);
+        const nextAge = isNaN(current) ? 21 : Math.max(21, current - 1);
+        setValue('age', String(nextAge), { shouldValidate: true });
+    };
 
     const onSubmit = async (data: SignupFormData) => {
         try {
@@ -178,15 +197,35 @@ export const Signup = () => {
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-slate-700 ml-1 uppercase tracking-wider">Age</label>
                                 <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                                         <User className="w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
                                     </div>
                                     <input
                                         type="number"
+                                        min="21"
                                         placeholder="21"
-                                        className={`w-full pl-12 pr-4 py-4 bg-white border ${errors.age ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-emerald-500 focus:border-emerald-500'} rounded-2xl focus:ring-4 outline-none transition-all placeholder:text-slate-300 text-base`}
+                                        className={`w-full pl-12 pr-20 py-4 bg-white border ${errors.age ? 'border-red-500 focus:ring-red-100' : 'border-slate-200 focus:ring-emerald-500 focus:border-emerald-500'} rounded-2xl focus:ring-4 outline-none transition-all placeholder:text-slate-300 text-base [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
                                         {...register('age')}
                                     />
+                                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center gap-1 z-10">
+                                        <button
+                                            type="button"
+                                            onClick={handleDecrementAge}
+                                            disabled={!watchAge || isNaN(parseInt(watchAge, 10)) || parseInt(watchAge, 10) <= 21}
+                                            aria-label="Decrement age"
+                                            className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-40 disabled:hover:bg-slate-100 disabled:cursor-not-allowed transition-all active:scale-95"
+                                        >
+                                            <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleIncrementAge}
+                                            aria-label="Increment age"
+                                            className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all active:scale-95"
+                                        >
+                                            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                                        </button>
+                                    </div>
                                 </div>
                                 {errors.age && <p className="text-sm text-red-600 ml-1">{errors.age.message}</p>}
                             </div>
