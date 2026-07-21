@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ShieldCheck } from 'lucide-react';
 import logo from '../../assets/logo.png';
 
 const sections = [
@@ -43,36 +43,54 @@ const sections = [
 
 const PrivacyPolicy = () => {
     return (
-        <div className="min-h-screen bg-white text-slate-900 font-sans">
-            <nav className="w-full z-50 bg-white border-b border-slate-100">
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <Link to="/" className="flex items-center gap-2">
-                        <img src={logo} alt="DigiChit Logo" className="w-10 h-10 object-contain" />
-                        <span className="text-xl font-bold tracking-tight text-slate-900">DigiChit</span>
+        <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased relative overflow-hidden">
+            {/* Glowing Ambient Orbs */}
+            <div className="absolute top-[-10%] left-[20%] w-[500px] h-[500px] rounded-full bg-emerald-600/10 blur-[130px] pointer-events-none" />
+            <div className="absolute bottom-[10%] right-[10%] w-[500px] h-[500px] rounded-full bg-teal-500/10 blur-[140px] pointer-events-none" />
+
+            {/* Navigation */}
+            <nav className="w-full z-50 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80 sticky top-0">
+                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative">
+                    {/* Left: Back Link */}
+                    <Link 
+                        to="/#footer" 
+                        state={{ scrollToFooter: true }}
+                        className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-emerald-400 transition-colors z-10"
+                    >
+                        <ArrowLeft className="w-4 h-4 text-emerald-400" /> Back
                     </Link>
-                    <Link to="/" className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-emerald-700 transition-colors">
-                        <ArrowLeft className="w-4 h-4" /> Back to Home
+
+                    {/* Center: Logo & Title */}
+                    <Link to="/" className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 group z-10">
+                        <img src={logo} alt="DigiChit Logo" className="w-9 h-9 object-contain group-hover:scale-105 transition-transform" />
+                        <span className="text-xl font-bold tracking-tight text-white">DigiChit</span>
                     </Link>
+
+                    {/* Right spacer for balance */}
+                    <div className="w-16 z-10" />
                 </div>
             </nav>
-            <main className="max-w-4xl mx-auto px-6 py-24">
-                <div className="mb-12">
-                    <p className="text-xs text-emerald-600 uppercase font-bold tracking-widest mb-3">Legal</p>
-                    <h1 className="text-4xl font-bold mb-4 text-slate-900">Privacy Policy</h1>
-                    <p className="text-slate-500">Last updated: March 2026</p>
+
+            {/* Main Content */}
+            <main className="max-w-4xl mx-auto px-6 py-16 relative z-10">
+                <div className="text-center mb-16">
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-4 border border-emerald-500/20">
+                        <ShieldCheck className="w-4 h-4" />
+                        <span>Data Protection</span>
+                    </div>
+                    <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">Privacy Policy</h1>
+                    <p className="text-slate-400 text-sm">Last updated: March 2026</p>
                 </div>
-                <div className="space-y-10">
-                    {sections.map((section) => (
-                        <div key={section.title} className="border-b border-slate-100 pb-10 last:border-0">
-                            <h2 className="text-lg font-bold text-slate-900 mb-3">{section.title}</h2>
-                            <p className="text-slate-600 leading-relaxed">{section.body}</p>
+
+                <div className="divide-y divide-slate-800/60">
+                    {sections.map((section, idx) => (
+                        <div key={idx} className="py-6 first:pt-0">
+                            <h2 className="text-lg font-bold text-white mb-2">{section.title}</h2>
+                            <p className="text-slate-300 text-sm leading-relaxed">{section.body}</p>
                         </div>
                     ))}
                 </div>
             </main>
-            <footer className="border-t border-slate-100 py-8 text-center text-xs text-slate-400 uppercase tracking-widest font-bold">
-                © 2026 DigiChit Technologies
-            </footer>
         </div>
     );
 };
