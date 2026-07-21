@@ -1,16 +1,35 @@
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import api from '../../api/axios';
 import { motion } from 'framer-motion';
-import { FileSearch, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { FileSearch, CheckCircle2, XCircle, AlertCircle, AlertTriangle } from 'lucide-react';
 import logo from '../../assets/logo.png';
 
 export const KYCStatus = () => {
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchLatestStatus = async () => {
+            try {
+                const res = await api.get('/user/profile');
+                if (res.data?.data?.user) {
+                    updateUser(res.data.data.user);
+                }
+            } catch (err) {
+                console.error('Failed to fetch latest KYC status:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchLatestStatus();
+    }, []);
 
     const statusMap = {
         NOT_SUBMITTED: {
-            icon: <AlertCircle className="w-10 h-10" />,
+            icon: <AlertCircle className="w-10 h-10 text-yellow-600" />,
             title: "Verification Required",
             description: "You need to submit your government documents to unlock your account and start participating in digital chit funds.",
             action: () => navigate('/kyc/submit'),
@@ -20,7 +39,7 @@ export const KYCStatus = () => {
             sidebarSubtitle: "For regulatory reasons, we require a quick identity check before you can invest or borrow."
         },
         PENDING: {
-            icon: <FileSearch className="w-10 h-10" />,
+            icon: <FileSearch className="w-10 h-10 text-emerald-600" />,
             title: "Verification in Progress",
             description: "Your KYC documents have been successfully submitted. Our automated system and team are currently reviewing them. This process usually completes within 24-48 hours.",
             action: () => navigate('/dashboard'),
@@ -30,7 +49,7 @@ export const KYCStatus = () => {
             sidebarSubtitle: "We are carefully reviewing your submitted credentials to ensure the absolute security of the DigiChit ecosystem."
         },
         APPROVED: {
-            icon: <CheckCircle2 className="w-10 h-10" />,
+            icon: <CheckCircle2 className="w-10 h-10 text-green-600" />,
             title: "Verification Successful!",
             description: "Your account is fully verified. Your digital profile has been secured, and you can now seamlessly join or create chit funds.",
             action: () => navigate('/dashboard'),
@@ -40,9 +59,9 @@ export const KYCStatus = () => {
             sidebarSubtitle: "Welcome to the future of chit funds. You now have full access to all features."
         },
         REJECTED: {
-            icon: <XCircle className="w-10 h-10" />,
+            icon: <XCircle className="w-10 h-10 text-red-600" />,
             title: "Verification Rejected",
-            description: user?.kycRejectedReason || "Unfortunately, we couldn't verify your latest document submission. This can happen if the photos were blurry or fields were incorrect. Please review your documents and try again.",
+            description: "Unfortunately, we couldn't verify your latest document submission. Please review the admin remarks below and resubmit your documents.",
             action: () => navigate('/kyc/submit'),
             buttonText: "Resubmit KYC",
             colorClass: "bg-red-50 text-red-600",
@@ -75,7 +94,7 @@ export const KYCStatus = () => {
                 <div className="shrink-0 flex items-center justify-between bg-white/40 backdrop-blur-md p-6 rounded-[2.5rem] border border-white/40 shadow-xl shadow-slate-100 m-6 mb-0">
                     <div>
                         <h2 className="text-3xl font-medium text-slate-900 tracking-tight uppercase leading-none">{uiData.title}</h2>
-                        <p className="text-xs font-medium text-slate-400 mt-2 uppercase tracking-widest tracking-widest">Global Verification Status</p>
+                        <p className="text-xs font-medium text-slate-400 mt-2 uppercase tracking-widest">Global Verification Status</p>
                     </div>
                 </div>
 
@@ -85,35 +104,59 @@ export const KYCStatus = () => {
                             {uiData.icon}
                         </div>
                     
-                    <h2 className="text-4xl font-medium text-slate-900 mb-4 tracking-tight uppercase">{uiData.title}</h2>
-                    
-                    <div className="mb-6 flex justify-center lg:justify-start">
-                        <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ${uiData.colorClass}`}>
-                            Status: {currentStatus}
-                        </span>
-                    </div>
-
-                    <p className="text-base text-slate-600 mb-10 leading-relaxed">
-                        {uiData.description}
-                    </p>
-
-                    <button
-                        onClick={uiData.action}
-                        className="w-full py-4.5 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 text-lg active:scale-[0.98]"
-                    >
-                        {uiData.buttonText}
-                    </button>
-                    
-                    {currentStatus === 'PENDING' && (
-                        <div className="mt-8 text-center lg:text-left">
-                            <button onClick={() => window.location.reload()} className="text-sm font-bold text-slate-500 hover:text-emerald-700">
-                                Refresh Status
-                            </button>
+                        <h2 className="text-4xl font-medium text-slate-900 mb-4 tracking-tight uppercase">{uiData.title}</h2>
+                        
+                        <div className="mb-6 flex justify-center lg:justify-start">
+                            <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ${uiData.colorClass}`}>
+                                Status: {currentStatus}
+                            </span>
                         </div>
-                    )}
-                </motion.div>
+
+                        <p className="text-base text-slate-600 mb-6 leading-relaxed">
+                            {uiData.description}
+                        </p>
+
+                        {/* Simple plain transparent admin rejection reason text */}
+                        {currentStatus === 'REJECTED' && (
+                            <div className="mb-8 text-left">
+                                <p className="text-xs font-bold uppercase tracking-widest text-red-600 mb-1 flex items-center gap-1.5">
+                                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                                    Admin Rejection Reason:
+                                </p>
+                                <p className="text-sm font-semibold text-red-500 leading-relaxed">
+                                    "{user?.kycRejectedReason || 'Document details could not be verified. Please re-upload clear credentials.'}"
+                                </p>
+                            </div>
+                        )}
+
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <button
+                                onClick={uiData.action}
+                                className="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 text-base active:scale-[0.98]"
+                            >
+                                {uiData.buttonText}
+                            </button>
+                            
+                            {(currentStatus === 'REJECTED' || currentStatus === 'NOT_SUBMITTED') && (
+                                <button
+                                    onClick={() => navigate('/dashboard')}
+                                    className="flex-1 py-4 bg-slate-200 text-slate-800 hover:bg-slate-300 rounded-2xl font-bold transition-all text-base active:scale-[0.98]"
+                                >
+                                    Go to Dashboard
+                                </button>
+                            )}
+                        </div>
+                        
+                        {currentStatus === 'PENDING' && (
+                            <div className="mt-8 text-center lg:text-left">
+                                <button onClick={() => window.location.reload()} className="text-sm font-bold text-slate-500 hover:text-emerald-700">
+                                    Refresh Status
+                                </button>
+                            </div>
+                        )}
+                    </motion.div>
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
 };

@@ -6,15 +6,21 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader } from '../../components/ui/Loader';
+import { useAuth } from '../../hooks/useAuth';
+import { KYCChitGuard } from '../../components/ui/KYCChitGuard';
 
 export const UserChits = () => {
+    const { user } = useAuth();
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Mock loading for unified experience
-        const timer = setTimeout(() => setLoading(false), 800);
+        const timer = setTimeout(() => setLoading(false), 500);
         return () => clearTimeout(timer);
     }, []);
+
+    if (user?.kycStatus !== 'APPROVED') {
+        return <KYCChitGuard title="My Chits Portfolio Restricted" />;
+    }
 
     if (loading) return <div className="h-full flex items-center justify-center p-20"><Loader size="lg" /></div>;
 

@@ -7,6 +7,8 @@ import {
 import { Loader } from '../../components/ui/Loader';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
+import { useAuth } from '../../hooks/useAuth';
+import { KYCChitGuard } from '../../components/ui/KYCChitGuard';
 
 interface Group {
     _id: string;
@@ -24,6 +26,7 @@ interface Group {
 }
 
 export const ChitDiscovery = () => {
+    const { user } = useAuth();
     const [groups, setGroups] = useState<Group[]>([]);
     const [loading, setLoading] = useState(true);
     const [requestingId, setRequestingId] = useState<string | null>(null);
@@ -41,8 +44,12 @@ export const ChitDiscovery = () => {
     };
 
     useEffect(() => {
-        fetchGroups();
-    }, []);
+        if (user?.kycStatus === 'APPROVED') {
+            fetchGroups();
+        } else {
+            setLoading(false);
+        }
+    }, [user?.kycStatus]);
 
     const handleJoinRequest = async (groupId: string) => {
         setRequestingId(groupId);
@@ -55,6 +62,10 @@ export const ChitDiscovery = () => {
             setRequestingId(null);
         }
     };
+
+    if (user?.kycStatus !== 'APPROVED') {
+        return <KYCChitGuard title="Chit Group Discovery Restricted" />;
+    }
 
     if (loading) return <div className="h-full flex items-center justify-center p-20"><Loader size="lg" /></div>;
 

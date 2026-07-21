@@ -8,9 +8,9 @@ import {
     Share2, Check, CheckCircle2
 } from 'lucide-react';
 import { Loader } from '../../components/ui/Loader';
-// import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { useAuth } from '../../context/AuthContext';
+import { KYCChitGuard } from '../../components/ui/KYCChitGuard';
 
 interface Member {
     _id: string;
@@ -77,8 +77,16 @@ export const ChitDetails = () => {
     };
 
     useEffect(() => {
-        fetchDetails();
-    }, [id]);
+        if (user?.kycStatus === 'APPROVED') {
+            fetchDetails();
+        } else {
+            setLoading(false);
+        }
+    }, [id, user?.kycStatus]);
+
+    if (user?.kycStatus !== 'APPROVED') {
+        return <KYCChitGuard title="Chit Circle Access Restricted" />;
+    }
 
     const handleApproval = async (membershipId: string, approve: boolean) => {
         setActionLoading(membershipId);

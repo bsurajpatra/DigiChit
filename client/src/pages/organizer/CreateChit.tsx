@@ -9,6 +9,8 @@ import {
     ArrowRight, Loader2, AlertCircle, Info, Hammer, ChevronDown
 } from 'lucide-react';
 import { Loader } from '../../components/ui/Loader';
+import { useAuth } from '../../hooks/useAuth';
+import { KYCChitGuard } from '../../components/ui/KYCChitGuard';
 
 const chitSchema = z.object({
     name: z.string().min(3, 'Chit name must be at least 3 characters'),
@@ -28,9 +30,14 @@ const chitSchema = z.object({
 type ChitFormData = z.infer<typeof chitSchema>;
 
 export const CreateChit = () => {
+    const { user } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    if (user?.kycStatus !== 'APPROVED') {
+        return <KYCChitGuard title="Chit Circle Creation Restricted" />;
+    }
 
     const { register, handleSubmit, watch, formState: { errors } } = useForm<ChitFormData>({
         resolver: zodResolver(chitSchema),

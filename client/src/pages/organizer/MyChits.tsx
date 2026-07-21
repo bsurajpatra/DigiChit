@@ -6,8 +6,8 @@ import {
     ArrowRight, FolderKanban, ShieldCheck
 } from 'lucide-react';
 import { Loader } from '../../components/ui/Loader';
-// import { motion } from 'framer-motion';
-// import { format } from 'date-fns';
+import { useAuth } from '../../hooks/useAuth';
+import { KYCChitGuard } from '../../components/ui/KYCChitGuard';
 
 interface Group {
     _id: string;
@@ -20,6 +20,7 @@ interface Group {
 }
 
 export const MyOrganizedChits = () => {
+    const { user } = useAuth();
     const navigate = useNavigate();
     const [groups, setGroups] = useState<Group[]>([]);
     const [loading, setLoading] = useState(true);
@@ -35,8 +36,16 @@ export const MyOrganizedChits = () => {
                 setLoading(false);
             }
         };
-        fetchGroups();
-    }, []);
+        if (user?.kycStatus === 'APPROVED') {
+            fetchGroups();
+        } else {
+            setLoading(false);
+        }
+    }, [user?.kycStatus]);
+
+    if (user?.kycStatus !== 'APPROVED') {
+        return <KYCChitGuard title="Organized Circles Restricted" />;
+    }
 
     if (loading) return <div className="h-full flex items-center justify-center p-20"><Loader size="lg" /></div>;
 
