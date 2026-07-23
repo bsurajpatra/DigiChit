@@ -16,6 +16,8 @@ interface Group {
     currentMemberCount: number;
     monthlyContribution: number;
     startDate: string;
+    commissionPercent?: number;
+    financialConfig?: any;
     status: string;
 }
 
@@ -112,6 +114,19 @@ export const MyOrganizedChits = () => {
                                     <span className="text-slate-400">Monthly Yield</span>
                                     <span className="text-emerald-600">₹{(group.monthlyContribution * group.totalMembers).toLocaleString('en-IN')}</span>
                                 </div>
+                            </div>
+
+                            {/* Financial Config Pill Badges */}
+                            <div className="flex flex-wrap gap-1.5 pt-1 text-[10px] font-bold">
+                                <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md">
+                                    Fee: {(group as any).financialConfig?.commission?.value ?? group.commissionPercent ?? 2}%
+                                </span>
+                                <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md">
+                                    Strategy: {(group as any).financialConfig?.auctionStrategy || 'LOWEST_BID'}
+                                </span>
+                                <span className="px-2 py-0.5 bg-slate-900 text-white rounded-md">
+                                    {(group as any).financialConfig?.currency || 'INR'}
+                                </span>
                             </div>
 
                             <button 

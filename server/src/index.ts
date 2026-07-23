@@ -1,13 +1,15 @@
 import mongoose from 'mongoose';
 import app from './app.js';
 import { config } from './config/env.js';
+import { migrateFinancialConfig } from './utils/migrateFinancialConfig.js';
 
 const { port, mongoUri } = config;
 
 mongoose
     .connect(mongoUri)
-    .then(() => {
+    .then(async () => {
         console.log('Connected to MongoDB');
+        await migrateFinancialConfig();
         app.listen(port, () => {
             console.log(`Server is running on port ${port}`);
         });

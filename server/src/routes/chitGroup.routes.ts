@@ -19,6 +19,10 @@ router.get('/my-memberships', chitGroupController.getMyMemberships); // Personal
 // JOIN SYSTEM (KYC REQUIRED)
 router.post('/:id/request-join', checkKYCApproved, chitGroupController.requestJoin);
 
+// == ORGANIZER & ADMIN EDITING ==
+router.put('/:id', restrictTo(UserRole.ORGANIZER, UserRole.ADMIN), chitGroupController.updateChitGroup);
+router.patch('/:id', restrictTo(UserRole.ORGANIZER, UserRole.ADMIN), chitGroupController.updateChitGroup);
+
 // == ORGANIZER ONLY ==
 router.use(restrictTo(UserRole.ORGANIZER));
 router.use(checkKYCApproved); // Organizer must also be KYC approved

@@ -68,11 +68,12 @@ export const createCycle = async (
         );
     }
 
-    // 4. Instantiate and save the new ChitCycle
+    // 4. Instantiate and save the new ChitCycle with financialConfigSnapshot
     const cycle = new ChitCycle({
         groupId: new mongoose.Types.ObjectId(groupId),
         cycleNumber: newCycleNumber,
         status: ChitCycleStatus.UPCOMING,
+        financialConfigSnapshot: group.financialConfig ? (group.financialConfig.toObject ? group.financialConfig.toObject() : group.financialConfig) : undefined,
         scheduledStartDate: new Date(scheduledStartDate),
         scheduledEndDate: scheduledEndDate ? new Date(scheduledEndDate) : null,
         auctionDate: auctionDate ? new Date(auctionDate) : null,

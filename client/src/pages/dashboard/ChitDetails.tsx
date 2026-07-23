@@ -6,7 +6,7 @@ import {
     Loader2, User, ShieldCheck,
     MessageSquare, Clock, XCircle,
     UserPlus, Share2, Check, Hammer, PlusCircle, RefreshCw, Grid, HelpCircle,
-    LayoutDashboard, ArrowLeft, Trophy
+    LayoutDashboard, ArrowLeft, Trophy, Sliders
 } from 'lucide-react';
 import { Loader } from '../../components/ui/Loader';
 import { format } from 'date-fns';
@@ -428,6 +428,65 @@ export const ChitDetails = () => {
                             <p className="text-xs text-slate-700 font-bold leading-relaxed">{group.description}</p>
                         </div>
                     )}
+
+                    {/* Dedicated Financial Configuration Card */}
+                    <div className="bg-white p-6 rounded-2xl border-none shadow-none space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Sliders className="w-5 h-5 text-blue-600" />
+                                <div>
+                                    <h3 className="text-base font-black text-slate-900 tracking-tight">Financial Configuration</h3>
+                                    <p className="text-xs text-slate-400 font-medium">Scheme rules, fees, & operational policies</p>
+                                </div>
+                            </div>
+                            <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-xl">
+                                Version {(group as any).financialConfig?.version || 1}
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                            <div className="bg-slate-50 p-4 rounded-xl">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Commission</span>
+                                <span className="text-sm font-black text-slate-900 mt-0.5 block">
+                                    {(group as any).financialConfig?.commission?.value ?? group.commissionPercent ?? 2}
+                                    {(group as any).financialConfig?.commission?.type === 'FIXED' ? ' ₹' : '%'} ({(group as any).financialConfig?.commission?.type || 'PERCENTAGE'})
+                                </span>
+                            </div>
+                            <div className="bg-slate-50 p-4 rounded-xl">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Late Fee</span>
+                                <span className="text-sm font-black text-slate-900 mt-0.5 block">
+                                    {(group as any).financialConfig?.lateFee?.value ? `₹${(group as any).financialConfig.lateFee.value}` : 'No Fee'} ({(group as any).financialConfig?.lateFee?.type || 'FIXED'})
+                                </span>
+                            </div>
+                            <div className="bg-slate-50 p-4 rounded-xl">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Grace Period</span>
+                                <span className="text-sm font-black text-slate-900 mt-0.5 block">
+                                    {(group as any).financialConfig?.gracePeriodDays ?? 3} Days
+                                </span>
+                            </div>
+                            <div className="bg-slate-50 p-4 rounded-xl">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Auction Strategy</span>
+                                <span className="text-sm font-black text-slate-900 mt-0.5 block">
+                                    {(group as any).financialConfig?.auctionStrategy || 'LOWEST_BID'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100 text-xs font-bold">
+                            <span className={`px-3 py-1.5 rounded-xl ${(group as any).financialConfig?.allowPartialInstallment ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                                Partial Installments: {(group as any).financialConfig?.allowPartialInstallment ? 'Allowed' : 'Disabled'}
+                            </span>
+                            <span className={`px-3 py-1.5 rounded-xl ${(group as any).financialConfig?.allowPrepayment !== false ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                                Prepayment: {(group as any).financialConfig?.allowPrepayment !== false ? 'Allowed' : 'Disabled'}
+                            </span>
+                            <span className={`px-3 py-1.5 rounded-xl ${(group as any).financialConfig?.allowPenaltyWaiver !== false ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                                Penalty Waiver: {(group as any).financialConfig?.allowPenaltyWaiver !== false ? 'Allowed' : 'Disabled'}
+                            </span>
+                            <span className="px-3 py-1.5 rounded-xl bg-slate-900 text-white">
+                                Currency: {(group as any).financialConfig?.currency || 'INR'}
+                            </span>
+                        </div>
+                    </div>
 
                     {/* Group Status Div — transparent, no borders */}
                     <div className="p-5 rounded-2xl flex items-center gap-4 bg-transparent border-none shadow-none">

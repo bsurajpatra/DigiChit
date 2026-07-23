@@ -14,6 +14,22 @@ export const createChitGroup = async (req: AuthRequest, res: Response, next: Nex
     }
 };
 
+export const updateChitGroup = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+        const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress;
+        const chitGroup = await chitGroupService.updateChitGroup(
+            req.user!.id,
+            req.user!.role,
+            req.params.id as string,
+            req.body,
+            clientIp
+        );
+        res.status(200).json({ success: true, data: { chitGroup } });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const getChitGroups = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         const filters: any = { 

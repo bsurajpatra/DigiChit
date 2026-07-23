@@ -1,6 +1,9 @@
 import mongoose from 'mongoose';
-import ChitGroup, { IChitGroup, ChitGroupStatus } from '../models/ChitGroup.js';
+import ChitGroup, { IChitGroup, ChitGroupStatus, CommissionType, LateFeeType, AuctionStrategy, IFinancialConfig } from '../models/ChitGroup.js';
 import Membership, { IMembership, MembershipStatus } from '../models/Membership.js';
+import Auction from '../models/Auction.js';
+import Installment from '../models/Installment.js';
+import ChitCycle, { ChitCycleStatus } from '../models/ChitCycle.js';
 import { AppError } from '../utils/appError.js';
 import { logAction } from '../utils/auditLogger.js';
 import { UserRole } from '../models/User.js';
@@ -12,11 +15,25 @@ interface ICreateChitGroupInput {
     name: string;
     totalMembers: number;
     monthlyContribution: number;
-    commissionPercent: number;
+    commissionPercent?: number;
     startDate: Date;
     auctionType: AuctionType;
     description?: string;
+    financialConfig?: Partial<IFinancialConfig>;
 }
+
+export const hasFinancialActivity = async (groupId: string): Promise<boolean> => {
+    const hasCycle = await ChitCycle.exists({ groupId, status: { $in: [ChitCycleStatus.ACTIVE, ChitCycleStatus.COMPLETED] } });
+    if (hasCycle) return true;
+
+    const hasAuction = await Auction.exists({ groupId });
+    if (hasAuction) return true;
+
+    const hasInstallment = await Installment.exists({ groupId });
+    if (hasInstallment) return true;
+
+    return false;
+};
 
 export const createChitGroup = async (organizerId: string, data: ICreateChitGroupInput) => {
     if (data.monthlyContribution && data.monthlyContribution <= 0) {
@@ -31,13 +48,35 @@ export const createChitGroup = async (organizerId: string, data: ICreateChitGrou
         throw new AppError('Start date must be in the future.', 400);
     }
 
+    const commissionVal = data.financialConfig?.commission?.value ?? data.commissionPercent ?? 2;
+    const commissionType = data.financialConfig?.commission?.type ?? CommissionType.PERCENTAGE;
+
+    const finalFinancialConfig: IFinancialConfig = {
+        version: 1,
+        commission: {
+            value: commissionVal,
+            type: commissionType
+        },
+        lateFee: {
+            value: data.financialConfig?.lateFee?.value ?? 0,
+            type: data.financialConfig?.lateFee?.type ?? LateFeeType.FIXED
+        },
+        gracePeriodDays: data.financialConfig?.gracePeriodDays ?? 3,
+        auctionStrategy: data.financialConfig?.auctionStrategy ?? AuctionStrategy.LOWEST_BID,
+        allowPartialInstallment: data.financialConfig?.allowPartialInstallment ?? false,
+        allowPrepayment: data.financialConfig?.allowPrepayment ?? true,
+        allowPenaltyWaiver: data.financialConfig?.allowPenaltyWaiver ?? true,
+        currency: data.financialConfig?.currency ?? 'INR'
+    };
+
     const group = new ChitGroup({
         name: data.name,
         totalMembers: data.totalMembers,
         monthlyContribution: data.monthlyContribution,
-        commissionPercent: data.commissionPercent,
+        commissionPercent: commissionVal,
         startDate: data.startDate,
         auctionType: data.auctionType,
+        financialConfig: finalFinancialConfig,
         description: data.description,
         organizerId: new mongoose.Types.ObjectId(organizerId),
         durationMonths: data.totalMembers,
@@ -48,7 +87,7 @@ export const createChitGroup = async (organizerId: string, data: ICreateChitGrou
     await group.save();
 
     await logAction(organizerId, UserRole.ORGANIZER, 'CHIT_GROUP_CREATED', {
-        newValue: { name: group.name, id: (group._id as any).toString() }
+        newValue: { name: group.name, id: (group._id as any).toString(), financialConfig: group.financialConfig }
     });
 
     // Send confirmation email to organizer
@@ -63,6 +102,75 @@ export const createChitGroup = async (organizerId: string, data: ICreateChitGrou
                 new Date(group.startDate).toDateString()
             );
         }
+    });
+
+    return group;
+};
+
+export const updateChitGroup = async (
+    actorId: string,
+    actorRole: UserRole,
+    groupId: string,
+    updateData: any,
+    ipAddress?: string
+) => {
+    const group = await ChitGroup.findById(groupId);
+    if (!group) throw new AppError('Group not found.', 404);
+
+    if (actorRole !== UserRole.ADMIN && group.organizerId.toString() !== actorId) {
+        throw new AppError('Unauthorized to update this group.', 403);
+    }
+
+    const previousValue = group.toObject();
+
+    if (updateData.financialConfig) {
+        const activityExists = await hasFinancialActivity(groupId);
+        if (activityExists) {
+            const currentFC = group.financialConfig;
+            const newFC = updateData.financialConfig;
+
+            const isCriticalChanged =
+                (newFC.commission && (newFC.commission.value !== currentFC.commission.value || newFC.commission.type !== currentFC.commission.type)) ||
+                (newFC.auctionStrategy && newFC.auctionStrategy !== currentFC.auctionStrategy) ||
+                (newFC.currency && newFC.currency !== currentFC.currency);
+
+            if (isCriticalChanged && actorRole !== UserRole.ADMIN) {
+                throw new AppError(
+                    'Critical financial settings (commission, strategy, currency) are locked because financial activity has started for this group. Only Admins can modify them.',
+                    403,
+                    'FINANCIAL_CONFIG_LOCKED'
+                );
+            }
+        }
+
+        group.financialConfig = {
+            ...group.financialConfig,
+            ...updateData.financialConfig,
+            commission: {
+                ...group.financialConfig.commission,
+                ...(updateData.financialConfig.commission || {})
+            },
+            lateFee: {
+                ...group.financialConfig.lateFee,
+                ...(updateData.financialConfig.lateFee || {})
+            }
+        };
+        group.commissionPercent = group.financialConfig.commission.value;
+    }
+
+    if (updateData.name) group.name = updateData.name;
+    if (updateData.description !== undefined) group.description = updateData.description;
+
+    await group.save();
+
+    const actionName = actorRole === UserRole.ADMIN && (await hasFinancialActivity(groupId)) 
+        ? 'FINANCIAL_CONFIG_ADMIN_OVERRIDE' 
+        : 'FINANCIAL_CONFIG_UPDATED';
+
+    await logAction(actorId, actorRole, actionName, {
+        previousValue,
+        newValue: group.toObject(),
+        ipAddress
     });
 
     return group;

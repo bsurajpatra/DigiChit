@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { IFinancialConfig } from './ChitGroup.js';
 
 /**
  * Lifecycle status of a single monthly chit cycle.
@@ -18,6 +19,7 @@ export interface IChitCycle extends Document {
     groupId: mongoose.Types.ObjectId;
     cycleNumber: number;
     status: ChitCycleStatus;
+    financialConfigSnapshot?: IFinancialConfig;
     scheduledStartDate: Date;
     actualStartDate?: Date | null;
     scheduledEndDate?: Date | null;
@@ -50,6 +52,10 @@ const ChitCycleSchema: Schema = new Schema<IChitCycle>(
             enum: Object.values(ChitCycleStatus),
             default: ChitCycleStatus.UPCOMING,
             required: true
+        },
+        financialConfigSnapshot: {
+            type: Schema.Types.Mixed,
+            required: false
         },
         scheduledStartDate: {
             type: Date,

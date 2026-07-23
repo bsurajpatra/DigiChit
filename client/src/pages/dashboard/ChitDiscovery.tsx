@@ -18,6 +18,8 @@ interface Group {
     monthlyContribution: number;
     startDate: string;
     auctionType: string;
+    commissionPercent?: number;
+    financialConfig?: any;
     status: string;
     organizerId: {
         name: string;
@@ -149,6 +151,19 @@ export const ChitDiscovery = () => {
                                         <span>{group.currentMemberCount} / {group.totalMembers}</span>
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Financial Config Pill Badges */}
+                            <div className="flex flex-wrap gap-1.5 pt-1 text-[10px] font-bold">
+                                <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md">
+                                    Fee: {(group as any).financialConfig?.commission?.value ?? group.commissionPercent ?? 2}%
+                                </span>
+                                <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md">
+                                    Strategy: {(group as any).financialConfig?.auctionStrategy || 'LOWEST_BID'}
+                                </span>
+                                <span className="px-2 py-0.5 bg-slate-900 text-white rounded-md">
+                                    {(group as any).financialConfig?.currency || 'INR'}
+                                </span>
                             </div>
 
                             {/* Progress bar */}
