@@ -1,5 +1,6 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
+import api from '../api/axios';
 
 export interface User {
     id: string;
@@ -21,6 +22,7 @@ interface AuthContextType {
     login: (token: string, user: User) => void;
     logout: () => void;
     updateUser: (user: Partial<User>) => void;
+    refreshUser: () => Promise<User | null>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,14 +32,67 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    const refreshUser = useCallback(async (): Promise<User | null> => {
+        const storedToken = localStorage.getItem('token');
+        if (!storedToken) return null;
+        try {
+            const res = await api.get('/user/profile');
+            if (res.data?.data?.user) {
+                const latestUser = res.data.data.user;
+                const normalizedUser: User = {
+                    id: latestUser._id || latestUser.id,
+                    name: latestUser.name,
+                    email: latestUser.email,
+                    role: latestUser.role,
+                    emailVerified: latestUser.emailVerified,
+                    kycStatus: latestUser.kycStatus,
+                    organizerStatus: latestUser.organizerStatus,
+                    accountStatus: latestUser.accountStatus,
+                    profilePictureUrl: latestUser.profilePictureUrl,
+                    kycRejectedReason: latestUser.kycRejectedReason
+                };
+                localStorage.setItem('user', JSON.stringify(normalizedUser));
+                setUser(normalizedUser);
+                return normalizedUser;
+            }
+        } catch (err) {
+            console.error('Failed to refresh user profile:', err);
+        }
+        return null;
+    }, []);
+
     useEffect(() => {
-        const initializeAuth = () => {
+        const initializeAuth = async () => {
             const storedToken = localStorage.getItem('token');
             const storedUser = localStorage.getItem('user');
 
             if (storedToken && storedUser) {
                 setToken(storedToken);
                 setUser(JSON.parse(storedUser));
+
+                // Background sync latest profile from server (KYC status, roles, etc)
+                try {
+                    const res = await api.get('/user/profile');
+                    if (res.data?.data?.user) {
+                        const latestUser = res.data.data.user;
+                        const normalizedUser: User = {
+                            id: latestUser._id || latestUser.id,
+                            name: latestUser.name,
+                            email: latestUser.email,
+                            role: latestUser.role,
+                            emailVerified: latestUser.emailVerified,
+                            kycStatus: latestUser.kycStatus,
+                            organizerStatus: latestUser.organizerStatus,
+                            accountStatus: latestUser.accountStatus,
+                            profilePictureUrl: latestUser.profilePictureUrl,
+                            kycRejectedReason: latestUser.kycRejectedReason
+                        };
+                        localStorage.setItem('user', JSON.stringify(normalizedUser));
+                        setUser(normalizedUser);
+                    }
+                } catch (err) {
+                    console.warn('Background profile sync warning:', err);
+                }
             }
             setIsLoading(false);
         };
@@ -67,7 +122,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, isLoading, login, logout, updateUser }}>
+        <AuthContext.Provider value={{ user, token, isLoading, login, logout, updateUser, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );

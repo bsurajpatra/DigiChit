@@ -183,6 +183,11 @@ export const requestJoin = async (userId: string, chitGroupId: string) => {
         throw new AppError('Joining is only allowed during the FORMING phase.', 400);
     }
 
+    const existingMembership = await Membership.findOne({ chitGroupId, userId });
+    if (existingMembership) {
+        throw new AppError('You have already requested or joined this group.', 400);
+    }
+
     const approvedCount = await Membership.countDocuments({ 
         chitGroupId, 
         status: { $in: [MembershipStatus.APPROVED, MembershipStatus.ACTIVE_MEMBER] } 

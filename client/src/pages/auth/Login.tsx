@@ -20,6 +20,7 @@ export const Login = () => {
     const navigate = useNavigate();
     const { login } = useAuth();
     const [apiError, setApiError] = useState('');
+    const [errorCode, setErrorCode] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
     const {
@@ -33,6 +34,7 @@ export const Login = () => {
     const onSubmit = async (data: LoginFormData) => {
         try {
             setApiError('');
+            setErrorCode('');
             const response = await api.post('/auth/login', data);
 
             const { token, data: { user } } = response.data;
@@ -48,10 +50,13 @@ export const Login = () => {
                 navigate('/dashboard');
             }
         } catch (error: any) {
-            if (error.response?.data?.errorCode === 'AUTH_EMAIL_UNVERIFIED') {
+            const errCode = error.response?.data?.errorCode;
+            const msg = error.response?.data?.message || 'Login failed. Please check your details.';
+            setErrorCode(errCode || '');
+            if (errCode === 'AUTH_EMAIL_UNVERIFIED') {
                 navigate('/verify-email-info');
             } else {
-                setApiError(error.response?.data?.message || 'Invalid credentials');
+                setApiError(msg);
             }
         }
     };
@@ -83,9 +88,19 @@ export const Login = () => {
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="p-4 mb-6 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-medium"
+                            className="p-4 mb-6 bg-rose-50 border border-rose-100 text-rose-700 rounded-xl text-xs font-bold space-y-2"
                         >
-                            {apiError}
+                            <p>{apiError}</p>
+                            {errorCode === 'AUTH_EMAIL_NOT_FOUND' && (
+                                <Link to="/register" className="inline-block text-emerald-600 hover:underline font-extrabold">
+                                    → No account found? Register now
+                                </Link>
+                            )}
+                            {errorCode === 'AUTH_INCORRECT_PASSWORD' && (
+                                <Link to="/forgot-password" className="inline-block text-emerald-600 hover:underline font-extrabold">
+                                    → Forgot your password? Reset password
+                                </Link>
+                            )}
                         </motion.div>
                     )}
 

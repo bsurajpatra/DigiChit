@@ -21,7 +21,15 @@ export const JoinInvite = () => {
         const fetchGroup = async () => {
             try {
                 const res = await api.get(`/chit-groups/details/${id}`);
-                setGroup(res.data.data.group);
+                const grp = res.data.data.group;
+                const members = res.data.data.members || [];
+                setGroup(grp);
+                if (user && members.length > 0) {
+                    const isAlreadyMember = members.some((m: any) => (m.userId?._id || m.userId?.id || m.userId) === user.id);
+                    if (isAlreadyMember) {
+                        setSuccess(true);
+                    }
+                }
             } catch (err) {
                 console.error('Failed to fetch group details');
             } finally {
@@ -29,7 +37,7 @@ export const JoinInvite = () => {
             }
         };
         if (id) fetchGroup();
-    }, [id]);
+    }, [id, user]);
 
     const handleJoin = async () => {
         if (!user) {

@@ -552,17 +552,19 @@ export const ChitDetails = () => {
                                 <span>Enrolled Members ({approvedMembers.length})</span>
                             </button>
 
-                            <button
-                                onClick={() => setViewMode('REQUESTS')}
-                                className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer ${
-                                    viewMode === 'REQUESTS'
-                                        ? 'bg-emerald-600 text-white'
-                                        : 'bg-slate-900 hover:bg-emerald-600 text-white'
-                                }`}
-                            >
-                                <User className="w-4 h-4 text-emerald-400" />
-                                <span>Manage Requests ({pendingMembers.length})</span>
-                            </button>
+                             {isOrganizer && (
+                                <button
+                                    onClick={() => setViewMode('REQUESTS')}
+                                    className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer ${
+                                        viewMode === 'REQUESTS'
+                                            ? 'bg-emerald-600 text-white'
+                                            : 'bg-slate-900 hover:bg-emerald-600 text-white'
+                                    }`}
+                                >
+                                    <User className="w-4 h-4 text-emerald-400" />
+                                    <span>Manage Requests ({pendingMembers.length})</span>
+                                </button>
+                            )}
 
                             {isOrganizer && (
                                 <button
@@ -590,37 +592,58 @@ export const ChitDetails = () => {
                         </div>
                     </div>
 
-                    {viewMode === 'LIST' ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {viewMode === 'LIST' || !isOrganizer ? (
+                        <div className="bg-white rounded-2xl border-none shadow-none p-4 space-y-1">
                             {approvedMembers.length === 0 ? (
-                                <div className="col-span-full py-16 text-center text-slate-400 bg-white rounded-3xl border-none">
+                                <div className="py-16 text-center text-slate-400">
                                     <Users className="w-10 h-10 mx-auto mb-2 opacity-30 text-slate-400" />
                                     <p className="text-xs font-bold">No members enrolled yet.</p>
                                 </div>
                             ) : (
-                                approvedMembers.map((m) => (
-                                    <div key={m._id} className="p-4 bg-white border-none shadow-none rounded-2xl flex items-center gap-3 hover:bg-slate-50 transition">
-                                        <div className="w-10 h-10 bg-slate-900 text-emerald-400 rounded-xl flex items-center justify-center font-bold text-sm shrink-0">
-                                            {m.userId.name.charAt(0).toUpperCase()}
+                                approvedMembers.map((m, idx) => {
+                                    const isGroupOrganizer = (group.organizerId as any)?._id === m.userId._id || (group.organizerId as any) === m.userId._id;
+                                    return (
+                                        <div key={m._id} className="p-3 hover:bg-slate-50/80 rounded-xl flex items-center justify-between gap-4 transition">
+                                            <div className="flex items-center gap-3.5 min-w-0">
+                                                <span className="text-xs font-bold text-slate-400 w-5 text-right shrink-0">{idx + 1}.</span>
+                                                <div className="w-9 h-9 bg-slate-900 text-emerald-400 rounded-xl flex items-center justify-center font-bold text-xs shrink-0">
+                                                    {m.userId.name.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div className="overflow-hidden">
+                                                    <div className="flex items-center gap-2">
+                                                        <h4 className="text-xs font-bold text-slate-900 truncate">{m.userId.name}</h4>
+                                                        {isGroupOrganizer && (
+                                                            <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[9px] font-bold uppercase rounded-md shrink-0">
+                                                                Organizer
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-[10px] font-medium text-slate-400 truncate">{m.userId.email}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-3 shrink-0">
+                                                <span className="text-[10px] font-bold text-slate-400 hidden sm:inline-block">
+                                                    Joined {m.joinedAt ? format(new Date(m.joinedAt), 'MMM dd, yyyy') : 'Enrolled'}
+                                                </span>
+                                                <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-[10px] font-bold uppercase">
+                                                    Active Member
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div className="overflow-hidden">
-                                            <h4 className="text-xs font-bold text-slate-900 truncate">{m.userId.name}</h4>
-                                            <p className="text-[10px] text-slate-400 truncate">{m.userId.email}</p>
-                                        </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-3">
                             {pendingMembers.length === 0 ? (
-                                <div className="col-span-full py-16 text-center text-slate-400 bg-white rounded-2xl border-none">
+                                <div className="py-16 text-center text-slate-400 bg-white rounded-2xl border-none">
                                     <p className="text-xs font-bold">No pending member applications.</p>
                                 </div>
                             ) : (
                                 pendingMembers.map((m) => (
-                                    <div key={m._id} className="p-5 bg-white border-none shadow-none rounded-2xl space-y-4">
-                                        <div className="flex items-center gap-3">
+                                    <div key={m._id} className="p-4 bg-white border-none shadow-none rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                        <div className="flex items-center gap-3 min-w-0 flex-1">
                                             <div className="w-10 h-10 bg-slate-900 text-emerald-400 rounded-xl flex items-center justify-center font-bold shrink-0">
                                                 <User className="w-5 h-5" />
                                             </div>
@@ -629,11 +652,11 @@ export const ChitDetails = () => {
                                                 <p className="text-[10px] text-slate-400 truncate">{m.userId.email}</p>
                                             </div>
                                         </div>
-                                        <div className="flex gap-2 pt-2 border-t border-slate-100">
+                                        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
                                             <button
                                                 onClick={() => handleApproval(m._id, true)}
                                                 disabled={!!actionLoading}
-                                                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer disabled:opacity-50"
+                                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer disabled:opacity-50"
                                             >
                                                 {actionLoading === m._id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
                                                 <span>Approve</span>
@@ -641,7 +664,7 @@ export const ChitDetails = () => {
                                             <button
                                                 onClick={() => handleApproval(m._id, false)}
                                                 disabled={!!actionLoading}
-                                                className="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-600 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer disabled:opacity-50"
+                                                className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer disabled:opacity-50"
                                             >
                                                 {actionLoading === m._id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
                                                 <span>Reject</span>

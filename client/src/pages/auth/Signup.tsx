@@ -56,6 +56,7 @@ const LeftSidebar = ({ title, subtitle }: { title: React.ReactNode, subtitle: Re
 export const Signup = () => {
     const navigate = useNavigate();
     const [apiError, setApiError] = useState('');
+    const [errorCode, setErrorCode] = useState('');
     const [success, setSuccess] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
@@ -90,6 +91,7 @@ export const Signup = () => {
     const onSubmit = async (data: SignupFormData) => {
         try {
             setApiError('');
+            setErrorCode('');
             await api.post('/auth/register', {
                 name: data.fullName,
                 email: data.email,
@@ -98,6 +100,8 @@ export const Signup = () => {
             });
             setSuccess(true);
         } catch (error: any) {
+            const errCode = error.response?.data?.errorCode;
+            setErrorCode(errCode || '');
             setApiError(error.response?.data?.message || 'Registration failed. Please try again.');
         }
     };
@@ -170,9 +174,14 @@ export const Signup = () => {
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="p-4 mb-6 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-medium"
+                            className="p-4 mb-6 bg-rose-50 border border-rose-100 text-rose-700 rounded-xl text-xs font-bold space-y-2"
                         >
-                            {apiError}
+                            <p>{apiError}</p>
+                            {errorCode === 'AUTH_EMAIL_EXISTS' && (
+                                <Link to="/login" className="inline-block text-emerald-600 hover:underline font-extrabold">
+                                    → Account already exists? Log in here
+                                </Link>
+                            )}
                         </motion.div>
                     )}
 

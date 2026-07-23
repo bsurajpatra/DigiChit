@@ -36,9 +36,24 @@ export const getChitGroups = async (req: AuthRequest, res: Response, next: NextF
             status: ChitGroupStatus.FORMING,
             organizerId: { $ne: req.user!.id }
         };
-        // Potentially allow filtering by name, contrib, etc.
-        const groups = await ChitGroup.find(filters).populate('organizerId', 'name email');
-        res.status(200).json({ success: true, data: { groups } });
+        const groups = await ChitGroup.find(filters).populate('organizerId', 'name email').lean();
+        
+        const groupIds = groups.map(g => g._id);
+        const userMemberships = await Membership.find({
+            userId: req.user!.id,
+            chitGroupId: { $in: groupIds }
+        }).lean();
+
+        const membershipMap = new Map(
+            userMemberships.map(m => [m.chitGroupId.toString(), m.status])
+        );
+
+        const groupsWithMembership = groups.map(group => ({
+            ...group,
+            myMembershipStatus: membershipMap.get(group._id.toString()) || null
+        }));
+
+        res.status(200).json({ success: true, data: { groups: groupsWithMembership } });
     } catch (error) {
         next(error);
     }

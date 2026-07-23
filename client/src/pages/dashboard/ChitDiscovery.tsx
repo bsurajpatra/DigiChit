@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { 
     Search, Users, Calendar, Coins, 
-    Loader2, Inbox, Wallet, CheckCircle2, Compass
+    Loader2, Inbox, Wallet, CheckCircle2, Compass, XCircle, ArrowRight
 } from 'lucide-react';
 import { Loader } from '../../components/ui/Loader';
 import { motion } from 'framer-motion';
@@ -21,6 +21,7 @@ interface Group {
     commissionPercent?: number;
     financialConfig?: any;
     status: string;
+    myMembershipStatus?: string | null;
     organizerId: {
         name: string;
         email: string;
@@ -57,6 +58,7 @@ export const ChitDiscovery = () => {
         setRequestingId(groupId);
         try {
             await api.post(`/chit-groups/${groupId}/request-join`);
+            setGroups(prev => prev.map(g => g._id === groupId ? { ...g, myMembershipStatus: 'REQUESTED' } : g));
             setSuccessId(groupId);
         } catch (err: any) {
             alert(err.response?.data?.message || 'Failed to send request');
@@ -64,6 +66,17 @@ export const ChitDiscovery = () => {
             setRequestingId(null);
         }
     };
+
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const availableGroups = groups.filter(g => 
+        g.myMembershipStatus !== 'APPROVED' && g.myMembershipStatus !== 'ACTIVE_MEMBER'
+    );
+
+    const filteredGroups = availableGroups.filter(g => 
+        g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        g.organizerId?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     if (user?.kycStatus !== 'APPROVED') {
         return <KYCChitGuard title="Chit Group Discovery Restricted" />;
@@ -85,6 +98,8 @@ export const ChitDiscovery = () => {
                 <div className="relative">
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder="Search circles..."
                         className="pl-10 pr-4 py-2 bg-white border-none rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-slate-900 transition-all w-full md:w-56"
                     />
@@ -93,16 +108,18 @@ export const ChitDiscovery = () => {
 
             {/* Grid display */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {groups.length === 0 ? (
+                {filteredGroups.length === 0 ? (
                     <div className="col-span-full py-16 flex flex-col items-center text-center space-y-3 bg-white rounded-2xl border-none">
                         <Inbox className="w-10 h-10 text-slate-300" />
                         <div>
                             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">No Active Circles Available</h3>
-                            <p className="text-xs text-slate-400 mt-0.5">Check back later for new chit formations.</p>
+                            <p className="text-xs text-slate-400 mt-0.5">
+                                {searchTerm ? 'No matching circles found for your search.' : 'Check back later for new chit formations.'}
+                            </p>
                         </div>
                     </div>
                 ) : (
-                    groups.map((group) => (
+                    filteredGroups.map((group) => (
                         <motion.div 
                             key={group._id}
                             initial={{ opacity: 0, y: 10 }}
@@ -182,10 +199,20 @@ export const ChitDiscovery = () => {
                             </div>
 
                             <div className="pt-2">
-                                {successId === group._id ? (
+                                {group.myMembershipStatus === 'REQUESTED' || group.myMembershipStatus === 'PENDING' || successId === group._id ? (
                                     <button disabled className="w-full py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 border-none">
-                                        <CheckCircle2 className="w-4 h-4" />
-                                        <span>Sent Request</span>
+                                        <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                                        <span>Request Sent</span>
+                                    </button>
+                                ) : group.myMembershipStatus === 'APPROVED' || group.myMembershipStatus === 'ACTIVE_MEMBER' ? (
+                                    <button disabled className="w-full py-2.5 bg-slate-900 text-emerald-400 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border-none">
+                                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                        <span>Enrolled Member</span>
+                                    </button>
+                                ) : group.myMembershipStatus === 'REJECTED' ? (
+                                    <button disabled className="w-full py-2.5 bg-rose-100 text-rose-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border-none">
+                                        <XCircle className="w-4 h-4 text-rose-600" />
+                                        <span>Request Declined</span>
                                     </button>
                                 ) : (
                                     <button 
@@ -196,7 +223,10 @@ export const ChitDiscovery = () => {
                                         {requestingId === group._id ? (
                                             <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
                                         ) : (
-                                            <span>Request to Join</span>
+                                            <>
+                                                <span>Request to Join</span>
+                                                <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
+                                            </>
                                         )}
                                     </button>
                                 )}

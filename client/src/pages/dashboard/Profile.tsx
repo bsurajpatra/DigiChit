@@ -192,7 +192,17 @@ export const Profile = () => {
 
     useEffect(() => {
         api.get('/user/profile')
-            .then(res => setProfile(res.data.data.user))
+            .then(res => {
+                const u = res.data.data.user;
+                setProfile(u);
+                updateUser({
+                    kycStatus: u.kycStatus,
+                    organizerStatus: u.organizerStatus,
+                    role: u.role,
+                    accountStatus: u.accountStatus,
+                    profilePictureUrl: u.profilePictureUrl
+                });
+            })
             .catch(() => setError('Failed to load profile.'))
             .finally(() => setLoading(false));
     }, []);

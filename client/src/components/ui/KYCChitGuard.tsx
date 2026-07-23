@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, FileSearch, ArrowRight } from 'lucide-react';
@@ -9,10 +10,16 @@ interface KYCChitGuardProps {
 }
 
 export const KYCChitGuard = ({}: KYCChitGuardProps) => {
-    const { user } = useAuth();
+    const { user, refreshUser } = useAuth();
     const navigate = useNavigate();
 
     const status = user?.kycStatus || 'NOT_SUBMITTED';
+
+    useEffect(() => {
+        if (status !== 'APPROVED') {
+            refreshUser();
+        }
+    }, [status, refreshUser]);
 
     const config = {
         PENDING: {

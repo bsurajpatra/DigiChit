@@ -22,7 +22,7 @@ export const register = async (userData: Record<string, any>) => {
 
     const existingUser = await User.findOne({ email: email as string });
     if (existingUser) {
-        throw new AppError('Email already registered', 400, 'AUTH_EMAIL_EXISTS');
+        throw new AppError('An account with this email address already exists. Please log in instead.', 400, 'AUTH_EMAIL_EXISTS');
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -49,12 +49,17 @@ export const register = async (userData: Record<string, any>) => {
 
 export const login = async (email: string, password: string) => {
     const user = await User.findOne({ email: email as string }).select('+password');
-    if (!user || !(await bcrypt.compare(password, user.password!))) {
-        throw new AppError('Invalid email or password', 401, 'AUTH_INVALID_CREDENTIALS');
+    if (!user) {
+        throw new AppError('No account found with this email address. Please check your email or register.', 404, 'AUTH_EMAIL_NOT_FOUND');
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password!);
+    if (!isPasswordValid) {
+        throw new AppError('Incorrect password. Please check your password and try again.', 401, 'AUTH_INCORRECT_PASSWORD');
     }
 
     if (!user.emailVerified) {
-        throw new AppError('Please verify your email first', 403, 'AUTH_EMAIL_UNVERIFIED');
+        throw new AppError('Your email address is not verified yet. Please check your inbox or verify.', 403, 'AUTH_EMAIL_UNVERIFIED');
     }
 
     const isAccountBlocked = [AccountStatus.FROZEN, AccountStatus.SUSPENDED, AccountStatus.DELETED].includes(user.accountStatus);
