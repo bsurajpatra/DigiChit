@@ -25,58 +25,57 @@ export const UserChits = () => {
     if (loading) return <div className="h-full flex items-center justify-center p-20"><Loader size="lg" /></div>;
 
     return (
-        <div className="h-full flex flex-col gap-6 animate-in fade-in duration-700">
-            {/* Compact Header */}
-            <div className="flex items-center justify-between bg-white/50 backdrop-blur-md px-6 py-4 rounded-3xl border border-white/40 shadow-lg shadow-slate-100/50">
+        <div className="h-full flex flex-col gap-6">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 tracking-tight uppercase leading-tight">My Chits</h1>
-                    <p className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest leading-none">Track your active contributions and upcoming payouts</p>
+                    <div className="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
+                        <Wallet className="w-4 h-4" />
+                        <span>Joined Portfolios</span>
+                    </div>
+                    <h1 className="text-xl font-black text-slate-900 tracking-tight">My Joined Circles</h1>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100/50 shadow-sm">
-                    <Star className="w-3.5 h-3.5 fill-emerald-500" />
-                    <span className="font-black text-[9px] uppercase tracking-[0.2em]">Active Portfolios</span>
+                <div className="flex items-center gap-2 px-3.5 py-1.5 bg-slate-100 text-slate-800 rounded-full text-xs font-bold border-none shrink-0">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    <span>Active Portfolios</span>
                 </div>
             </div>
 
-            {/* Placeholder Container */}
-            <div className="flex-1 flex flex-col items-center justify-center p-12 bg-white/60 backdrop-blur-sm border border-white/60 rounded-3xl shadow-xl shadow-slate-100/50 relative overflow-hidden">
-                {/* Decorative background blurs */}
-                <div className="absolute top-0 left-0 w-64 h-64 bg-emerald-500/5 blur-[100px] rounded-full -ml-20 -mt-20" />
-                <div className="absolute bottom-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] rounded-full -mr-20 -mb-20" />
-
+            {/* Main Container */}
+            <div className="flex-1 flex flex-col items-center justify-center p-12 bg-white rounded-2xl border-none shadow-none relative overflow-hidden">
                 <motion.div 
-                    initial={{ scale: 0.9, opacity: 0 }}
+                    initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     className="relative z-10 flex flex-col items-center text-center max-w-sm"
                 >
-                    <div className="w-24 h-24 bg-white/80 border border-slate-100 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-xl shadow-slate-200/50 group">
-                        <Wallet className="w-10 h-10 text-slate-200 group-hover:text-emerald-500 transition-colors duration-500" />
+                    <div className="w-16 h-16 bg-slate-900 text-emerald-400 rounded-xl flex items-center justify-center mb-6 shrink-0">
+                        <Wallet className="w-8 h-8" />
                     </div>
                     
-                    <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase mb-4">No Active Circles</h2>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed mb-10">
+                    <h2 className="text-xl font-black text-slate-900 tracking-tight mb-2">No Active Circles Joined</h2>
+                    <p className="text-xs font-medium text-slate-400 leading-relaxed mb-6">
                         You haven't joined any financial circles yet. Discover forming chits to start growing your collaborative wealth.
                     </p>
 
-                    <div className="grid grid-cols-2 gap-4 w-full mb-10">
-                        <div className="p-4 bg-slate-50/50 border border-slate-100/50 rounded-2xl">
-                            <TrendingUp className="w-5 h-5 text-emerald-500 mb-2 mx-auto" />
-                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Growth</p>
-                            <p className="text-xs font-black text-slate-900">0% APY</p>
+                    <div className="grid grid-cols-2 gap-4 w-full mb-8">
+                        <div className="p-4 bg-slate-50 rounded-xl border-none">
+                            <TrendingUp className="w-5 h-5 text-emerald-600 mb-1 mx-auto" />
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">Growth</p>
+                            <p className="text-xs font-bold text-slate-900">0% APY</p>
                         </div>
-                        <div className="p-4 bg-slate-50/50 border border-slate-100/50 rounded-2xl">
-                            <ShieldCheck className="w-5 h-5 text-blue-500 mb-2 mx-auto" />
-                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Compliance</p>
-                            <p className="text-xs font-black text-slate-900">Verified</p>
+                        <div className="p-4 bg-slate-50 rounded-xl border-none">
+                            <ShieldCheck className="w-5 h-5 text-slate-900 mb-1 mx-auto" />
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">Compliance</p>
+                            <p className="text-xs font-bold text-slate-900">Verified</p>
                         </div>
                     </div>
 
                     <Link 
                         to="/join-chit"
-                        className="flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-600 transition-all shadow-2xl shadow-slate-300 group"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs transition cursor-pointer"
                     >
-                        Discover Chits
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        <span>Discover Chits</span>
+                        <ArrowRight className="w-4 h-4 text-emerald-400" />
                     </Link>
                 </motion.div>
             </div>

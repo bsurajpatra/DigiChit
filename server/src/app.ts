@@ -8,6 +8,10 @@ import userRoutes from './routes/user.routes.js';
 import organizerRoutes from './routes/organizer.routes.js';
 import contactRoutes from './routes/contact.routes.js';
 import chitGroupRoutes from './routes/chitGroup.routes.js';
+import chitCycleRoutes from './routes/chitCycle.routes.js';
+import auctionRoutes from './routes/auction.routes.js';
+import bidRoutes from './routes/bid.routes.js';
+import installmentRoutes from './routes/installment.routes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { globalErrorHandler } from './middlewares/error.middleware.js';
@@ -51,6 +55,10 @@ app.use('/api/user', userRoutes);
 app.use('/api/organizer', organizerRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/chit-groups', chitGroupRoutes);
+app.use('/api/chit-cycles', chitCycleRoutes);
+app.use('/api/auctions', auctionRoutes);
+app.use('/api/bids', bidRoutes);
+app.use('/api/installments', installmentRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

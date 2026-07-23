@@ -1,16 +1,45 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import api from '../../api/axios';
-import { 
-    Users, Calendar, Coins, 
-    ArrowLeft, Loader2, User, ShieldCheck,
-    Hammer, MessageSquare, Clock, XCircle,
-    Share2, Check, CheckCircle2
+import {
+    Users, Calendar, Coins, IndianRupee,
+    Loader2, User, ShieldCheck,
+    MessageSquare, Clock, XCircle,
+    UserPlus, Share2, Check, Hammer, PlusCircle, RefreshCw, Grid, HelpCircle,
+    LayoutDashboard, ArrowLeft, Trophy
 } from 'lucide-react';
 import { Loader } from '../../components/ui/Loader';
 import { format } from 'date-fns';
 import { useAuth } from '../../context/AuthContext';
 import { KYCChitGuard } from '../../components/ui/KYCChitGuard';
+import { useChitSidebar } from '../../context/ChitSidebarContext';
+
+// Cycles Module Components & Hooks
+import { useChitCycles } from '../../hooks/useChitCycles';
+import { CycleStatistics } from '../../components/cycles/CycleStatistics';
+import { CycleCard } from '../../components/cycles/CycleCard';
+import { CycleTimeline } from '../../components/cycles/CycleTimeline';
+import { CycleStatusBadge } from '../../components/cycles/CycleStatusBadge';
+import { ConfirmationDialog } from '../../components/cycles/ConfirmationDialog';
+import { CreateCycleModal } from '../../components/cycles/CreateCycleModal';
+import { RecordWinnerModal, type RecordWinnerFormData } from '../../components/cycles/RecordWinnerModal';
+
+// Auctions Module Components & Hooks
+import { useAuctions } from '../../hooks/useAuctions';
+import { AuctionCard } from '../../components/auctions/AuctionCard';
+import { AuctionStatusBadge } from '../../components/auctions/AuctionStatusBadge';
+import { CountdownTimer } from '../../components/auctions/CountdownTimer';
+import { WinnerBanner } from '../../components/auctions/WinnerBanner';
+import { AuctionTimeline } from '../../components/auctions/AuctionTimeline';
+import { ScheduleAuctionModal, type ScheduleAuctionFormData } from '../../components/auctions/ScheduleAuctionModal';
+import { EmbeddedBiddingRoom } from '../../components/auctions/EmbeddedBiddingRoom';
+import type { AuctionStatus, DeclareAuctionWinnerInput } from '../../types/auction';
+
+// Installments Module Components & Hooks
+import { useInstallments } from '../../hooks/useInstallments';
+import { StatisticsCards } from '../../components/installments/StatisticsCards';
+import { CollectionProgress } from '../../components/installments/CollectionProgress';
+import { InstallmentTable } from '../../components/installments/InstallmentTable';
 
 interface Member {
     _id: string;
@@ -43,13 +72,22 @@ interface Group {
 }
 
 export const ChitDetails = () => {
-    const { id } = useParams();
-    const navigate = useNavigate();
+    const { id } = useParams<{ id: string }>();
     const { user } = useAuth();
+
+    const {
+        activeTab,
+        setGroup: setSidebarGroup,
+        setPendingCount,
+        setIsOrganizer: setSidebarIsOrganizer,
+        reset,
+    } = useChitSidebar();
+
     const [group, setGroup] = useState<Group | null>(null);
     const [members, setMembers] = useState<Member[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'MEMBERS'>('OVERVIEW');
+
+    // Members Tab state
     const [viewMode, setViewMode] = useState<'LIST' | 'REQUESTS'>('LIST');
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [isManualAddModalOpen, setIsManualAddModalOpen] = useState(false);
@@ -58,17 +96,101 @@ export const ChitDetails = () => {
     const [isSearching, setIsSearching] = useState(false);
     const [isAdding, setIsAdding] = useState(false);
     const [searchError, setSearchError] = useState<string | null>(null);
-
-    const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
     const [copied, setCopied] = useState(false);
 
+    // Cycles Tab state
+    const [selectedCycleDetailId, setSelectedCycleDetailId] = useState<string | null>(null);
+    const [cycleFilterTab, setCycleFilterTab] = useState<'ALL' | 'ACTIVE' | 'UPCOMING' | 'COMPLETED'>('ALL');
+    const [cycleViewMode, setCycleViewMode] = useState<'CARDS' | 'TIMELINE'>('CARDS');
+    const [cycleConfirmModal, setCycleConfirmModal] = useState<{
+        isOpen: boolean;
+        type: 'start' | 'complete' | 'cancel' | null;
+        cycleId: string | null;
+        cycleNumber?: number;
+    }>({ isOpen: false, type: null, cycleId: null });
+    const [isCreateCycleModalOpen, setIsCreateCycleModalOpen] = useState(false);
+    const [cycleWinnerModal, setCycleWinnerModal] = useState<{ isOpen: boolean; cycleId: string | null; cycleNumber: number }>({
+        isOpen: false,
+        cycleId: null,
+        cycleNumber: 0
+    });
+
+    // Auctions Tab state
+    const [selectedAuctionDetailId, setSelectedAuctionDetailId] = useState<string | null>(null);
+    const [selectedBiddingRoomId, setSelectedBiddingRoomId] = useState<string | null>(null);
+    const [auctionViewOrigin, setAuctionViewOrigin] = useState<'LIST' | 'DETAILS'>('LIST');
+
+    useEffect(() => {
+        setSelectedCycleDetailId(null);
+        setSelectedAuctionDetailId(null);
+        setSelectedBiddingRoomId(null);
+        setAuctionViewOrigin('LIST');
+    }, [activeTab]);
+    const [auctionFilterTab, setAuctionFilterTab] = useState<'ALL' | AuctionStatus>('ALL');
+    const [isScheduleAuctionModalOpen, setIsScheduleAuctionModalOpen] = useState(false);
+    const [auctionWinnerModal, setAuctionWinnerModal] = useState<{ isOpen: boolean; auctionId: string | null; auctionNumber: number }>({
+        isOpen: false,
+        auctionId: null,
+        auctionNumber: 0
+    });
+    const [auctionConfirmModal, setAuctionConfirmModal] = useState<{
+        isOpen: boolean;
+        type: 'start' | 'close' | 'cancel' | null;
+        auctionId: string | null;
+        auctionNumber?: number;
+    }>({ isOpen: false, type: null, auctionId: null });
+
+    // Installments Tab state
+    const [selectedCycleId, setSelectedCycleId] = useState<string>('');
+    const [confirmWaive, setConfirmWaive] = useState<{ isOpen: boolean; installmentId: string | null }>({
+        isOpen: false,
+        installmentId: null
+    });
+
     const isOrganizer = user?.id === group?.organizerId._id;
+
+    // Feature module hooks
+    const {
+        cycles,
+        loading: cyclesLoading,
+        actionLoading: cycleActionLoading,
+        createCycle,
+        startCycle,
+        completeCycle,
+        cancelCycle,
+        recordWinner: recordCycleWinner
+    } = useChitCycles(id);
+
+    const {
+        auctions,
+        liveAuction,
+        loading: auctionsLoading,
+        actionLoading: auctionActionLoading,
+        createAuction,
+        updateStatus: updateAuctionStatus,
+        declareWinner: declareAuctionWinner
+    } = useAuctions(id);
+
+    const {
+        installments,
+        stats,
+        loading: installmentsLoading,
+        actionLoading: installmentActionLoading,
+        generateCycleInstallments,
+        waiveLateFee
+    } = useInstallments(id, selectedCycleId);
 
     const fetchDetails = async () => {
         try {
             const res = await api.get(`/chit-groups/details/${id}`);
-            setGroup(res.data.data.group);
-            setMembers(res.data.data.members);
+            const grp: Group = res.data.data.group;
+            const mems: Member[] = res.data.data.members;
+            setGroup(grp);
+            setMembers(mems);
+            setSidebarGroup(grp);
+            setSidebarIsOrganizer(user?.id === grp.organizerId._id);
+            const pending = mems.filter(m => m.status === 'REQUESTED').length;
+            setPendingCount(pending);
         } catch (err) {
             console.error('Failed to fetch details');
         } finally {
@@ -82,18 +204,34 @@ export const ChitDetails = () => {
         } else {
             setLoading(false);
         }
+        return () => reset();
     }, [id, user?.kycStatus]);
+
+    // Auto-select first cycle for installments when cycles load
+    useEffect(() => {
+        if (cycles.length > 0 && !selectedCycleId) {
+            setSelectedCycleId(cycles[0]._id);
+        }
+    }, [cycles, selectedCycleId]);
 
     if (user?.kycStatus !== 'APPROVED') {
         return <KYCChitGuard title="Chit Circle Access Restricted" />;
     }
+
+    const handleCopyShareLink = () => {
+        if (!group) return;
+        const link = `${window.location.origin}/join/${group._id}`;
+        navigator.clipboard.writeText(link);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
 
     const handleApproval = async (membershipId: string, approve: boolean) => {
         setActionLoading(membershipId);
         try {
             const endpoint = approve ? 'approve' : 'reject';
             await api.post(`/chit-groups/members/${endpoint}/${membershipId}`);
-            fetchDetails(); 
+            fetchDetails();
         } catch (err: any) {
             alert(err.response?.data?.message || 'Action failed');
         } finally {
@@ -136,345 +274,891 @@ export const ChitDetails = () => {
         }
     };
 
+    // Cycle action handlers
+    const handleConfirmCycleAction = async () => {
+        if (!cycleConfirmModal.cycleId || !cycleConfirmModal.type) return;
+        try {
+            if (cycleConfirmModal.type === 'start') {
+                await startCycle(cycleConfirmModal.cycleId);
+            } else if (cycleConfirmModal.type === 'complete') {
+                await completeCycle(cycleConfirmModal.cycleId);
+            } else if (cycleConfirmModal.type === 'cancel') {
+                await cancelCycle(cycleConfirmModal.cycleId);
+            }
+            setCycleConfirmModal({ isOpen: false, type: null, cycleId: null });
+        } catch (err) {
+            console.error('Cycle action failed', err);
+        }
+    };
+
+    // Auction action handlers
+    const handleConfirmAuctionAction = async () => {
+        if (!auctionConfirmModal.auctionId || !auctionConfirmModal.type) return;
+        try {
+            if (auctionConfirmModal.type === 'start') {
+                await updateAuctionStatus(auctionConfirmModal.auctionId, 'OPEN');
+            } else if (auctionConfirmModal.type === 'close') {
+                await updateAuctionStatus(auctionConfirmModal.auctionId, 'CLOSED');
+            } else if (auctionConfirmModal.type === 'cancel') {
+                await updateAuctionStatus(auctionConfirmModal.auctionId, 'CANCELLED');
+            }
+            setAuctionConfirmModal({ isOpen: false, type: null, auctionId: null });
+        } catch (err) {
+            console.error('Auction action failed', err);
+        }
+    };
+
+    // Installment waive handler
+    const handleConfirmWaive = async () => {
+        if (!confirmWaive.installmentId) return;
+        try {
+            await waiveLateFee(confirmWaive.installmentId);
+            setConfirmWaive({ isOpen: false, installmentId: null });
+        } catch (err) {
+            console.error('Waive fee failed', err);
+        }
+    };
+
     if (loading) return <div className="h-full flex items-center justify-center p-20"><Loader size="lg" /></div>;
-    if (!group) return <div>Group not found</div>;
+    if (!group) return <div className="p-8 text-center bg-transparent text-slate-500 font-bold">Group not found</div>;
 
     const pendingMembers = members.filter(m => m.status === 'REQUESTED');
     const approvedMembers = members.filter(m => ['APPROVED', 'ACTIVE_MEMBER'].includes(m.status));
+    const totalPoolAmount = group.monthlyContribution * group.totalMembers;
+
+    // Filtered cycles & auctions
+    const filteredCycles = cycles.filter(c => cycleFilterTab === 'ALL' || c.status === cycleFilterTab);
+    const filteredAuctions = auctions.filter(a => auctionFilterTab === 'ALL' || a.status === auctionFilterTab);
+    const nextCycleNumber = cycles.length + 1;
+
+    const memberOptions = members.map(m => ({
+        membershipId: m._id,
+        userName: m.userId.name,
+        userEmail: m.userId.email
+    }));
+
+    const cycleOptionsForAuctions = cycles.map(c => ({
+        cycleId: c._id,
+        cycleNumber: c.cycleNumber,
+        status: c.status
+    }));
 
     return (
-        <div className="space-y-6 w-full pb-12 animate-in fade-in duration-500 relative">
-            {/* Header with Styled Back Button */}
-            <div className="flex items-center justify-between bg-white/50 backdrop-blur-md px-6 py-4 rounded-3xl border border-white/40 shadow-lg shadow-slate-100/50">
-                <button 
-                    onClick={() => navigate(-1)}
-                    className="p-2.5 bg-emerald-600 border border-emerald-500 rounded-xl hover:bg-emerald-700 transition-all text-white group shadow-lg shadow-emerald-200"
-                >
-                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                </button>
-                <div className="text-center">
-                    <h1 className="text-base font-black text-slate-900 tracking-tight uppercase leading-none mb-1">{group.name}</h1>
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Circle ID: #{group._id.slice(-6).toUpperCase()}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    {isOrganizer && (
-                        <div className="flex items-center gap-2">
-                            <button 
-                                onClick={() => {
-                                    const link = `${window.location.origin}/join/${group._id}`;
-                                    navigator.clipboard.writeText(link);
-                                    setCopied(true);
-                                    setTimeout(() => setCopied(false), 2000);
-                                }}
-                                className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl transition-all text-[9px] font-black uppercase tracking-widest shadow-lg ${
-                                    copied 
-                                    ? 'bg-emerald-600 text-white shadow-emerald-200' 
-                                    : 'bg-slate-900 text-white hover:bg-emerald-600 shadow-slate-200'
-                                }`}
-                            >
-                                {copied ? <Check className="w-3 h-3" /> : <Share2 className="w-3 h-3" />}
-                                {copied ? 'Link Copied' : 'Share Circle'}
-                            </button>
-                            <div className="px-6 py-2.5 bg-emerald-600 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest shadow-md">
-                                Lead
+        <div className="w-full pb-12 animate-in fade-in duration-500 space-y-6">
+
+            {/* ─── 1. OVERVIEW TAB ─── */}
+            {activeTab === 'OVERVIEW' && (
+                <div className="bg-transparent p-0 border-none shadow-none space-y-6">
+                    {/* Top Standard Title Header */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
+                                <LayoutDashboard className="w-4 h-4" />
+                                <span>Circle Overview</span>
                             </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Top Navigation Tabs & Help Button Row */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex p-1.5 bg-white/40 backdrop-blur-md rounded-2xl border border-white/40 shadow-sm overflow-x-auto w-full sm:w-auto">
-                    <button
-                        onClick={() => setActiveTab('OVERVIEW')}
-                        className={`flex-1 sm:flex-none px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all ${
-                            activeTab === 'OVERVIEW' 
-                            ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' 
-                            : 'text-slate-400 hover:text-slate-900'
-                        }`}
-                    >
-                        Overview
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('MEMBERS')}
-                        className={`flex-1 sm:flex-none px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all ml-1 relative ${
-                            activeTab === 'MEMBERS' 
-                            ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' 
-                            : 'text-slate-400 hover:text-slate-900'
-                        }`}
-                    >
-                        Members
-                        {pendingMembers.length > 0 && isOrganizer && (
-                            <span className="absolute -top-1 -right-1 flex h-4 w-4">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 text-[8px] items-center justify-center text-white font-bold">{pendingMembers.length}</span>
-                            </span>
-                        )}
-                    </button>
-                </div>
-
-                <button 
-                    onClick={() => setIsHelpModalOpen(true)}
-                    className="w-full sm:w-auto px-8 py-2.5 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-emerald-600 transition-all shadow-lg shadow-slate-200"
-                >
-                    <MessageSquare className="w-4 h-4 text-emerald-400" />
-                    Need Help?
-                </button>
-            </div>
-
-            <div className="w-full space-y-6">
-                {activeTab === 'OVERVIEW' && (
-                    <div className="space-y-6">
-                        <div className="bg-white/60 backdrop-blur-sm border border-white/60 p-10 rounded-3xl shadow-xl shadow-slate-100/50 relative overflow-hidden">
-                            {/* Group Leader & Auction Type Header */}
-                            <div className="flex flex-col md:flex-row items-center gap-6 mb-10 pb-10 border-b border-slate-100">
-                                <div className="w-16 h-16 bg-slate-900 text-emerald-400 rounded-2xl flex items-center justify-center shadow-xl shadow-slate-200">
-                                    <Hammer className="w-8 h-8" />
-                                </div>
-                                <div className="text-center md:text-left flex-1">
-                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Leaded by {group.organizerId.name}</h3>
-                                    <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-2">
-                                        <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-emerald-100">
-                                            Auction: {group.auctionType}
-                                        </span>
-                                        <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-blue-100">
-                                            Commission: {group.commissionPercent}%
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 relative z-10">
-                                <div className="space-y-2">
-                                    <Coins className="w-5 h-5 text-emerald-500 mb-2" />
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Pot Value</span>
-                                    <div className="text-xl font-black text-slate-900 tracking-tighter">₹{(group.monthlyContribution * group.totalMembers).toLocaleString()}</div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Clock className="w-5 h-5 text-amber-500 mb-2" />
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Duration</span>
-                                    <div className="text-xl font-black text-slate-900 tracking-tighter">{group.totalMembers} Months</div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Users className="w-5 h-5 text-blue-500 mb-2" />
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Total Seats</span>
-                                    <div className="text-xl font-black text-slate-900 tracking-tighter">{group.totalMembers} Members</div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Calendar className="w-5 h-5 text-rose-500 mb-2" />
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Start Date</span>
-                                    <div className="text-xl font-black text-slate-900 tracking-tighter">{format(new Date(group.startDate), 'MMM dd')}</div>
-                                </div>
-                            </div>
-
-                            {group.description && (
-                                <div className="mt-10 p-6 bg-slate-50/50 border border-slate-100 rounded-3xl">
-                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Note from Organizer</label>
-                                    <p className="text-xs font-bold text-slate-600 leading-relaxed uppercase tracking-tight">{group.description}</p>
-                                </div>
-                            )}
-                            
-                            <div className={`mt-10 p-4 rounded-2xl flex items-center gap-4 border ${
-                                group.status === 'FORMING' ? 'bg-amber-50 border-amber-100 text-amber-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'
-                            }`}>
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm ${
-                                    group.status === 'FORMING' ? 'text-amber-500' : 'text-emerald-500'
-                                }`}>
-                                    {group.status === 'FORMING' ? <Clock className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
-                                </div>
-                                <div>
-                                    <h4 className="text-[10px] font-black uppercase tracking-widest">Group State: {group.status}</h4>
-                                    <p className="text-[9px] font-bold opacity-70 uppercase tracking-widest">
-                                        {group.status === 'FORMING' 
-                                            ? 'Member invitations and approvals are currently open.' 
-                                            : 'Formation locked. Financial cycle is officially active.'}
-                                    </p>
-                                </div>
-                            </div>
+                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Circle Summary & Details</h2>
                         </div>
                     </div>
-                )}
 
-                {activeTab === 'MEMBERS' && (
-                    <div className="space-y-6">
-                        {/* Consolidated Member Section */}
-                        <div className="bg-white/60 backdrop-blur-sm p-8 rounded-3xl border border-white/60 shadow-xl shadow-slate-100/50">
-                            <div className="flex flex-col md:flex-row items-center gap-8 mb-10 pb-8 border-b border-slate-100">
-                                <div className="relative">
-                                    <svg className="w-24 h-24 transform -rotate-90">
-                                        <circle cx="48" cy="48" r="42" stroke="currentColor" strokeWidth="10" fill="transparent" className="text-slate-100" />
-                                        <circle cx="48" cy="48" r="42" stroke="currentColor" strokeWidth="10" fill="transparent" className="text-emerald-500" strokeDasharray={264} strokeDashoffset={264 - (264 * (approvedMembers.length / group.totalMembers))} strokeLinecap="round" />
-                                    </svg>
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                        <span className="text-lg font-black tracking-tighter text-slate-900">{Math.round((approvedMembers.length / group.totalMembers) * 100)}%</span>
-                                    </div>
-                                </div>
-                                <div className="text-center md:text-left flex-1">
-                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Member Quota Status</h3>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
-                                        {approvedMembers.length} of {group.totalMembers} spots secured in this circle
-                                    </p>
-                                </div>
-                                {isOrganizer && group.status === 'FORMING' && (
-                                    <div className="flex gap-2">
-                                        <button 
-                                            onClick={() => setIsManualAddModalOpen(true)}
-                                            className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-all flex items-center gap-2 shadow-lg shadow-slate-100"
-                                        >
-                                            <User className="w-4 h-4 text-emerald-400" />
-                                            Manual Add
-                                        </button>
-                                        <button 
-                                            onClick={() => setViewMode(viewMode === 'LIST' ? 'REQUESTS' : 'LIST')}
-                                            className={`px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 ${
-                                                viewMode === 'REQUESTS' 
-                                                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' 
-                                                : 'bg-slate-900 text-white hover:bg-emerald-600'
-                                            }`}
-                                        >
-                                            {viewMode === 'LIST' ? (
-                                                <>Manage Requests ({pendingMembers.length})</>
-                                            ) : (
-                                                <>Back to Members</>
-                                            )}
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {viewMode === 'LIST' ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                    {approvedMembers.length === 0 ? (
-                                        <div className="col-span-full py-20 text-center text-slate-300 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
-                                            <Users className="w-10 h-10 mx-auto mb-4 opacity-10" />
-                                            <p className="text-[10px] font-black uppercase tracking-widest">No members joined yet.</p>
-                                        </div>
-                                    ) : (
-                                        approvedMembers.map((m) => (
-                                            <div key={m._id} className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center gap-4 group">
-                                                <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-300 group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-all">
-                                                    <User className="w-5 h-5" />
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-tight">{m.userId.name}</h4>
-                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Joined: {format(new Date(m.createdAt), 'MMM yyyy')}</p>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 animate-in slide-in-from-right duration-300">
-                                    {pendingMembers.length === 0 ? (
-                                        <div className="col-span-full py-20 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">No pending applications</p>
-                                        </div>
-                                    ) : (
-                                        pendingMembers.map((m) => (
-                                            <div key={m._id} className="p-5 bg-white border border-slate-50 rounded-2xl space-y-4 shadow-sm relative overflow-hidden">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-emerald-400">
-                                                        <User className="w-5 h-5" />
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="text-xs font-black text-slate-900 uppercase tracking-tight">{m.userId.name}</h4>
-                                                        <p className="text-[9px] font-black text-slate-400 tracking-widest uppercase">{m.userId.email}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <button 
-                                                        onClick={() => handleApproval(m._id, true)}
-                                                        disabled={!!actionLoading}
-                                                        className="flex-1 bg-emerald-500 text-white h-10 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-all flex items-center justify-center gap-2"
-                                                    >
-                                                        {actionLoading === m._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
-                                                        Approve
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => handleApproval(m._id, false)}
-                                                        disabled={!!actionLoading}
-                                                        className="flex-1 bg-white text-rose-600 h-10 rounded-xl border border-rose-100 font-bold text-[10px] uppercase tracking-widest hover:bg-rose-50 transition-all flex items-center justify-center gap-2"
-                                                    >
-                                                        {actionLoading === m._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                                                        Reject
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* Help & Assistance Modal */}
-            {isHelpModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
-                    <div 
-                        className="absolute inset-0 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300" 
-                        onClick={() => setIsHelpModalOpen(false)}
-                    />
-                    <div className="relative bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="p-10 text-center space-y-8">
-                            <div className="w-20 h-20 bg-slate-900 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto shadow-xl shadow-slate-200">
-                                <MessageSquare className="w-10 h-10" />
+                    {/* Organizer Lead Header Card — transparent icon logo, no lead green tag, no border/shadow */}
+                    <div className="bg-white p-6 rounded-2xl border-none shadow-none flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-transparent text-slate-900 border-none shadow-none flex items-center justify-center font-black shrink-0">
+                                <User className="w-6 h-6 text-slate-800" />
                             </div>
                             <div>
-                                <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Need Assistance?</h3>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 leading-relaxed">
-                                    For inquiries regarding this specific chit group or rules, please contact the group leader directly.
-                                </p>
+                                <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">Lead Organizer: {group.organizerId.name}</h3>
+                                <p className="text-xs text-slate-400">{group.organizerId.email}</p>
                             </div>
+                        </div>
 
-                            <div className="p-6 bg-slate-50 border border-slate-100 rounded-3xl space-y-4">
-                                <div className="flex items-center justify-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-400">
-                                        <User className="w-4 h-4" />
-                                    </div>
-                                    <div className="text-left">
-                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Group Leader</p>
-                                        <p className="text-xs font-black text-slate-900 uppercase tracking-tight">{group.organizerId.name}</p>
-                                    </div>
-                                </div>
-                                <div className="text-center text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                    {group.organizerId.email}
-                                </div>
-                            </div>
-
-                            <div className="space-y-3">
-                                {!isOrganizer ? (
-                                    <button 
-                                        className="w-full bg-slate-900 text-white h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-600 transition-all flex items-center justify-center gap-3 shadow-lg shadow-slate-200"
-                                        onClick={() => window.location.href = `mailto:${group.organizerId.email}`}
-                                    >
-                                        <MessageSquare className="w-4 h-4" />
-                                        Contact Lead via Email
-                                    </button>
-                                ) : (
-                                    <div className="py-4 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100 text-[10px] font-black uppercase tracking-widest">
-                                        You are the lead of this circle
-                                    </div>
-                                )}
-                                <button 
-                                    onClick={() => setIsHelpModalOpen(false)}
-                                    className="w-full bg-slate-50 text-slate-400 h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-100 transition-all"
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold border-none shadow-none">
+                                Auction: {group.auctionType}
+                            </span>
+                            <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-bold border-none shadow-none">
+                                Commission: {group.commissionPercent}%
+                            </span>
+                            {isOrganizer && (
+                                <button
+                                    onClick={handleCopyShareLink}
+                                    className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+                                        copied
+                                            ? 'bg-emerald-600 text-white'
+                                            : 'bg-slate-900 hover:bg-emerald-600 text-white'
+                                    }`}
                                 >
-                                    Close Window
+                                    {copied ? <Check className="w-3.5 h-3.5" /> : <Share2 className="w-3.5 h-3.5 text-emerald-400" />}
+                                    <span>{copied ? 'Link Copied' : 'Share Circle Link'}</span>
                                 </button>
-                            </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* 4 Financial Stat Cards — no borders, no shadows */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="bg-white p-5 rounded-2xl border-none shadow-none">
+                            <Coins className="w-5 h-5 text-emerald-500 mb-2" />
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Pot Value</span>
+                            <div className="text-2xl font-black text-slate-900 tracking-tight mt-1">₹{totalPoolAmount.toLocaleString('en-IN')}</div>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border-none shadow-none">
+                            <IndianRupee className="w-5 h-5 text-sky-500 mb-2" />
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Monthly Dues</span>
+                            <div className="text-2xl font-black text-slate-900 tracking-tight mt-1">₹{group.monthlyContribution.toLocaleString('en-IN')}</div>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border-none shadow-none">
+                            <Users className="w-5 h-5 text-blue-500 mb-2" />
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Seats / Duration</span>
+                            <div className="text-2xl font-black text-slate-900 tracking-tight mt-1">{group.totalMembers} Members</div>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border-none shadow-none">
+                            <Calendar className="w-5 h-5 text-rose-500 mb-2" />
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Start Date</span>
+                            <div className="text-xl font-black text-slate-900 tracking-tight mt-1">{format(new Date(group.startDate), 'PP')}</div>
+                        </div>
+                    </div>
+
+                    {group.description && (
+                        <div className="p-5 bg-white border-none shadow-none rounded-2xl">
+                            <span className="text-slate-400 text-[9px] font-black uppercase tracking-widest block mb-1">Note from Organizer</span>
+                            <p className="text-xs text-slate-700 font-bold leading-relaxed">{group.description}</p>
+                        </div>
+                    )}
+
+                    {/* Group Status Div — transparent, no borders */}
+                    <div className="p-5 rounded-2xl flex items-center gap-4 bg-transparent border-none shadow-none">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                            group.status === 'FORMING' ? 'bg-amber-500 text-white' : 'bg-emerald-600 text-white'
+                        }`}>
+                            {group.status === 'FORMING' ? <Clock className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-black text-amber-900 uppercase tracking-wider">Group Status: {group.status}</h4>
+                            <p className="text-xs text-slate-600 font-medium mt-0.5">
+                                {group.status === 'FORMING'
+                                    ? 'Member invitations and approvals are currently open. Financial cycles begin once all seats fill.'
+                                    : 'Group formation complete. Financial cycles, auctions, and installment collections are active.'}
+                            </p>
                         </div>
                     </div>
                 </div>
             )}
 
+            {/* ─── 2. MEMBERS TAB ─── */}
+            {activeTab === 'MEMBERS' && (
+                <div className="bg-transparent p-0 border-none shadow-none space-y-6">
+                    {/* Top Standard Title Header */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <div className="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
+                                <Users className="w-4 h-4" />
+                                <span>Member Management</span>
+                            </div>
+                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Members & Quota Status</h2>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-2xl border-none shadow-none flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div className="flex items-center gap-4">
+                            <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
+                                <svg className="w-16 h-16 transform -rotate-90">
+                                    <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-slate-100" />
+                                    <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-emerald-500" strokeDasharray={176} strokeDashoffset={176 - (176 * (approvedMembers.length / group.totalMembers))} strokeLinecap="round" />
+                                </svg>
+                                <span className="absolute text-xs font-black text-slate-900">{Math.round((approvedMembers.length / group.totalMembers) * 100)}%</span>
+                            </div>
+
+                            <div>
+                                <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">Quota Completion</h3>
+                                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                                    {approvedMembers.length} of {group.totalMembers} spots secured in this circle
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                            <button
+                                onClick={() => setViewMode('LIST')}
+                                className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer ${
+                                    viewMode === 'LIST'
+                                        ? 'bg-emerald-600 text-white'
+                                        : 'bg-slate-900 hover:bg-emerald-600 text-white'
+                                }`}
+                            >
+                                <Users className="w-4 h-4 text-emerald-400" />
+                                <span>Enrolled Members ({approvedMembers.length})</span>
+                            </button>
+
+                            <button
+                                onClick={() => setViewMode('REQUESTS')}
+                                className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer ${
+                                    viewMode === 'REQUESTS'
+                                        ? 'bg-emerald-600 text-white'
+                                        : 'bg-slate-900 hover:bg-emerald-600 text-white'
+                                }`}
+                            >
+                                <User className="w-4 h-4 text-emerald-400" />
+                                <span>Manage Requests ({pendingMembers.length})</span>
+                            </button>
+
+                            {isOrganizer && (
+                                <button
+                                    onClick={handleCopyShareLink}
+                                    className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer ${
+                                        copied
+                                            ? 'bg-emerald-600 text-white'
+                                            : 'bg-slate-900 hover:bg-emerald-600 text-white'
+                                    }`}
+                                >
+                                    {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4 text-emerald-400" />}
+                                    <span>{copied ? 'Link Copied' : 'Share Circle Link'}</span>
+                                </button>
+                            )}
+
+                            {isOrganizer && group.status === 'FORMING' && (
+                                <button
+                                    onClick={() => setIsManualAddModalOpen(true)}
+                                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
+                                >
+                                    <UserPlus className="w-4 h-4 text-emerald-400" />
+                                    <span>Manual Add</span>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {viewMode === 'LIST' ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {approvedMembers.length === 0 ? (
+                                <div className="col-span-full py-16 text-center text-slate-400 bg-white rounded-3xl border-none">
+                                    <Users className="w-10 h-10 mx-auto mb-2 opacity-30 text-slate-400" />
+                                    <p className="text-xs font-bold">No members enrolled yet.</p>
+                                </div>
+                            ) : (
+                                approvedMembers.map((m) => (
+                                    <div key={m._id} className="p-4 bg-white border-none shadow-none rounded-2xl flex items-center gap-3 hover:bg-slate-50 transition">
+                                        <div className="w-10 h-10 bg-slate-900 text-emerald-400 rounded-xl flex items-center justify-center font-bold text-sm shrink-0">
+                                            {m.userId.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div className="overflow-hidden">
+                                            <h4 className="text-xs font-bold text-slate-900 truncate">{m.userId.name}</h4>
+                                            <p className="text-[10px] text-slate-400 truncate">{m.userId.email}</p>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {pendingMembers.length === 0 ? (
+                                <div className="col-span-full py-16 text-center text-slate-400 bg-white rounded-2xl border-none">
+                                    <p className="text-xs font-bold">No pending member applications.</p>
+                                </div>
+                            ) : (
+                                pendingMembers.map((m) => (
+                                    <div key={m._id} className="p-5 bg-white border-none shadow-none rounded-2xl space-y-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-slate-900 text-emerald-400 rounded-xl flex items-center justify-center font-bold shrink-0">
+                                                <User className="w-5 h-5" />
+                                            </div>
+                                            <div className="overflow-hidden">
+                                                <h4 className="text-xs font-bold text-slate-900 truncate">{m.userId.name}</h4>
+                                                <p className="text-[10px] text-slate-400 truncate">{m.userId.email}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2 pt-2 border-t border-slate-100">
+                                            <button
+                                                onClick={() => handleApproval(m._id, true)}
+                                                disabled={!!actionLoading}
+                                                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer disabled:opacity-50"
+                                            >
+                                                {actionLoading === m._id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+                                                <span>Approve</span>
+                                            </button>
+                                            <button
+                                                onClick={() => handleApproval(m._id, false)}
+                                                disabled={!!actionLoading}
+                                                className="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-600 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer disabled:opacity-50"
+                                            >
+                                                {actionLoading === m._id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
+                                                <span>Reject</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* ─── 3. CYCLES TAB ─── */}
+            {activeTab === 'CYCLES' && (
+                <div className="bg-transparent p-0 border-none shadow-none space-y-6">
+                    {selectedCycleDetailId && cycles.find(c => c._id === selectedCycleDetailId) ? (
+                        (() => {
+                            const selectedCycle = cycles.find(c => c._id === selectedCycleDetailId)!;
+                            const winnerUser = typeof selectedCycle.winnerMembershipId === 'object' && selectedCycle.winnerMembershipId?.userId
+                                ? selectedCycle.winnerMembershipId.userId
+                                : null;
+
+                            return (
+                                <div className="space-y-6">
+                                    <button
+                                        onClick={() => setSelectedCycleDetailId(null)}
+                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+                                    >
+                                        <ArrowLeft className="w-4 h-4 text-emerald-400" />
+                                        <span>Back to Cycles List</span>
+                                    </button>
+
+                                    <div className="bg-white p-6 md:p-8 rounded-2xl border-none shadow-none space-y-6">
+                                        <div className="flex flex-wrap items-center justify-between gap-4">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center font-black text-lg shrink-0">
+                                                    #{selectedCycle.cycleNumber}
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-3">
+                                                        <h2 className="text-xl font-black text-slate-900">Cycle #{selectedCycle.cycleNumber} Details</h2>
+                                                        <CycleStatusBadge status={selectedCycle.status} size="md" />
+                                                    </div>
+                                                    <p className="text-xs text-slate-400 mt-0.5">Financial Cycle Details & Schedule Overview</p>
+                                                </div>
+                                            </div>
+
+                                            {isOrganizer && (
+                                                <div className="flex items-center gap-2">
+                                                    {selectedCycle.status === 'UPCOMING' && (
+                                                        <button
+                                                            onClick={() => setCycleConfirmModal({ isOpen: true, type: 'start', cycleId: selectedCycle._id, cycleNumber: selectedCycle.cycleNumber })}
+                                                            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                                                        >
+                                                            Start Cycle
+                                                        </button>
+                                                    )}
+
+                                                    {selectedCycle.status === 'ACTIVE' && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => setCycleWinnerModal({ isOpen: true, cycleId: selectedCycle._id, cycleNumber: selectedCycle.cycleNumber })}
+                                                                className="px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                                                            >
+                                                                Record Winner
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setCycleConfirmModal({ isOpen: true, type: 'complete', cycleId: selectedCycle._id, cycleNumber: selectedCycle.cycleNumber })}
+                                                                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                                                            >
+                                                                Complete Cycle
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                                            <div className="p-4 bg-slate-50 rounded-xl border-none">
+                                                <span className="text-[10px] text-slate-400 font-bold uppercase block">Scheduled Start</span>
+                                                <span className="text-xs font-bold text-slate-900 mt-1 block">
+                                                    {format(new Date(selectedCycle.scheduledStartDate), 'PPP')}
+                                                </span>
+                                            </div>
+
+                                            <div className="p-4 bg-slate-50 rounded-xl border-none">
+                                                <span className="text-[10px] text-slate-400 font-bold uppercase block">Actual Start</span>
+                                                <span className="text-xs font-bold text-emerald-600 mt-1 block">
+                                                    {selectedCycle.actualStartDate ? format(new Date(selectedCycle.actualStartDate), 'PPP') : 'Not Started'}
+                                                </span>
+                                            </div>
+
+                                            <div className="p-4 bg-slate-50 rounded-xl border-none">
+                                                <span className="text-[10px] text-slate-400 font-bold uppercase block">Auction Date</span>
+                                                <span className="text-xs font-bold text-slate-900 mt-1 block">
+                                                    {selectedCycle.auctionDate ? format(new Date(selectedCycle.auctionDate), 'PPP') : 'N/A'}
+                                                </span>
+                                            </div>
+
+                                            <div className="p-4 bg-slate-50 rounded-xl border-none">
+                                                <span className="text-[10px] text-slate-400 font-bold uppercase block">Completed Date</span>
+                                                <span className="text-xs font-bold text-slate-900 mt-1 block">
+                                                    {selectedCycle.actualEndDate ? format(new Date(selectedCycle.actualEndDate), 'PPP') : 'In Progress'}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {selectedCycle.winnerMembershipId ? (
+                                            <div className="p-5 bg-slate-50 rounded-xl border-none space-y-2">
+                                                <div className="flex items-center gap-2">
+                                                    <Trophy className="w-5 h-5 text-amber-500" />
+                                                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Auction Winner</h4>
+                                                </div>
+                                                <p className="text-sm font-bold text-slate-900">
+                                                    {winnerUser?.name || 'Member Winner'}
+                                                </p>
+                                                {selectedCycle.winningBidAmount && (
+                                                    <p className="text-xs text-slate-600 font-semibold">
+                                                        Winning Bid Amount: <strong className="text-slate-900">₹{selectedCycle.winningBidAmount.toLocaleString('en-IN')}</strong>
+                                                        {selectedCycle.winningBidPercentage && ` (${selectedCycle.winningBidPercentage}%)`}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="p-4 bg-slate-50 rounded-xl text-xs text-slate-500 font-medium">
+                                                No winner recorded for this cycle yet.
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })()
+                    ) : (
+                        <>
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
+                                        <Calendar className="w-4 h-4" />
+                                        <span>Cycle Management</span>
+                                    </div>
+                                    <h2 className="text-xl font-black text-slate-900 tracking-tight">Financial Cycles & Timeline</h2>
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    <div className="flex bg-slate-100 p-1 rounded-xl">
+                                        <button
+                                            onClick={() => setCycleViewMode('CARDS')}
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                                                cycleViewMode === 'CARDS' ? 'bg-white text-slate-900' : 'text-slate-500 hover:text-slate-900'
+                                            }`}
+                                        >
+                                            <Grid className="w-4 h-4 inline mr-1" />
+                                            Cards
+                                        </button>
+                                        <button
+                                            onClick={() => setCycleViewMode('TIMELINE')}
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                                                cycleViewMode === 'TIMELINE' ? 'bg-white text-slate-900' : 'text-slate-500 hover:text-slate-900'
+                                            }`}
+                                        >
+                                            <Calendar className="w-4 h-4 inline mr-1" />
+                                            Timeline
+                                        </button>
+                                    </div>
+
+                                    {isOrganizer && (
+                                        <button
+                                            onClick={() => setIsCreateCycleModalOpen(true)}
+                                            className="px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition cursor-pointer"
+                                        >
+                                            <PlusCircle className="w-4 h-4 text-emerald-400" />
+                                            <span>Create Cycle #{nextCycleNumber}</span>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <CycleStatistics cycles={cycles} totalDurationMonths={group.totalMembers} />
+
+                            {/* Filter Tabs */}
+                            <div className="flex border-b border-slate-200/60 overflow-x-auto gap-4">
+                                {(['ALL', 'ACTIVE', 'UPCOMING', 'COMPLETED'] as const).map((tab) => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setCycleFilterTab(tab)}
+                                        className={`pb-3 text-xs font-bold uppercase tracking-wider transition border-b-2 cursor-pointer whitespace-nowrap ${
+                                            cycleFilterTab === tab
+                                                ? 'border-slate-900 text-slate-900'
+                                                : 'border-transparent text-slate-400 hover:text-slate-600'
+                                        }`}
+                                    >
+                                        {tab}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {cyclesLoading ? (
+                                <div className="py-12 flex justify-center"><Loader size="md" /></div>
+                            ) : cycleViewMode === 'TIMELINE' ? (
+                                <CycleTimeline cycles={filteredCycles} onSelectCycle={(id) => setSelectedCycleDetailId(id)} />
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {filteredCycles.length === 0 ? (
+                                        <div className="col-span-full py-16 text-center text-slate-400 bg-white rounded-2xl border-none">
+                                            No cycles found matching filter.
+                                        </div>
+                                    ) : (
+                                        filteredCycles.map((cycle) => (
+                                            <CycleCard
+                                                key={cycle._id}
+                                                cycle={cycle}
+                                                isOrganizer={isOrganizer}
+                                                actionLoading={cycleActionLoading}
+                                                onStart={() => setCycleConfirmModal({ isOpen: true, type: 'start', cycleId: cycle._id, cycleNumber: cycle.cycleNumber })}
+                                                onComplete={() => setCycleConfirmModal({ isOpen: true, type: 'complete', cycleId: cycle._id, cycleNumber: cycle.cycleNumber })}
+                                                onCancel={() => setCycleConfirmModal({ isOpen: true, type: 'cancel', cycleId: cycle._id, cycleNumber: cycle.cycleNumber })}
+                                                onRecordWinner={() => setCycleWinnerModal({ isOpen: true, cycleId: cycle._id, cycleNumber: cycle.cycleNumber })}
+                                                onViewDetails={(id) => setSelectedCycleDetailId(id)}
+                                            />
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+            )}
+
+            {/* ─── 4. AUCTIONS TAB ─── */}
+            {activeTab === 'AUCTIONS' && (
+                <div className="bg-transparent p-0 border-none shadow-none space-y-6">
+                    {selectedBiddingRoomId ? (
+                        <EmbeddedBiddingRoom
+                            auctionId={selectedBiddingRoomId}
+                            user={user}
+                            onBack={() => setSelectedBiddingRoomId(null)}
+                            backLabel={auctionViewOrigin === 'DETAILS' ? 'Back to Auction Details' : 'Back to Auctions List'}
+                        />
+                    ) : selectedAuctionDetailId && auctions.find(a => a._id === selectedAuctionDetailId) ? (
+                        (() => {
+                            const selectedAuction = auctions.find(a => a._id === selectedAuctionDetailId)!;
+                            const cycleNum = typeof selectedAuction.cycleId === 'object' ? selectedAuction.cycleId.cycleNumber : selectedAuction.auctionNumber;
+                            const isWinnerDeclared = selectedAuction.status === 'WINNER_DECLARED' || !!selectedAuction.winningMembershipId;
+
+                            return (
+                                <div className="space-y-6">
+                                    <button
+                                        onClick={() => setSelectedAuctionDetailId(null)}
+                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+                                    >
+                                        <ArrowLeft className="w-4 h-4 text-emerald-400" />
+                                        <span>Back to Auctions List</span>
+                                    </button>
+
+                                    <div className="bg-white p-6 md:p-8 rounded-2xl border-none shadow-none space-y-6">
+                                        <div className="flex flex-wrap items-center justify-between gap-4">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center font-black text-lg shrink-0">
+                                                    <Hammer className="w-6 h-6" />
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-3">
+                                                        <h2 className="text-xl font-black text-slate-900">Auction #{cycleNum} Details</h2>
+                                                        <AuctionStatusBadge status={selectedAuction.status} size="md" />
+                                                    </div>
+                                                    <p className="text-xs text-slate-400 mt-0.5">Monthly Member Auction Details & Schedule</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        const id = selectedAuction._id;
+                                                        setAuctionViewOrigin('DETAILS');
+                                                        setSelectedBiddingRoomId(id);
+                                                    }}
+                                                    className="px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                                                >
+                                                    <Hammer className="w-3.5 h-3.5 text-emerald-400" />
+                                                    <span>Open Bidding Room</span>
+                                                </button>
+
+                                                {isOrganizer && (
+                                                    <>
+                                                        {selectedAuction.status === 'SCHEDULED' && (
+                                                            <button
+                                                                onClick={() => setAuctionConfirmModal({ isOpen: true, type: 'start', auctionId: selectedAuction._id, auctionNumber: selectedAuction.auctionNumber })}
+                                                                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                                                            >
+                                                                Start Auction
+                                                            </button>
+                                                        )}
+                                                        {selectedAuction.status === 'OPEN' && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => setAuctionConfirmModal({ isOpen: true, type: 'close', auctionId: selectedAuction._id, auctionNumber: selectedAuction.auctionNumber })}
+                                                                    className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                                                                >
+                                                                    Close Bidding
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setAuctionWinnerModal({ isOpen: true, auctionId: selectedAuction._id, auctionNumber: selectedAuction.auctionNumber })}
+                                                                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                                                                >
+                                                                    Declare Winner
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Bid Limits Info */}
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border-none text-xs">
+                                            <div>
+                                                <span className="text-slate-400 font-bold block text-[10px] uppercase">Min Bid Limit</span>
+                                                <span className="font-bold text-slate-900 text-sm mt-0.5 block">{selectedAuction.minimumBidPercentage}%</span>
+                                            </div>
+                                            <div>
+                                                <span className="text-slate-400 font-bold block text-[10px] uppercase">Max Bid Limit</span>
+                                                <span className="font-bold text-slate-900 text-sm mt-0.5 block">{selectedAuction.maximumBidPercentage}%</span>
+                                            </div>
+                                            <div>
+                                                <span className="text-slate-400 font-bold block text-[10px] uppercase">Scheduled Start</span>
+                                                <span className="font-bold text-slate-900 text-sm mt-0.5 block">{format(new Date(selectedAuction.scheduledStartTime), 'MMM dd, yyyy')}</span>
+                                            </div>
+                                            <div>
+                                                <span className="text-slate-400 font-bold block text-[10px] uppercase">Status</span>
+                                                <span className="font-bold text-slate-900 text-sm mt-0.5 block">{selectedAuction.status}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Winner Banner if Declared */}
+                                        {isWinnerDeclared && (
+                                            <WinnerBanner
+                                                winner={selectedAuction.winningMembershipId || null}
+                                                winningBidPercentage={selectedAuction.minimumBidPercentage}
+                                                remarks={selectedAuction.remarks}
+                                            />
+                                        )}
+
+                                        {/* Timeline component */}
+                                        <AuctionTimeline auction={selectedAuction} />
+                                    </div>
+                                </div>
+                            );
+                        })()
+                    ) : (
+                        <>
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
+                                        <Hammer className="w-4 h-4" />
+                                        <span>Auction & Bidding System</span>
+                                    </div>
+                                    <h2 className="text-xl font-black text-slate-900 tracking-tight">Member Auctions & Bids</h2>
+                                </div>
+
+                                {isOrganizer && (
+                                    <button
+                                        onClick={() => setIsScheduleAuctionModalOpen(true)}
+                                        className="px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition cursor-pointer"
+                                    >
+                                        <PlusCircle className="w-4 h-4 text-emerald-400" />
+                                        <span>Schedule Auction</span>
+                                    </button>
+                                )}
+                            </div>
+
+                            {liveAuction && (
+                                <div className="p-6 bg-white rounded-2xl border-none space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-slate-900 font-bold text-xs uppercase tracking-wider">
+                                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping inline-block" />
+                                            <span>Live Auction in Progress</span>
+                                        </div>
+                                        <span className="text-xs font-bold text-slate-400">Auction #{liveAuction.auctionNumber}</span>
+                                    </div>
+                                    <CountdownTimer targetDate={liveAuction.scheduledEndTime || liveAuction.scheduledStartTime} />
+                                </div>
+                            )}
+
+                            {/* Filter Tabs */}
+                            <div className="flex border-b border-slate-200/60 overflow-x-auto gap-4">
+                                {(['ALL', 'SCHEDULED', 'OPEN', 'CLOSED', 'CANCELLED'] as const).map((tab) => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setAuctionFilterTab(tab)}
+                                        className={`pb-3 text-xs font-bold uppercase tracking-wider transition border-b-2 cursor-pointer whitespace-nowrap ${
+                                            auctionFilterTab === tab
+                                                ? 'border-slate-900 text-slate-900'
+                                                : 'border-transparent text-slate-400 hover:text-slate-600'
+                                        }`}
+                                    >
+                                        {tab}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {auctionsLoading ? (
+                                <div className="py-12 flex justify-center"><Loader size="md" /></div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {filteredAuctions.length === 0 ? (
+                                        <div className="col-span-full py-16 text-center text-slate-400 bg-white rounded-2xl border-none">
+                                            No auctions found matching filter.
+                                        </div>
+                                    ) : (
+                                        filteredAuctions.map((auction) => (
+                                            <AuctionCard
+                                                key={auction._id}
+                                                auction={auction}
+                                                isOrganizer={isOrganizer}
+                                                actionLoading={auctionActionLoading}
+                                                onStart={() => setAuctionConfirmModal({ isOpen: true, type: 'start', auctionId: auction._id, auctionNumber: auction.auctionNumber })}
+                                                onCloseAuction={() => setAuctionConfirmModal({ isOpen: true, type: 'close', auctionId: auction._id, auctionNumber: auction.auctionNumber })}
+                                                onCancel={() => setAuctionConfirmModal({ isOpen: true, type: 'cancel', auctionId: auction._id, auctionNumber: auction.auctionNumber })}
+                                                onDeclareWinner={() => setAuctionWinnerModal({ isOpen: true, auctionId: auction._id, auctionNumber: auction.auctionNumber })}
+                                                onViewDetails={(id) => {
+                                                    setAuctionViewOrigin('LIST');
+                                                    setSelectedAuctionDetailId(id);
+                                                }}
+                                                onViewBids={(id) => {
+                                                    setAuctionViewOrigin('LIST');
+                                                    setSelectedBiddingRoomId(id);
+                                                }}
+                                            />
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+            )}
+
+            {/* ─── 5. INSTALLMENTS TAB ─── */}
+            {activeTab === 'INSTALLMENTS' && (
+                <div className="bg-transparent p-0 border-none shadow-none space-y-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
+                                <IndianRupee className="w-4 h-4" />
+                                <span>Financial Collections</span>
+                            </div>
+                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Installments & Member Dues</h2>
+                        </div>
+
+                        {/* Cycle selector & bulk generate button */}
+                        <div className="flex flex-wrap items-center gap-3">
+                            <select
+                                value={selectedCycleId}
+                                onChange={(e) => setSelectedCycleId(e.target.value)}
+                                className="bg-white border border-slate-200 text-slate-800 text-xs font-bold py-2.5 px-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer shadow-none"
+                            >
+                                <option value="">Select Cycle...</option>
+                                {cycles.map((c) => (
+                                    <option key={c._id} value={c._id}>
+                                        Cycle #{c.cycleNumber} ({c.status})
+                                    </option>
+                                ))}
+                            </select>
+
+                            {isOrganizer && selectedCycleId && (
+                                <button
+                                    onClick={() => generateCycleInstallments(selectedCycleId)}
+                                    disabled={installmentActionLoading === 'generate'}
+                                    className="px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition cursor-pointer disabled:opacity-50"
+                                >
+                                    {installmentActionLoading === 'generate' ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4 text-emerald-400" />}
+                                    <span>Generate Cycle Dues</span>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {stats && <StatisticsCards stats={stats} />}
+
+                    {stats && (
+                        <CollectionProgress
+                            collectedAmount={stats.totalCollectedAmount}
+                            expectedAmount={stats.totalExpectedAmount}
+                            percentage={stats.collectionPercentage}
+                        />
+                    )}
+
+                    {installmentsLoading ? (
+                        <div className="py-12 flex justify-center"><Loader size="md" /></div>
+                    ) : (
+                        <InstallmentTable
+                            installments={installments}
+                            isOrganizer={isOrganizer}
+                            actionLoading={installmentActionLoading}
+                            onWaiveLateFee={(id) => setConfirmWaive({ isOpen: true, installmentId: id })}
+                        />
+                    )}
+                </div>
+            )}
+
+            {/* ─── 6. NEED HELP TAB ─── */}
+            {activeTab === 'HELP' && (
+                <div className="bg-transparent p-0 border-none shadow-none space-y-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <div className="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
+                                <HelpCircle className="w-4 h-4" />
+                                <span>Support & Guidelines</span>
+                            </div>
+                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Need Circle Assistance?</h2>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Leader Info Card */}
+                        <div className="bg-white p-6 rounded-2xl border-none shadow-none space-y-4">
+                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                <User className="w-4 h-4 text-emerald-600" />
+                                <span>Circle Leader Contact</span>
+                            </h3>
+                            <div className="p-4 bg-slate-50 rounded-xl space-y-2 text-xs border-none">
+                                <p className="font-bold text-slate-900 text-sm">{group.organizerId.name}</p>
+                                <p className="text-slate-500 font-medium">{group.organizerId.email}</p>
+                                <span className="inline-block px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-lg border-none">
+                                    Official Foreman
+                                </span>
+                            </div>
+                            {!isOrganizer ? (
+                                <button
+                                    onClick={() => window.location.href = `mailto:${group.organizerId.email}`}
+                                    className="w-full py-3 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer"
+                                >
+                                    <MessageSquare className="w-4 h-4 text-emerald-400" />
+                                    <span>Contact Organizer via Email</span>
+                                </button>
+                            ) : (
+                                <div className="p-3 bg-slate-100 text-slate-800 text-center rounded-xl border-none text-xs font-bold">
+                                    You are the leader of this chit circle
+                                </div>
+                            )}
+                        </div>
+
+                        {/* FAQ & Guidelines Card */}
+                        <div className="bg-white p-6 rounded-2xl border-none shadow-none space-y-4">
+                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                                <span>Circle Rules & FAQ</span>
+                            </h3>
+                            <ul className="space-y-3 text-xs text-slate-600 font-medium">
+                                <li className="flex items-start gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                                    <span><strong>Monthly Dues:</strong> Dues must be paid before the scheduled cycle auction date.</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                                    <span><strong>Bidding Rules:</strong> Eligible members may place bids within the minimum & maximum percentage limits.</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-slate-900 mt-1.5 shrink-0" />
+                                    <span><strong>Prize Payout:</strong> Winner receives net pot amount after deducting commission and winning bid dividend.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ─── MODALS ─── */}
+
             {/* Manual Add Member Modal */}
             {isManualAddModalOpen && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
-                    <div 
-                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300" 
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div
+                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs"
                         onClick={() => {
                             if (!isAdding) {
                                 setIsManualAddModalOpen(false);
@@ -484,83 +1168,168 @@ export const ChitDetails = () => {
                             }
                         }}
                     />
-                    <div className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white">
-                        <div className="p-10 space-y-8">
-                            <div className="text-center space-y-2">
-                                <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase">Manual Enrollment</h3>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Enroll KYC verified members directly</p>
+                    <div className="relative bg-white/90 backdrop-blur-md w-full max-w-md rounded-3xl shadow-2xl overflow-hidden z-10 border border-white/60 p-6 space-y-6">
+                        <div className="text-center space-y-1">
+                            <h3 className="text-base font-bold text-slate-900">Manual Member Enrollment</h3>
+                            <p className="text-xs text-slate-500">Enroll KYC verified users directly into your group</p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="relative">
+                                <input
+                                    type="email"
+                                    placeholder="Enter member's exact email..."
+                                    value={searchEmail}
+                                    onChange={(e) => setSearchEmail(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearchUser()}
+                                    className="w-full bg-white/60 border border-slate-200 py-3 px-4 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
+                                />
+                                <button
+                                    onClick={handleSearchUser}
+                                    disabled={isSearching || !searchEmail}
+                                    className="absolute right-2 top-2 bottom-2 px-4 bg-slate-900 text-white rounded-lg text-xs font-bold uppercase hover:bg-emerald-600 transition disabled:opacity-50 cursor-pointer"
+                                >
+                                    {isSearching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Search'}
+                                </button>
                             </div>
 
-                            <div className="space-y-4">
-                                <div className="relative">
-                                    <input 
-                                        type="email"
-                                        placeholder="Enter member's exact email..."
-                                        value={searchEmail}
-                                        onChange={(e) => setSearchEmail(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleSearchUser()}
-                                        className="w-full bg-slate-50 border border-slate-100 h-14 px-6 rounded-2xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:bg-white transition-all"
-                                    />
-                                    <button 
-                                        onClick={handleSearchUser}
-                                        disabled={isSearching || !searchEmail}
-                                        className="absolute right-2 top-2 bottom-2 px-6 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all disabled:opacity-50 shadow-md shadow-slate-200"
-                                    >
-                                        {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
-                                    </button>
-                                </div>
+                            {searchError && (
+                                <p className="p-3 text-center text-xs font-bold text-rose-600 bg-rose-50 rounded-xl border border-rose-200">
+                                    {searchError}
+                                </p>
+                            )}
 
-                                {searchError && (
-                                    <p className="text-center text-[10px] font-black text-rose-500 uppercase tracking-widest bg-rose-50 py-3 rounded-xl border border-rose-100">
-                                        {searchError}
-                                    </p>
-                                )}
-
-                                {searchResult && (
-                                    <div className="p-6 bg-emerald-50/50 rounded-3xl border border-emerald-100/50 space-y-4 animate-in slide-in-from-top-4 duration-300">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-emerald-500 shadow-sm">
-                                                <User className="w-6 h-6" />
-                                            </div>
-                                            <div>
-                                                <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight">{searchResult.name}</h4>
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{searchResult.email}</p>
-                                            </div>
+                            {searchResult && (
+                                <div className="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200 space-y-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-xs font-bold text-sm">
+                                            {searchResult.name.charAt(0).toUpperCase()}
                                         </div>
-                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 text-emerald-600 rounded-lg w-fit">
-                                            <ShieldCheck className="w-3 h-3" />
-                                            <span className="text-[8px] font-black uppercase tracking-widest">KYC Verified & Ready</span>
+                                        <div>
+                                            <h4 className="text-xs font-bold text-slate-900">{searchResult.name}</h4>
+                                            <p className="text-[11px] text-slate-500">{searchResult.email}</p>
                                         </div>
                                     </div>
-                                )}
-                            </div>
+                                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-600/10 text-emerald-700 rounded-lg w-fit text-[10px] font-bold">
+                                        <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                                        <span>KYC Approved Member</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
 
-                            <div className="flex gap-4 pt-4">
-                                <button 
-                                    onClick={() => {
-                                        setIsManualAddModalOpen(false);
-                                        setSearchResult(null);
-                                        setSearchError(null);
-                                        setSearchEmail('');
-                                    }}
-                                    disabled={isAdding}
-                                    className="flex-1 h-14 rounded-2xl bg-rose-500 text-white font-black uppercase text-[10px] tracking-widest hover:bg-rose-600 transition-all shadow-lg shadow-rose-100"
-                                >
-                                    Cancel
-                                </button>
-                                <button 
-                                    onClick={handleManualAdd}
-                                    disabled={!searchResult || isAdding}
-                                    className="flex-[2] h-14 rounded-2xl bg-emerald-600 text-white font-black uppercase text-[10px] tracking-widest hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-100 disabled:opacity-20 flex items-center justify-center gap-3"
-                                >
-                                    {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-5 h-5 text-white" />}
-                                    Enroll Member
-                                </button>
-                            </div>
+                        <div className="flex items-center justify-end gap-3 pt-2">
+                            <button
+                                onClick={() => {
+                                    setIsManualAddModalOpen(false);
+                                    setSearchResult(null);
+                                    setSearchError(null);
+                                    setSearchEmail('');
+                                }}
+                                disabled={isAdding}
+                                className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleManualAdd}
+                                disabled={!searchResult || isAdding}
+                                className="inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer disabled:opacity-40"
+                            >
+                                {isAdding && <Loader2 className="w-4 h-4 animate-spin" />}
+                                <span>Enroll Member</span>
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
+
+            {/* Create Cycle Modal */}
+            <CreateCycleModal
+                isOpen={isCreateCycleModalOpen}
+                nextCycleNumber={nextCycleNumber}
+                onClose={() => setIsCreateCycleModalOpen(false)}
+                onSubmit={async (data) => {
+                    await createCycle({ ...data, groupId: id! });
+                    setIsCreateCycleModalOpen(false);
+                }}
+            />
+
+            {/* Cycle Record Winner Modal */}
+            <RecordWinnerModal
+                isOpen={cycleWinnerModal.isOpen}
+                cycleNumber={cycleWinnerModal.cycleNumber}
+                members={memberOptions}
+                onClose={() => setCycleWinnerModal({ isOpen: false, cycleId: null, cycleNumber: 0 })}
+                onSubmit={async (data: RecordWinnerFormData) => {
+                    if (cycleWinnerModal.cycleId) {
+                        await recordCycleWinner(cycleWinnerModal.cycleId, data);
+                        setCycleWinnerModal({ isOpen: false, cycleId: null, cycleNumber: 0 });
+                    }
+                }}
+            />
+
+            {/* Cycle Confirmation Dialog */}
+            <ConfirmationDialog
+                isOpen={cycleConfirmModal.isOpen}
+                title={`${cycleConfirmModal.type?.toUpperCase()} Cycle #${cycleConfirmModal.cycleNumber}?`}
+                description={`Are you sure you want to ${cycleConfirmModal.type} cycle #${cycleConfirmModal.cycleNumber}?`}
+                confirmLabel={cycleConfirmModal.type || 'Confirm'}
+                confirmVariant={cycleConfirmModal.type === 'cancel' ? 'rose' : 'emerald'}
+                onCancel={() => setCycleConfirmModal({ isOpen: false, type: null, cycleId: null })}
+                onConfirm={handleConfirmCycleAction}
+            />
+
+            {/* Schedule Auction Modal */}
+            <ScheduleAuctionModal
+                isOpen={isScheduleAuctionModalOpen}
+                cycles={cycleOptionsForAuctions}
+                onClose={() => setIsScheduleAuctionModalOpen(false)}
+                onSubmit={async (data: ScheduleAuctionFormData) => {
+                    await createAuction(data);
+                    setIsScheduleAuctionModalOpen(false);
+                }}
+            />
+
+            {/* Auction Record Winner Modal */}
+            <RecordWinnerModal
+                isOpen={auctionWinnerModal.isOpen}
+                cycleNumber={auctionWinnerModal.auctionNumber}
+                members={memberOptions}
+                onClose={() => setAuctionWinnerModal({ isOpen: false, auctionId: null, auctionNumber: 0 })}
+                onSubmit={async (data: RecordWinnerFormData) => {
+                    if (auctionWinnerModal.auctionId) {
+                        const input: DeclareAuctionWinnerInput = {
+                            winningMembershipId: data.winnerMembershipId,
+                            remarks: data.remarks
+                        };
+                        await declareAuctionWinner(auctionWinnerModal.auctionId, input);
+                        setAuctionWinnerModal({ isOpen: false, auctionId: null, auctionNumber: 0 });
+                    }
+                }}
+            />
+
+            {/* Auction Confirmation Dialog */}
+            <ConfirmationDialog
+                isOpen={auctionConfirmModal.isOpen}
+                title={`${auctionConfirmModal.type?.toUpperCase()} Auction #${auctionConfirmModal.auctionNumber}?`}
+                description={`Are you sure you want to ${auctionConfirmModal.type} auction #${auctionConfirmModal.auctionNumber}?`}
+                confirmLabel={auctionConfirmModal.type || 'Confirm'}
+                confirmVariant={auctionConfirmModal.type === 'cancel' ? 'rose' : 'emerald'}
+                onCancel={() => setAuctionConfirmModal({ isOpen: false, type: null, auctionId: null })}
+                onConfirm={handleConfirmAuctionAction}
+            />
+
+            {/* Waive Fee Confirmation Dialog */}
+            <ConfirmationDialog
+                isOpen={confirmWaive.isOpen}
+                title="Waive Accrued Late Fee?"
+                description="Are you sure you want to waive the late fee for this installment?"
+                confirmLabel="Waive Fee"
+                confirmVariant="emerald"
+                onCancel={() => setConfirmWaive({ isOpen: false, installmentId: null })}
+                onConfirm={handleConfirmWaive}
+            />
         </div>
     );
 };

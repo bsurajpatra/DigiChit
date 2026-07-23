@@ -25,11 +25,11 @@ export const Sidebar = ({ isMobileOpen, setMobileOpen }: SidebarProps) => {
     const navItemStyles = (path: string, hasSubItems?: boolean) => {
         const isActive = location.pathname === path;
         return `
-            flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all duration-300
+            flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all duration-200 text-sm
             ${isActive 
-                ? 'text-emerald-600 bg-emerald-50 translate-x-1 outline-none' 
+                ? 'text-slate-900 bg-slate-100' 
                 : hasSubItems
-                    ? 'text-slate-900 border-none outline-none'
+                    ? 'text-slate-900 border-none outline-none hover:bg-slate-50'
                     : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
             }
         `;
@@ -63,7 +63,7 @@ export const Sidebar = ({ isMobileOpen, setMobileOpen }: SidebarProps) => {
             {/* Sidebar drawer */}
             <aside className={`
                 fixed md:static inset-y-0 left-0 z-50
-                w-72 md:w-64 bg-white border-r border-slate-200 shadow-sm flex flex-col shrink-0
+                w-64 md:w-64 bg-white border-r border-slate-200 shadow-sm flex flex-col shrink-0
                 transform transition-transform duration-300 ease-in-out
                 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             `}>
@@ -116,10 +116,10 @@ export const Sidebar = ({ isMobileOpen, setMobileOpen }: SidebarProps) => {
                                                         key={sub.label}
                                                         to={sub.path}
                                                         className={`
-                                                            flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all
+                                                            flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold transition-all
                                                             ${location.pathname === sub.path 
-                                                                ? 'text-emerald-600 bg-emerald-50/50' 
-                                                                : 'text-slate-400 hover:bg-slate-50 hover:text-slate-700'
+                                                                ? 'text-slate-900 bg-slate-100' 
+                                                                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                                                             }
                                                         `}
                                                         onClick={() => setMobileOpen(false)}

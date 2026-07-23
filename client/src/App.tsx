@@ -29,6 +29,13 @@ import { MyOrganizedChits } from './pages/organizer/MyChits';
 import { ChitDiscovery } from './pages/dashboard/ChitDiscovery';
 import { UserChits } from './pages/dashboard/UserChits';
 import { ChitDetails } from './pages/dashboard/ChitDetails';
+import { ChitCyclesPage } from './pages/organizer/ChitCyclesPage';
+import { CycleDetailsPage } from './pages/organizer/CycleDetailsPage';
+import { AuctionsPage } from './pages/organizer/AuctionsPage';
+import { AuctionDetailsPage } from './pages/organizer/AuctionDetailsPage';
+import { BidsPage } from './pages/organizer/BidsPage';
+import { MyInstallmentsPage } from './pages/dashboard/MyInstallmentsPage';
+import { GroupInstallmentsPage } from './pages/organizer/GroupInstallmentsPage';
 import { KYCPanel } from './pages/admin/KYCPanel';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { OrganizerApplications } from './pages/admin/OrganizerApplications';
@@ -92,6 +99,13 @@ function App() {
                             <Route path="/join-chit" element={<ChitDiscovery />} />
                             <Route path="/my-chits" element={<UserChits />} />
                             <Route path="/chit-details/:id" element={<ChitDetails />} />
+                            <Route path="/chits/:groupId/cycles" element={<ChitCyclesPage />} />
+                            <Route path="/cycles/:cycleId" element={<CycleDetailsPage />} />
+                            <Route path="/chits/:groupId/auctions" element={<AuctionsPage />} />
+                            <Route path="/auctions/:auctionId" element={<AuctionDetailsPage />} />
+                            <Route path="/auctions/:auctionId/bids" element={<BidsPage />} />
+                            <Route path="/my-installments" element={<MyInstallmentsPage />} />
+                            <Route path="/chits/:groupId/installments" element={<GroupInstallmentsPage />} />
 
                             {/* Organizer specific routes */}
                             <Route element={<ProtectedRoute allowedRoles={['ORGANIZER']} />}>

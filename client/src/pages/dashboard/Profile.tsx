@@ -297,26 +297,29 @@ export const Profile = () => {
     return (
         <div className="h-full flex flex-col gap-4 animate-in fade-in duration-500">
 
-            {/* Compact Header */}
-            <div className="flex items-center justify-between bg-white/50 backdrop-blur-md px-6 py-4 rounded-3xl border border-white/40 shadow-lg shadow-slate-100/50">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 tracking-tight uppercase leading-tight">Identity Suite</h1>
-                    <p className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest leading-none">Security credentials & verification status</p>
+                    <div className="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
+                        <UserCircle className="w-4 h-4" />
+                        <span>User Profile & Security</span>
+                    </div>
+                    <h1 className="text-xl font-black text-slate-900 tracking-tight">Identity Suite</h1>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-2xl shadow-md">
-                    <UserCircle className="w-4 h-4" />
-                    <span className="font-bold text-[9px] uppercase tracking-[0.2em]">{profile?.role}</span>
+                <div className="flex items-center gap-2 px-3.5 py-1.5 bg-slate-900 text-white rounded-xl font-bold text-xs shrink-0">
+                    <UserCircle className="w-4 h-4 text-emerald-400" />
+                    <span>{profile?.role}</span>
                 </div>
             </div>
 
-            {/* Compact Grid */}
+            {/* Grid */}
             <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0">
 
                 {/* Left: Avatar + Fast Actions */}
                 <div className="flex flex-col gap-4">
 
-                    {/* Compact Avatar Card */}
-                    <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-slate-100 shadow-xl shadow-slate-100/30 p-6 flex flex-col items-center text-center gap-4">
+                    {/* Avatar Card */}
+                    <div className="bg-white rounded-2xl border-none shadow-none p-6 flex flex-col items-center text-center gap-4">
                         <div className="relative group shrink-0">
                             <input
                                 type="file"
@@ -325,7 +328,7 @@ export const Profile = () => {
                                 ref={avatarInputRef}
                                 onChange={handleAvatarUpload}
                             />
-                            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-400 flex items-center justify-center overflow-hidden relative shadow-lg group-hover:scale-105 transition-transform duration-500">
+                            <div className="w-20 h-20 rounded-2xl bg-slate-900 flex items-center justify-center overflow-hidden relative shadow-none group-hover:scale-105 transition-transform duration-300">
                                 {profile?.profilePictureUrl ? (
                                     <OptimizedImage 
                                         publicId={profile.profilePictureUrl} 
@@ -335,7 +338,7 @@ export const Profile = () => {
                                         priority
                                     />
                                 ) : (
-                                    <span className="text-3xl font-black text-white select-none">
+                                    <span className="text-2xl font-black text-emerald-400 select-none">
                                         {profile?.name?.charAt(0)?.toUpperCase()}
                                     </span>
                                 )}
@@ -353,7 +356,7 @@ export const Profile = () => {
                                                 avatarInputRef.current?.click();
                                             }}
                                             title="Change profile picture"
-                                            className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center backdrop-blur-sm transition-all hover:scale-110 shadow-md"
+                                            className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all hover:scale-110"
                                         >
                                             <Camera className="w-4 h-4" />
                                         </button>
@@ -361,7 +364,7 @@ export const Profile = () => {
                                             type="button"
                                             onClick={handleRemoveAvatar}
                                             title="Remove profile picture"
-                                            className="w-8 h-8 rounded-full bg-red-500/40 hover:bg-red-500/70 text-red-100 hover:text-white flex items-center justify-center backdrop-blur-sm transition-all hover:scale-110 shadow-md"
+                                            className="w-8 h-8 rounded-full bg-red-500/40 hover:bg-red-500/70 text-red-100 hover:text-white flex items-center justify-center transition-all hover:scale-110"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -379,44 +382,44 @@ export const Profile = () => {
                             </div>
                         </div>
                         <div>
-                            <p className="text-sm font-black text-slate-900 uppercase tracking-tight">{profile?.name}</p>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest truncate max-w-[180px] mt-1">{profile?.email}</p>
+                            <p className="text-base font-black text-slate-900">{profile?.name}</p>
+                            <p className="text-xs text-slate-400 font-medium truncate max-w-[180px] mt-0.5">{profile?.email}</p>
                         </div>
                         <div className="flex flex-wrap gap-1.5 justify-center">
-                            <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[8px] font-black uppercase tracking-widest border border-emerald-100">{profile?.role}</span>
-                            <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border border-current opacity-80 ${accCls}`}>{profile?.accountStatus}</span>
+                            <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 text-[10px] font-bold uppercase tracking-wider border-none">{profile?.role}</span>
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border-none ${accCls}`}>{profile?.accountStatus}</span>
                         </div>
                     </div>
 
                     {/* Account Controls */}
-                    <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-slate-100 shadow-xl shadow-slate-100/30 p-2">
+                    <div className="bg-white rounded-2xl border-none shadow-none p-4 space-y-2">
                         <button onClick={() => setShowPw(true)}
-                            className="w-full flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-slate-50 transition-all group">
-                            <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
-                                <KeyRound className="w-4 h-4 text-white" />
+                            className="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-900 hover:bg-emerald-600 text-white transition-all cursor-pointer group">
+                            <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center shrink-0">
+                                <KeyRound className="w-4 h-4 text-emerald-400" />
                             </div>
                             <div className="text-left flex-1">
-                                <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Update Security</p>
-                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.1em] mt-0.5">Change password</p>
+                                <p className="text-xs font-bold uppercase tracking-wider">Update Security</p>
+                                <p className="text-[10px] text-slate-300">Change password</p>
                             </div>
                         </button>
 
                         {hasKYC && (
-                            <div className="mt-1 space-y-1">
+                            <div className="space-y-2 pt-1">
                                 {[
                                     { field: 'document' as const, icon: FileText, label: 'ID Documents' },
                                     { field: 'selfie'   as const, icon: Camera,   label: 'Biometric Check' },
                                 ].map(({ field, icon: Icon, label }) => (
                                     <button key={field} onClick={() => setKycViewer(field)}
-                                        className="w-full flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-slate-50 transition-all group">
-                                        <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 group-hover:bg-white transition-colors">
-                                            <Icon className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-colors" />
+                                        className="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all cursor-pointer group">
+                                        <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shrink-0 border-none">
+                                            <Icon className="w-4 h-4 text-slate-900" />
                                         </div>
                                         <div className="text-left flex-1">
-                                            <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">{label}</p>
-                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.1em] mt-0.5">Review current file</p>
+                                            <p className="text-xs font-bold text-slate-900 uppercase tracking-wider">{label}</p>
+                                            <p className="text-[10px] text-slate-400">Review current file</p>
                                         </div>
-                                        <Eye className="w-3.5 h-3.5 text-emerald-600 group-hover:text-emerald-700 transition-colors" />
+                                        <Eye className="w-4 h-4 text-slate-400 group-hover:text-slate-900 transition-colors" />
                                     </button>
                                 ))}
                             </div>
@@ -424,9 +427,9 @@ export const Profile = () => {
                     </div>
 
                     {pwSuccess && (
-                        <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center gap-3 animate-in slide-in-from-bottom duration-500">
+                        <div className="p-4 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-2 border-none">
                             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                            <p className="text-[9px] font-black text-emerald-800 uppercase tracking-widest leading-relaxed">Identity key updated. Authenticating logout in 3s...</p>
+                            <span>Identity key updated. Authenticating logout in 3s...</span>
                         </div>
                     )}
                 </div>
@@ -434,27 +437,27 @@ export const Profile = () => {
                 {/* Right: Detailed Metadata */}
                 <div className="lg:col-span-2 flex flex-col gap-4 overflow-y-auto pr-1 custom-scrollbar">
 
-                    {/* Professional Metadata */}
-                    <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-slate-100 shadow-xl shadow-slate-100/30 p-6">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> System Identity
+                    {/* System Identity */}
+                    <div className="bg-white rounded-2xl border-none shadow-none p-6 space-y-4">
+                        <p className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500" /> System Identity
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
                             <Row icon={Mail} label="Contact Email" value={
                                 <span className="flex items-center gap-1.5 justify-end">
                                     <span className="truncate max-w-[120px]">{profile?.email}</span>
                                     {profile?.emailVerified
-                                        ? <CheckCircle2 className="w-2.5 h-2.5 text-green-500 shrink-0" />
-                                        : <XCircle      className="w-2.5 h-2.5 text-red-400  shrink-0" />}
+                                        ? <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                                        : <XCircle      className="w-3 h-3 text-rose-500 shrink-0" />}
                                 </span>
                             } />
                             {!isAdmin && <Row icon={Calendar} label="Registered Age" value={`${profile?.age} YRS`} />}
                             <Row icon={Shield} label="Verification" value={
-                                <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest ${kyc.cls}`}>{kyc.label}</span>
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${kyc.cls}`}>{kyc.label}</span>
                             } />
                             <Row icon={Clock} label="Member Since" value={fmt(profile?.createdAt).toUpperCase()} />
                             <Row icon={Lock} label="Compliance Status" value={
-                                <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest ${accCls}`}>{profile?.accountStatus}</span>
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${accCls}`}>{profile?.accountStatus}</span>
                             } />
                             <Row icon={Clock} label="Pulse Check" value={fmt(profile?.lastLoginAt).toUpperCase()} />
                         </div>
@@ -462,9 +465,9 @@ export const Profile = () => {
 
                     {/* Organizer Specification */}
                     {profile?.role === 'ORGANIZER' && (
-                        <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-slate-100 shadow-xl shadow-slate-100/30 p-6 animate-in slide-in-from-right duration-500 hover:scale-[1.01] transition-transform">
-                            <p className="text-[9px] font-black text-emerald-600 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                                <Shield className="w-3.5 h-3.5" /> Professional Specifications
+                        <div className="bg-white rounded-2xl border-none shadow-none p-6 space-y-4">
+                            <p className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                <Shield className="w-4 h-4 text-emerald-600" /> Professional Specifications
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
                                 <Row icon={Briefcase} label="HQ Location" value={profile.city?.toUpperCase()} />

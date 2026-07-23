@@ -60,70 +60,70 @@ export const JoinInvite = () => {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-slate-50 to-emerald-50/20">
-            <div className="w-full max-w-2xl bg-white/80 backdrop-blur-xl border border-white p-12 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 space-y-8 animate-in zoom-in-95 duration-500">
-                <div className="text-center space-y-4">
-                    <div className="w-24 h-24 bg-slate-900 rounded-[2rem] flex items-center justify-center mx-auto shadow-2xl shadow-slate-300 transform -rotate-6">
-                        <Wallet className="w-10 h-10 text-emerald-400" />
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+            <div className="w-full max-w-xl bg-white p-8 md:p-10 rounded-2xl border-none shadow-none space-y-6">
+                <div className="text-center space-y-3">
+                    <div className="w-16 h-16 bg-slate-900 text-emerald-400 rounded-xl flex items-center justify-center mx-auto shrink-0 font-bold">
+                        <Wallet className="w-8 h-8" />
                     </div>
                     <div>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase leading-none">{group.name}</h1>
-                        <p className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mt-4 bg-emerald-50 inline-block px-5 py-2 rounded-full border border-emerald-100/50">
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">{group.name}</h1>
+                        <p className="text-xs font-bold text-slate-700 bg-slate-100 inline-block px-3 py-1 rounded-full border-none mt-2">
                             Invited by {group.organizerId.name}
                         </p>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-5 bg-white border border-slate-50 rounded-2xl shadow-sm space-y-1">
-                        <span className="text-[8px] font-black text-slate-900 uppercase tracking-widest block opacity-60">Monthly Contribution</span>
-                        <div className="flex items-center gap-1.5 font-black text-slate-900 text-lg tracking-tighter">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="p-4 bg-slate-50 rounded-xl border-none space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase block">Monthly</span>
+                        <div className="flex items-center gap-1 font-bold text-slate-900 text-sm">
                             <Coins className="w-4 h-4 text-emerald-600" />
-                            ₹{group.monthlyContribution.toLocaleString()}
+                            <span>₹{group.monthlyContribution.toLocaleString('en-IN')}</span>
                         </div>
                     </div>
-                    <div className="p-5 bg-white border border-slate-50 rounded-2xl shadow-sm space-y-1">
-                        <span className="text-[8px] font-black text-slate-900 uppercase tracking-widest block opacity-60">Pot Value</span>
-                        <div className="flex items-center gap-1.5 font-black text-emerald-600 text-lg tracking-tighter">
-                            ₹{(group.monthlyContribution * group.totalMembers).toLocaleString()}
+                    <div className="p-4 bg-slate-50 rounded-xl border-none space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase block">Pot Value</span>
+                        <div className="flex items-center gap-1 font-bold text-emerald-600 text-sm">
+                            <span>₹{(group.monthlyContribution * group.totalMembers).toLocaleString('en-IN')}</span>
                         </div>
                     </div>
-                    <div className="p-5 bg-white border border-slate-50 rounded-2xl shadow-sm space-y-1">
-                        <span className="text-[8px] font-black text-slate-900 uppercase tracking-widest block opacity-60">Cycle Duration</span>
-                        <div className="flex items-center gap-1.5 font-black text-slate-900 text-lg tracking-tighter uppercase">
-                            <Calendar className="w-4 h-4 text-slate-900" />
-                            {group.totalMembers} Months
+                    <div className="p-4 bg-slate-50 rounded-xl border-none space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase block">Duration</span>
+                        <div className="flex items-center gap-1 font-bold text-slate-900 text-sm">
+                            <Calendar className="w-4 h-4 text-slate-400" />
+                            <span>{group.totalMembers} Mo</span>
                         </div>
                     </div>
-                    <div className="p-5 bg-white border border-slate-50 rounded-2xl shadow-sm space-y-1">
-                        <span className="text-[8px] font-black text-slate-900 uppercase tracking-widest block opacity-60">Total Seats</span>
-                        <div className="flex items-center gap-1.5 font-black text-slate-900 text-lg tracking-tighter">
-                            <Users className="w-4 h-4 text-slate-900" />
-                            {group.totalMembers}
+                    <div className="p-4 bg-slate-50 rounded-xl border-none space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase block">Total Seats</span>
+                        <div className="flex items-center gap-1 font-bold text-slate-900 text-sm">
+                            <Users className="w-4 h-4 text-slate-400" />
+                            <span>{group.totalMembers}</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-emerald-50/50 border border-emerald-100 p-6 rounded-3xl flex items-start gap-4">
-                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-emerald-500 shadow-sm shrink-0">
-                        <ShieldCheck className="w-6 h-6" />
+                <div className="bg-slate-50 p-4 rounded-xl flex items-start gap-3 border-none">
+                    <div className="w-8 h-8 bg-slate-900 text-emerald-400 rounded-lg flex items-center justify-center shrink-0">
+                        <ShieldCheck className="w-4 h-4" />
                     </div>
                     <div>
-                        <h4 className="text-[10px] font-black text-emerald-900 uppercase tracking-widest mb-1">Secure Financial Circle</h4>
-                        <p className="text-[9px] font-bold text-emerald-900/80 uppercase tracking-widest leading-relaxed">
-                            Joining this group requires admin approval and a verified KYC. Your request will be sent to the organizer.
+                        <h4 className="text-xs font-bold text-slate-900 uppercase">Secure Financial Circle</h4>
+                        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                            Joining this group requires approval and verified KYC. Your request will be sent to the organizer.
                         </p>
                     </div>
                 </div>
 
-                <div className="pt-4">
+                <div className="pt-2">
                     {success ? (
-                        <div className="space-y-4">
-                            <button disabled className="w-full py-5 bg-emerald-500 text-white rounded-[2rem] font-black uppercase text-[12px] tracking-widest flex items-center justify-center gap-3 shadow-2xl shadow-emerald-200">
-                                <CheckCircle2 className="w-5 h-5" />
-                                Request Successfully Sent
+                        <div className="space-y-3">
+                            <button disabled className="w-full py-3.5 bg-emerald-600 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 border-none">
+                                <CheckCircle2 className="w-4 h-4" />
+                                <span>Request Successfully Sent</span>
                             </button>
-                            <button onClick={() => navigate('/dashboard')} className="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-colors">
+                            <button onClick={() => navigate('/dashboard')} className="w-full py-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">
                                 Go to Dashboard
                             </button>
                         </div>
@@ -131,12 +131,12 @@ export const JoinInvite = () => {
                         <button 
                             onClick={handleJoin}
                             disabled={requesting}
-                            className="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black uppercase text-[12px] tracking-widest flex items-center justify-center gap-3 hover:bg-emerald-600 transition-all shadow-2xl shadow-slate-300 group"
+                            className="w-full py-3.5 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2"
                         >
-                            {requesting ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                            {requesting ? <Loader2 className="w-4 h-4 animate-spin text-emerald-400" /> : (
                                 <>
-                                    Confirm Join Request
-                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                    <span>Confirm Join Request</span>
+                                    <ArrowRight className="w-4 h-4 text-emerald-400" />
                                 </>
                             )}
                         </button>

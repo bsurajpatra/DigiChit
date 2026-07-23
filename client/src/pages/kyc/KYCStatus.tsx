@@ -27,6 +27,8 @@ export const KYCStatus = () => {
         fetchLatestStatus();
     }, []);
 
+    if (loading) return null;
+
     const statusMap = {
         NOT_SUBMITTED: {
             icon: <AlertCircle className="w-10 h-10 text-yellow-600" />,

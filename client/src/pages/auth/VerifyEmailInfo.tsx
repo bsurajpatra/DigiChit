@@ -1,4 +1,3 @@
-import React from 'react';
 import { Mail } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';

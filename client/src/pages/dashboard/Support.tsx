@@ -92,35 +92,39 @@ export const Support = () => {
     if (loading) return <div className="h-full flex items-center justify-center"><Loader size="lg" /></div>;
 
     return (
-        <div className="h-full flex flex-col gap-4 animate-in fade-in duration-500">
-            {/* Compact Header */}
-            <div className="flex items-center justify-between bg-white/50 backdrop-blur-md px-6 py-4 rounded-3xl border border-white/40 shadow-lg shadow-slate-100/50">
+        <div className="h-full flex flex-col gap-4">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 tracking-tight uppercase leading-tight">Support & Help</h1>
-                    <p className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest leading-none">Connect with our engineering team for operational assistance</p>
+                    <div className="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Support & Operational Assistance</span>
+                    </div>
+                    <h1 className="text-xl font-black text-slate-900 tracking-tight">Support & Help</h1>
                 </div>
                 <button 
                     onClick={() => setShowNew(true)}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-2xl shadow-lg shadow-slate-200 hover:bg-emerald-600 transition-all font-black uppercase tracking-widest text-[9px]"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition cursor-pointer shrink-0"
                 >
-                    <Plus className="w-3.5 h-3.5" /> Dispatch Ticket
+                    <Plus className="w-4 h-4 text-emerald-400" /> 
+                    <span>New Ticket</span>
                 </button>
             </div>
 
             <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-4">
-                {/* Sidebar */}
-                <div className="w-full md:w-80 flex flex-col bg-white/60 backdrop-blur-sm border border-white/60 rounded-3xl overflow-hidden shadow-xl shadow-slate-100/50">
-                    <div className="p-4 border-b border-slate-50 flex items-center justify-between">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Support Threads</span>
-                        <Inbox className="w-3.5 h-3.5 text-slate-300" />
+                {/* Sidebar Threads */}
+                <div className="w-full md:w-80 flex flex-col bg-white rounded-2xl border-none shadow-none overflow-hidden">
+                    <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">Support Threads</span>
+                        <Inbox className="w-4 h-4 text-slate-400" />
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-2 space-y-1.5 custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
                         <AnimatePresence mode="popLayout">
                             {queries.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-full text-slate-300 opacity-60 py-8">
-                                    <MessageSquare className="w-10 h-10 mb-2" />
-                                    <p className="text-[10px] font-bold uppercase tracking-widest">No active support</p>
+                                <div className="flex flex-col items-center justify-center h-full text-slate-400 py-8 space-y-2">
+                                    <MessageSquare className="w-8 h-8 text-slate-300" />
+                                    <p className="text-xs font-bold uppercase tracking-wider">No support tickets</p>
                                 </div>
                             ) : (
                                 queries.map(q => (
@@ -130,29 +134,31 @@ export const Support = () => {
                                         initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         onClick={() => setSelectedId(q._id)}
-                                        className={`w-full text-left p-3.5 rounded-2xl transition-all group relative border ${
+                                        className={`w-full text-left p-3.5 rounded-xl transition-all cursor-pointer border-none ${
                                             selectedId === q._id 
-                                                ? 'bg-white border-emerald-500/20 shadow-md shadow-emerald-500/5' 
-                                                : 'bg-white/40 border-slate-50 hover:border-emerald-500/10'
+                                                ? 'bg-slate-900 text-white' 
+                                                : 'bg-slate-50 hover:bg-slate-100 text-slate-900'
                                         }`}
                                     >
                                         <div className="flex justify-between items-start mb-1.5">
-                                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
-                                                q.status === 'PENDING' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
+                                            <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                                                selectedId === q._id
+                                                    ? 'bg-slate-800 text-emerald-400'
+                                                    : q.status === 'PENDING' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
                                             }`}>
                                                 {q.status}
                                             </span>
-                                            <span className="text-[8px] font-bold text-slate-400">
+                                            <span className={`text-[10px] font-bold ${selectedId === q._id ? 'text-slate-400' : 'text-slate-400'}`}>
                                                 {format(new Date(q.updatedAt), 'MMM dd')}
                                             </span>
                                         </div>
-                                        <h3 className="text-xs font-bold text-slate-900 truncate mb-0.5 group-hover:text-emerald-600 transition-colors uppercase tracking-tight">
+                                        <h3 className={`text-xs font-bold truncate mb-1 ${selectedId === q._id ? 'text-white' : 'text-slate-900'}`}>
                                             {q.subject}
                                         </h3>
                                         <div className="flex justify-between items-center">
-                                            <p className="text-[10px] font-black text-slate-400 truncate max-w-[125px] uppercase tracking-widest">Help Thread</p>
+                                            <p className={`text-[10px] font-medium ${selectedId === q._id ? 'text-slate-400' : 'text-slate-500'}`}>Help Thread</p>
                                             {q.messages.length > 1 && (
-                                                <span className="text-[9px] bg-slate-900 text-white w-4 h-4 flex items-center justify-center rounded-full font-black">
+                                                <span className={`text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold ${selectedId === q._id ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-white'}`}>
                                                     {q.messages.length}
                                                 </span>
                                             )}
@@ -165,38 +171,38 @@ export const Support = () => {
                 </div>
 
                 {/* Chat Area */}
-                <div className="flex-1 flex flex-col bg-white/60 backdrop-blur-sm border border-white/60 rounded-3xl overflow-hidden shadow-xl shadow-slate-100/50 relative">
+                <div className="flex-1 flex flex-col bg-white rounded-2xl border-none shadow-none overflow-hidden relative">
                     {selectedQuery ? (
                         <>
-                            <div className="px-6 py-5 border-b border-white/60 bg-white/20">
+                            <div className="px-6 py-4 border-b border-slate-100">
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-11 h-11 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm shrink-0">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-slate-900 text-emerald-400 rounded-xl flex items-center justify-center font-bold shrink-0">
                                             <User className="w-5 h-5" />
                                         </div>
                                         <div>
-                                            <h2 className="text-base font-bold text-slate-900 tracking-tight uppercase leading-none mb-1">{selectedQuery.subject}</h2>
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Support Reference: {selectedQuery._id.slice(-6).toUpperCase()}</p>
+                                            <h2 className="text-base font-black text-slate-900 tracking-tight leading-none mb-1">{selectedQuery.subject}</h2>
+                                            <p className="text-xs text-slate-400 font-medium">Ref: #{selectedQuery._id.slice(-6).toUpperCase()}</p>
                                         </div>
                                     </div>
-                                    <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                                        selectedQuery.status === 'PENDING' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
+                                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border-none ${
+                                        selectedQuery.status === 'PENDING' ? 'bg-slate-100 text-slate-800' : 'bg-emerald-100 text-emerald-800'
                                     }`}>
                                         {selectedQuery.status}
-                                    </div>
+                                    </span>
                                 </div>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar scroll-smooth bg-slate-50/5">
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar scroll-smooth bg-slate-50/50">
                                 <AnimatePresence initial={false}>
                                     {selectedQuery.messages.map((msg, idx) => {
                                         const isUserSender = msg.senderRole === 'USER';
                                         return (
                                             <motion.div 
                                                 key={idx}
-                                                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                                initial={{ opacity: 0, scale: 0.98, y: 5 }}
                                                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                className={`flex flex-col ${isUserSender ? 'items-end ml-auto' : 'items-start'} max-w-[90%]`}
+                                                className={`flex flex-col ${isUserSender ? 'items-end ml-auto' : 'items-start'} max-w-[85%]`}
                                             >
                                                 <div className={`p-4 rounded-2xl ${
                                                     isUserSender 
