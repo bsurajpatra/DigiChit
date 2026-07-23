@@ -112,7 +112,7 @@ export const ChitDiscovery = () => {
                                     <Wallet className="w-5 h-5" />
                                 </div>
                                 <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-800 border-none">
-                                    {group.auctionType}
+                                    {group.auctionType === 'AUCTION' ? 'Competitive Auction' : 'Lottery Draw'}
                                 </span>
                             </div>
 

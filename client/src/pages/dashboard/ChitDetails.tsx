@@ -374,7 +374,7 @@ export const ChitDetails = () => {
 
                         <div className="flex flex-wrap items-center gap-2">
                             <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold border-none shadow-none">
-                                Auction: {group.auctionType}
+                                System: {group.auctionType === 'AUCTION' ? 'Competitive Auction' : 'Lottery Draw'}
                             </span>
                             <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-bold border-none shadow-none">
                                 Commission: {group.commissionPercent}%
