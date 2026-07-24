@@ -32,6 +32,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    const logout = useCallback(() => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setToken(null);
+        setUser(null);
+    }, []);
+
     const refreshUser = useCallback(async (): Promise<User | null> => {
         const storedToken = localStorage.getItem('token');
         if (!storedToken) return null;
@@ -55,11 +62,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 setUser(normalizedUser);
                 return normalizedUser;
             }
-        } catch (err) {
-            console.error('Failed to refresh user profile:', err);
+        } catch (err: any) {
+            if (err.response?.status === 401) {
+                logout();
+            }
         }
         return null;
-    }, []);
+    }, [logout]);
 
     useEffect(() => {
         const initializeAuth = async () => {
@@ -70,7 +79,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 setToken(storedToken);
                 setUser(JSON.parse(storedUser));
 
-                // Background sync latest profile from server (KYC status, roles, etc)
+                // Sync latest profile from server (KYC status, roles, etc)
                 try {
                     const res = await api.get('/user/profile');
                     if (res.data?.data?.user) {
@@ -90,28 +99,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         localStorage.setItem('user', JSON.stringify(normalizedUser));
                         setUser(normalizedUser);
                     }
-                } catch (err) {
-                    console.warn('Background profile sync warning:', err);
+                } catch (err: any) {
+                    if (err.response?.status === 401) {
+                        logout();
+                    }
                 }
             }
             setIsLoading(false);
         };
 
         initializeAuth();
-    }, []);
+    }, [logout]);
 
     const login = (newToken: string, newUser: User) => {
         localStorage.setItem('token', newToken);
         localStorage.setItem('user', JSON.stringify(newUser));
         setToken(newToken);
         setUser(newUser);
-    };
-
-    const logout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        setToken(null);
-        setUser(null);
     };
 
     const updateUser = (updatedFields: Partial<User>) => {

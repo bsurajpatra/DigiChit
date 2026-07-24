@@ -35,6 +35,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
+    if (!user.emailVerified) {
+        return <Navigate to="/verify-email-info" replace />;
+    }
+
     if (allowedRoles && !allowedRoles.includes(user.role)) {
         // Logged in but not authorized for this specific role
         return <Navigate to={unauthorizedRedirect} replace />;

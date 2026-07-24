@@ -18,13 +18,9 @@ export const GuestRoute: React.FC = () => {
         );
     }
 
-    if (user) {
+    if (user && user.emailVerified) {
         if (user.role === 'ADMIN') {
             return <Navigate to="/admin/dashboard" replace />;
-        }
-        
-        if (!user.emailVerified) {
-            return <Navigate to="/verify-email-info" replace />;
         }
 
         if (user.kycStatus !== 'APPROVED') {

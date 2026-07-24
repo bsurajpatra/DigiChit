@@ -32,12 +32,19 @@ api.interceptors.response.use(
         if (error.response?.status === 401) {
             const errorCode = error.response?.data?.errorCode;
             
-            // If the session has explicitly expired or is invalid
-            if (errorCode === 'AUTH_SESSION_EXPIRED' || errorCode === 'AUTH_INVALID_TOKEN') {
+            // Exclude credential validation errors on login attempt
+            const isLoginCredError = ['AUTH_INCORRECT_PASSWORD', 'AUTH_EMAIL_NOT_FOUND', 'AUTH_EMAIL_UNVERIFIED'].includes(errorCode);
+
+            if (!isLoginCredError) {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
-                // Force a page reload to clear context and redirect to login
-                window.location.href = '/login?expired=true';
+
+                const currentPath = window.location.pathname;
+                const isAuthPage = ['/login', '/signup', '/verify-email', '/verify-email-info', '/forgot-password', '/reset-password'].includes(currentPath);
+
+                if (!isAuthPage) {
+                    window.location.href = '/login?expired=true';
+                }
             }
         }
         return Promise.reject(error);
