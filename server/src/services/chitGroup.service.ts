@@ -170,7 +170,7 @@ export const updateChitGroup = async (
     await logAction(actorId, actorRole, actionName, {
         previousValue,
         newValue: group.toObject(),
-        ipAddress
+        ...(ipAddress ? { ipAddress } : {})
     });
 
     return group;

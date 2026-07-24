@@ -73,7 +73,7 @@ export const createCycle = async (
         groupId: new mongoose.Types.ObjectId(groupId),
         cycleNumber: newCycleNumber,
         status: ChitCycleStatus.UPCOMING,
-        financialConfigSnapshot: group.financialConfig ? (group.financialConfig.toObject ? group.financialConfig.toObject() : group.financialConfig) : undefined,
+        financialConfigSnapshot: group.financialConfig ? ((group.financialConfig as any).toObject ? (group.financialConfig as any).toObject() : group.financialConfig) : undefined,
         scheduledStartDate: new Date(scheduledStartDate),
         scheduledEndDate: scheduledEndDate ? new Date(scheduledEndDate) : null,
         auctionDate: auctionDate ? new Date(auctionDate) : null,
