@@ -1,7 +1,8 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import { 
-    getVerificationTemplate, 
+    getVerificationTemplate,
+    getOTPTemplate,
     getPasswordResetTemplate, 
     getWelcomeTemplate,
     getKYCApprovedTemplate,
@@ -22,14 +23,14 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-export const sendVerificationEmail = async (email: string, token: string) => {
+export const sendVerificationEmail = async (email: string, token: string, otp?: string) => {
     const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
 
     const mailOptions = {
         from: `DigiChit <${process.env.EMAIL_FROM}>`,
         to: email,
         subject: 'Verify your DigiChit Account',
-        html: getVerificationTemplate(verificationLink),
+        html: getVerificationTemplate(verificationLink, otp),
     };
 
     try {
@@ -41,14 +42,31 @@ export const sendVerificationEmail = async (email: string, token: string) => {
     }
 };
 
-export const sendPasswordResetEmail = async (email: string, token: string) => {
+export const sendOTPEmail = async (email: string, otp: string, name?: string) => {
+    const mailOptions = {
+        from: `DigiChit Security <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: `${otp} is your DigiChit Verification Code`,
+        html: getOTPTemplate(otp, name),
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`OTP email sent to ${email}`);
+    } catch (error) {
+        console.error('Error sending OTP email:', error);
+        throw new Error('Could not send OTP email');
+    }
+};
+
+export const sendPasswordResetEmail = async (email: string, token: string, otp?: string) => {
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
     const mailOptions = {
         from: `DigiChit <${process.env.EMAIL_FROM}>`,
         to: email,
         subject: 'Reset your DigiChit Password',
-        html: getPasswordResetTemplate(resetLink),
+        html: getPasswordResetTemplate(resetLink, otp),
     };
 
     try {
@@ -64,7 +82,7 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
     const mailOptions = {
         from: `DigiChit <${process.env.EMAIL_FROM}>`,
         to: email,
-        subject: 'Welcome to DigiChit!',
+        subject: 'Welcome to DigiChit! 🎉',
         html: getWelcomeTemplate(name),
     };
 
@@ -171,3 +189,4 @@ export const sendChitGroupCreatedEmail = async (email: string, name: string, gro
         console.error('Error sending chit creation email:', error);
     }
 };
+
