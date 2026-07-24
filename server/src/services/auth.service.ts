@@ -32,6 +32,7 @@ export const register = async (userData: Record<string, any>) => {
         password: hashedPassword,
         age,
         role: UserRole.USER,
+        emailVerified: false,
         accountStatus: AccountStatus.REGISTERED
     });
 
@@ -39,10 +40,14 @@ export const register = async (userData: Record<string, any>) => {
     await Token.create({
         userId: user._id,
         token: verificationToken,
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 mins
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
     });
 
-    await sendVerificationEmail(email, verificationToken);
+    try {
+        await sendVerificationEmail(email, verificationToken);
+    } catch (e) {
+        console.warn('Verification email dispatch warning:', e);
+    }
 
     return user;
 };
@@ -58,8 +63,9 @@ export const login = async (email: string, password: string) => {
         throw new AppError('Incorrect password. Please check your password and try again.', 401, 'AUTH_INCORRECT_PASSWORD');
     }
 
-    if (!user.emailVerified) {
-        throw new AppError('Your email address is not verified yet. Please check your inbox or verify.', 403, 'AUTH_EMAIL_UNVERIFIED');
+    // Require email verification unless ADMIN
+    if (user.role !== UserRole.ADMIN && !user.emailVerified) {
+        throw new AppError('Your email address is not verified yet. Please check your inbox or resend verification.', 403, 'AUTH_EMAIL_UNVERIFIED');
     }
 
     const isAccountBlocked = [AccountStatus.FROZEN, AccountStatus.SUSPENDED, AccountStatus.DELETED].includes(user.accountStatus);
@@ -67,7 +73,7 @@ export const login = async (email: string, password: string) => {
         throw new AppError(`Your account is ${user.accountStatus.toLowerCase()}. Access denied.`, 403, 'AUTH_ACCOUNT_BLOCKED');
     }
 
-    if (user.accountStatus === AccountStatus.INACTIVE) {
+    if (user.accountStatus === AccountStatus.INACTIVE || user.accountStatus === AccountStatus.REGISTERED) {
         user.accountStatus = AccountStatus.ACTIVE;
     }
     user.lastLoginAt = new Date();
@@ -83,13 +89,14 @@ export const login = async (email: string, password: string) => {
 };
 
 export const verifyEmail = async (tokenString: string) => {
-    const tokenDoc = await Token.findOne({
-        token: tokenString,
-        expiresAt: { $gt: new Date() }
-    });
+    const tokenDoc = await Token.findOne({ token: tokenString });
 
     if (!tokenDoc) {
-        throw new AppError('Token invalid or expired', 400, 'AUTH_TOKEN_INVALID');
+        throw new AppError('Verification link is invalid or has already been used.', 400, 'AUTH_TOKEN_INVALID');
+    }
+
+    if (tokenDoc.expiresAt && new Date(tokenDoc.expiresAt) < new Date()) {
+        throw new AppError('Verification link has expired. Please request a new verification link.', 400, 'AUTH_TOKEN_EXPIRED');
     }
 
     const user = await User.findById(tokenDoc.userId);
@@ -97,22 +104,31 @@ export const verifyEmail = async (tokenString: string) => {
         throw new AppError('User not found', 404, 'AUTH_USER_NOT_FOUND');
     }
 
-    if (!user.emailVerified) {
+    if (!user.emailVerified || user.accountStatus === AccountStatus.REGISTERED) {
         user.emailVerified = true;
         if (user.accountStatus === AccountStatus.REGISTERED) {
             user.accountStatus = AccountStatus.ACTIVE;
         }
         await user.save({ validateBeforeSave: false });
         
-        // Send a celebratory welcome email
-        await sendWelcomeEmail(user.email, user.name);
+        try {
+            await sendWelcomeEmail(user.email, user.name);
+        } catch (e) {
+            console.error('Welcome email failed:', e);
+        }
     }
-    
-    // Intentionally not deleting the token to make verification idempotent.
-    // This prevents errors from React Strict Mode double-firing or email scanners pre-fetching.
-    // The token will still be auto-deleted by MongoDB's TTL index when it expires.
 
-    return user;
+    // Delete token once verified
+    await Token.deleteOne({ _id: tokenDoc._id });
+
+    // Issue JWT token on verification for seamless single-click login
+    const token = jwt.sign(
+        { id: user._id, role: user.role, tokenVersion: user.tokenVersion },
+        process.env.JWT_SECRET!,
+        { expiresIn: '1d' }
+    );
+
+    return { user, token };
 };
 
 export const resendVerificationToken = async (email: string) => {
@@ -132,7 +148,7 @@ export const resendVerificationToken = async (email: string) => {
     await Token.create({
         userId: user._id,
         token: verificationToken,
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 mins
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
     });
 
     await sendVerificationEmail(email, verificationToken);

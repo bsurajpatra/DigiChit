@@ -26,6 +26,7 @@ export const Login = () => {
     const {
         register,
         handleSubmit,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema)
@@ -42,8 +43,6 @@ export const Login = () => {
 
             if (user.role === 'ADMIN') {
                 navigate('/admin/dashboard');
-            } else if (!user.emailVerified) {
-                navigate('/verify-email-info');
             } else if (user.kycStatus !== 'APPROVED') {
                 navigate('/kyc/status');
             } else {
@@ -53,11 +52,27 @@ export const Login = () => {
             const errCode = error.response?.data?.errorCode;
             const msg = error.response?.data?.message || 'Login failed. Please check your details.';
             setErrorCode(errCode || '');
-            if (errCode === 'AUTH_EMAIL_UNVERIFIED') {
-                navigate('/verify-email-info');
-            } else {
-                setApiError(msg);
-            }
+            setApiError(msg);
+        }
+    };
+
+    const [resending, setResending] = useState(false);
+    const [resendSent, setResendSent] = useState(false);
+
+    const handleResendVerification = async () => {
+        const email = watch('email');
+        if (!email) {
+            alert('Please enter your email address above.');
+            return;
+        }
+        setResending(true);
+        try {
+            await api.post('/auth/resend-verification', { email });
+            setResendSent(true);
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Failed to resend verification link');
+        } finally {
+            setResending(false);
         }
     };
 
@@ -100,6 +115,20 @@ export const Login = () => {
                                 <Link to="/forgot-password" className="inline-block text-emerald-600 hover:underline font-extrabold">
                                     → Forgot your password? Reset password
                                 </Link>
+                            )}
+                            {errorCode === 'AUTH_EMAIL_UNVERIFIED' && (
+                                <div className="pt-2 border-t border-rose-200 space-y-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleResendVerification}
+                                        disabled={resending}
+                                        className="w-full py-2 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2"
+                                    >
+                                        {resending ? <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" /> : <Mail className="w-3.5 h-3.5 text-emerald-400" />}
+                                        <span>Resend Verification Email</span>
+                                    </button>
+                                    {resendSent && <p className="text-[11px] font-bold text-emerald-700 text-center">✓ Verification email sent! Check your inbox.</p>}
+                                </div>
                             )}
                         </motion.div>
                     )}

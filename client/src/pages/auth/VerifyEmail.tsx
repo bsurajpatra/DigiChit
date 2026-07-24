@@ -1,14 +1,16 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { CheckCircle2, XCircle, MailWarning } from 'lucide-react';
+import { CheckCircle2, XCircle, MailWarning, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Loader } from '../../components/ui/Loader';
 import api from '../../api/axios';
 import logo from '../../assets/logo.png';
+import { useAuth } from '../../hooks/useAuth';
 
 export const VerifyEmail = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+    const { login } = useAuth();
     const token = searchParams.get('token');
 
     const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'invalid'>('loading');
@@ -29,6 +31,19 @@ export const VerifyEmail = () => {
                 const response = await api.get(`/auth/verify-email?token=${token}`);
                 if (response.data.success) {
                     setStatus('success');
+                    const { token: jwtToken, data: { user } } = response.data;
+                    if (jwtToken && user) {
+                        login(jwtToken, user);
+                        setTimeout(() => {
+                            if (user.role === 'ADMIN') {
+                                navigate('/admin/dashboard');
+                            } else if (user.kycStatus !== 'APPROVED') {
+                                navigate('/kyc/status');
+                            } else {
+                                navigate('/dashboard');
+                            }
+                        }, 1500);
+                    }
                 }
             } catch (err: any) {
                 setStatus('error');
@@ -37,7 +52,7 @@ export const VerifyEmail = () => {
         };
 
         verifyToken();
-    }, [token]);
+    }, [token, login, navigate]);
 
     const renderContent = () => {
         switch (status) {
@@ -56,18 +71,19 @@ export const VerifyEmail = () => {
             case 'success':
                 return (
                     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="max-w-lg w-full text-center lg:text-left">
-                        <div className="w-20 h-20 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto lg:mx-0 mb-6">
+                        <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto lg:mx-0 mb-6">
                             <CheckCircle2 className="w-10 h-10" />
                         </div>
                         <h3 className="text-4xl font-bold text-slate-900 mb-4">Email Verified!</h3>
                         <p className="text-base text-slate-600 mb-8 leading-relaxed">
-                            Your email has been successfully verified. You can now login.
+                            Your account is fully verified. Redirecting you to your dashboard...
                         </p>
                         <button 
-                            onClick={() => navigate('/login')}
-                            className="w-full py-4.5 bg-emerald-600 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all text-lg shadow-lg shadow-emerald-200"
+                            onClick={() => navigate('/dashboard')}
+                            className="w-full py-4 bg-slate-900 hover:bg-emerald-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition cursor-pointer text-base"
                         >
-                            Go to Login
+                            <span>Proceed to Dashboard</span>
+                            <ArrowRight className="w-5 h-5 text-emerald-400" />
                         </button>
                     </motion.div>
                 );

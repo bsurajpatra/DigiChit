@@ -32,8 +32,13 @@ export const verifyEmail = async (req: Request, res: Response, next: NextFunctio
     try {
         const { token } = req.query;
         if (!token) throw new Error('Token is required');
-        await authService.verifyEmail(token as string);
-        res.status(200).json({ success: true, message: 'Email verified successfully' });
+        const { user, token: jwtToken } = await authService.verifyEmail(token as string);
+        res.status(200).json({ 
+            success: true, 
+            message: 'Email verified successfully',
+            token: jwtToken,
+            data: { user: { id: user._id, email: user.email, name: user.name, role: user.role, emailVerified: user.emailVerified, kycStatus: user.kycStatus, organizerStatus: user.organizerStatus, accountStatus: user.accountStatus, profilePictureUrl: user.profilePictureUrl } }
+        });
     } catch (error) {
         next(error);
     }
