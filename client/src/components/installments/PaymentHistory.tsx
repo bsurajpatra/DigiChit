@@ -43,7 +43,10 @@ export const PaymentHistory = ({ installments, currency }: PaymentHistoryProps) 
                                     {groupObj?.name ? groupObj.name : `Installment #${inst.installmentNumber}`}
                                 </span>
                                 <span className="text-[10px] text-slate-400 block">
-                                    Paid on {inst.paidDate ? format(new Date(inst.paidDate), 'PP') : 'Completed'}
+                                    Paid on {inst.paidDate ? (() => {
+                                        const d = new Date(inst.paidDate);
+                                        return isNaN(d.getTime()) ? 'Completed' : format(d, 'PP');
+                                    })() : 'Completed'}
                                 </span>
                             </div>
 

@@ -12,6 +12,13 @@ interface InstallmentCardProps {
     onDownloadReceipt?: (installmentId: string) => void;
 }
 
+const formatDateSafe = (dateVal: any) => {
+    if (!dateVal) return 'N/A';
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return 'N/A';
+    return format(d, 'PP');
+};
+
 export const InstallmentCard = ({ installment, currency, onDownloadReceipt }: InstallmentCardProps) => {
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
@@ -20,7 +27,7 @@ export const InstallmentCard = ({ installment, currency, onDownloadReceipt }: In
     const activeCurrency = currency || (groupObj as any)?.financialConfig?.currency;
 
     const currentStatus = installment.paymentStatus || installment.status || 'PENDING';
-    const netAmount = installment.amount + (installment.lateFee || 0);
+    const netAmount = (installment.amount || 0) + (installment.lateFee || 0);
     const isPaid = currentStatus === 'PAID';
 
     return (
@@ -56,13 +63,13 @@ export const InstallmentCard = ({ installment, currency, onDownloadReceipt }: In
                 <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100 text-xs mb-4">
                     <div>
                         <span className="text-slate-400 font-medium block text-[10px] uppercase">Base Amount</span>
-                        <span className="text-base font-black text-slate-900">{formatCurrency(installment.amount, activeCurrency)}</span>
+                        <span className="text-base font-black text-slate-900">{formatCurrency(installment.amount || 0, activeCurrency)}</span>
                     </div>
 
                     <div>
                         <span className="text-slate-400 font-medium block text-[10px] uppercase">Due Date</span>
                         <span className="text-xs font-bold text-slate-700 mt-1 block">
-                            {format(new Date(installment.dueDate), 'PP')}
+                            {formatDateSafe(installment.dueDate)}
                         </span>
                     </div>
                 </div>
@@ -82,7 +89,7 @@ export const InstallmentCard = ({ installment, currency, onDownloadReceipt }: In
                 {isPaid && installment.paidDate && (
                     <p className="text-xs font-medium text-emerald-700 mb-4 flex items-center gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Paid on {format(new Date(installment.paidDate), 'PP')}</span>
+                        <span>Paid on {formatDateSafe(installment.paidDate)}</span>
                     </p>
                 )}
 

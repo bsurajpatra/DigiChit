@@ -14,6 +14,13 @@ interface InstallmentTableProps {
     onWaiveLateFee?: (installmentId: string) => void;
 }
 
+const formatDateSafe = (dateVal: any, formatPattern: string = 'PP') => {
+    if (!dateVal) return 'N/A';
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return 'N/A';
+    return format(d, formatPattern);
+};
+
 export const InstallmentTable = ({
     installments,
     isOrganizer = false,
@@ -39,7 +46,7 @@ export const InstallmentTable = ({
     });
 
     const handleExportCSV = () => {
-        const headers = ['Member Name', 'Member Email', 'Installment #', 'Base Amount (INR)', 'Due Date', 'Late Fee (INR)', 'Status', 'Paid Date'];
+        const headers = ['Member Name', 'Member Email', 'Installment #', 'Base Amount', 'Due Date', 'Late Fee', 'Status', 'Paid Date'];
         const rows = filteredInstallments.map((inst) => {
             const uName = typeof inst.userId === 'object' ? inst.userId.name : 'Member';
             const uEmail = typeof inst.userId === 'object' ? inst.userId.email : '';
@@ -48,10 +55,10 @@ export const InstallmentTable = ({
                 `"${uEmail}"`,
                 inst.installmentNumber,
                 inst.amount,
-                `"${format(new Date(inst.dueDate), 'yyyy-MM-dd')}"`,
+                `"${formatDateSafe(inst.dueDate, 'yyyy-MM-dd')}"`,
                 inst.lateFee || 0,
                 inst.status,
-                inst.paidDate ? `"${format(new Date(inst.paidDate), 'yyyy-MM-dd')}"` : 'N/A'
+                inst.paidDate ? `"${formatDateSafe(inst.paidDate, 'yyyy-MM-dd')}"` : 'N/A'
             ];
         });
 
@@ -71,7 +78,7 @@ export const InstallmentTable = ({
             <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                        <IndianRupee className="w-5 h-5 text-emerald-600" />
+                        <Coins className="w-5 h-5 text-emerald-600" />
                         <span>Cycle Installments Log ({installments.length})</span>
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
@@ -164,7 +171,7 @@ export const InstallmentTable = ({
                                             {formatCurrency(inst.amount, currency)}
                                         </td>
                                         <td className="py-4 px-6 text-slate-500 font-medium">
-                                            {format(new Date(inst.dueDate), 'PP')}
+                                            {formatDateSafe(inst.dueDate)}
                                         </td>
                                         <td className="py-4 px-6 font-bold">
                                             {inst.lateFee > 0 ? (
