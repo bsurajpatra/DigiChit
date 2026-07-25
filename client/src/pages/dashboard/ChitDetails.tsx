@@ -6,7 +6,7 @@ import {
     Loader2, User, ShieldCheck,
     MessageSquare, Clock, XCircle,
     UserPlus, Share2, Check, Hammer, PlusCircle, RefreshCw, Grid, HelpCircle,
-    LayoutDashboard, ArrowLeft, Trophy, Sliders
+    LayoutDashboard, ArrowLeft, Trophy, Sliders, List
 } from 'lucide-react';
 import { Loader } from '../../components/ui/Loader';
 import { format } from 'date-fns';
@@ -19,6 +19,7 @@ import { getCurrencySymbol, formatCurrency } from '../../utils/currency';
 import { useChitCycles } from '../../hooks/useChitCycles';
 import { CycleStatistics } from '../../components/cycles/CycleStatistics';
 import { CycleCard } from '../../components/cycles/CycleCard';
+import { CycleTable } from '../../components/cycles/CycleTable';
 import { CycleTimeline } from '../../components/cycles/CycleTimeline';
 import { CycleStatusBadge } from '../../components/cycles/CycleStatusBadge';
 import { ConfirmationDialog } from '../../components/cycles/ConfirmationDialog';
@@ -28,6 +29,7 @@ import { RecordWinnerModal, type RecordWinnerFormData } from '../../components/c
 // Auctions Module Components & Hooks
 import { useAuctions } from '../../hooks/useAuctions';
 import { AuctionCard } from '../../components/auctions/AuctionCard';
+import { AuctionTable } from '../../components/auctions/AuctionTable';
 import { AuctionStatusBadge } from '../../components/auctions/AuctionStatusBadge';
 import { CountdownTimer } from '../../components/auctions/CountdownTimer';
 import { WinnerBanner } from '../../components/auctions/WinnerBanner';
@@ -103,7 +105,7 @@ export const ChitDetails = () => {
     // Cycles Tab state
     const [selectedCycleDetailId, setSelectedCycleDetailId] = useState<string | null>(null);
     const [cycleFilterTab, setCycleFilterTab] = useState<'ALL' | 'ACTIVE' | 'UPCOMING' | 'COMPLETED'>('ALL');
-    const [cycleViewMode, setCycleViewMode] = useState<'CARDS' | 'TIMELINE'>('CARDS');
+    const [cycleViewMode, setCycleViewMode] = useState<'LIST' | 'TIMELINE'>('LIST');
     const [cycleConfirmModal, setCycleConfirmModal] = useState<{
         isOpen: boolean;
         type: 'start' | 'complete' | 'cancel' | null;
@@ -822,22 +824,22 @@ export const ChitDetails = () => {
                                 <div className="flex items-center gap-3">
                                     <div className="flex bg-slate-100 p-1 rounded-xl">
                                         <button
-                                            onClick={() => setCycleViewMode('CARDS')}
-                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                                                cycleViewMode === 'CARDS' ? 'bg-white text-slate-900' : 'text-slate-500 hover:text-slate-900'
+                                            onClick={() => setCycleViewMode('LIST')}
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                                cycleViewMode === 'LIST' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
                                             }`}
                                         >
-                                            <Grid className="w-4 h-4 inline mr-1" />
-                                            Cards
+                                            <List className="w-3.5 h-3.5 inline mr-1 text-emerald-600" />
+                                            <span>List View</span>
                                         </button>
                                         <button
                                             onClick={() => setCycleViewMode('TIMELINE')}
-                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                                                cycleViewMode === 'TIMELINE' ? 'bg-white text-slate-900' : 'text-slate-500 hover:text-slate-900'
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                                cycleViewMode === 'TIMELINE' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
                                             }`}
                                         >
-                                            <Calendar className="w-4 h-4 inline mr-1" />
-                                            Timeline
+                                            <Calendar className="w-3.5 h-3.5 inline mr-1 text-blue-600" />
+                                            <span>Roadmap Timeline</span>
                                         </button>
                                     </div>
 
@@ -855,49 +857,34 @@ export const ChitDetails = () => {
 
                             <CycleStatistics cycles={cycles} totalDurationMonths={group.totalMembers} />
 
-                            {/* Filter Tabs */}
-                            <div className="flex border-b border-slate-200/60 overflow-x-auto gap-4">
-                                {(['ALL', 'ACTIVE', 'UPCOMING', 'COMPLETED'] as const).map((tab) => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => setCycleFilterTab(tab)}
-                                        className={`pb-3 text-xs font-bold uppercase tracking-wider transition border-b-2 cursor-pointer whitespace-nowrap ${
-                                            cycleFilterTab === tab
-                                                ? 'border-slate-900 text-slate-900'
-                                                : 'border-transparent text-slate-400 hover:text-slate-600'
-                                        }`}
-                                    >
-                                        {tab}
-                                    </button>
-                                ))}
-                            </div>
-
                             {cyclesLoading ? (
                                 <div className="py-12 flex justify-center"><Loader size="md" /></div>
                             ) : cycleViewMode === 'TIMELINE' ? (
-                                <CycleTimeline cycles={filteredCycles} onSelectCycle={(id) => setSelectedCycleDetailId(id)} />
+                                <CycleTimeline cycles={filteredCycles} currency={(group as any).financialConfig?.currency} onSelectCycle={(id) => setSelectedCycleDetailId(id)} />
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {filteredCycles.length === 0 ? (
-                                        <div className="col-span-full py-16 text-center text-slate-400 bg-white rounded-2xl border-none">
-                                            No cycles found matching filter.
-                                        </div>
-                                    ) : (
-                                        filteredCycles.map((cycle) => (
-                                            <CycleCard
-                                                key={cycle._id}
-                                                cycle={cycle}
-                                                isOrganizer={isOrganizer}
-                                                actionLoading={cycleActionLoading}
-                                                onStart={() => setCycleConfirmModal({ isOpen: true, type: 'start', cycleId: cycle._id, cycleNumber: cycle.cycleNumber })}
-                                                onComplete={() => setCycleConfirmModal({ isOpen: true, type: 'complete', cycleId: cycle._id, cycleNumber: cycle.cycleNumber })}
-                                                onCancel={() => setCycleConfirmModal({ isOpen: true, type: 'cancel', cycleId: cycle._id, cycleNumber: cycle.cycleNumber })}
-                                                onRecordWinner={() => setCycleWinnerModal({ isOpen: true, cycleId: cycle._id, cycleNumber: cycle.cycleNumber })}
-                                                onViewDetails={(id) => setSelectedCycleDetailId(id)}
-                                            />
-                                        ))
-                                    )}
-                                </div>
+                                <CycleTable
+                                    cycles={cycles}
+                                    isOrganizer={isOrganizer}
+                                    actionLoading={cycleActionLoading}
+                                    currency={(group as any).financialConfig?.currency}
+                                    onStart={(id) => {
+                                        const c = cycles.find((cyc) => cyc._id === id);
+                                        setCycleConfirmModal({ isOpen: true, type: 'start', cycleId: id, cycleNumber: c?.cycleNumber || 0 });
+                                    }}
+                                    onComplete={(id) => {
+                                        const c = cycles.find((cyc) => cyc._id === id);
+                                        setCycleConfirmModal({ isOpen: true, type: 'complete', cycleId: id, cycleNumber: c?.cycleNumber || 0 });
+                                    }}
+                                    onCancel={(id) => {
+                                        const c = cycles.find((cyc) => cyc._id === id);
+                                        setCycleConfirmModal({ isOpen: true, type: 'cancel', cycleId: id, cycleNumber: c?.cycleNumber || 0 });
+                                    }}
+                                    onRecordWinner={(id) => {
+                                        const c = cycles.find((cyc) => cyc._id === id);
+                                        setCycleWinnerModal({ isOpen: true, cycleId: id, cycleNumber: c?.cycleNumber || 0 });
+                                    }}
+                                    onViewDetails={(id) => setSelectedCycleDetailId(id)}
+                                />
                             )}
                         </>
                     )}
@@ -1059,54 +1046,39 @@ export const ChitDetails = () => {
                                 </div>
                             )}
 
-                            {/* Filter Tabs */}
-                            <div className="flex border-b border-slate-200/60 overflow-x-auto gap-4">
-                                {(['ALL', 'SCHEDULED', 'OPEN', 'CLOSED', 'CANCELLED'] as const).map((tab) => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => setAuctionFilterTab(tab)}
-                                        className={`pb-3 text-xs font-bold uppercase tracking-wider transition border-b-2 cursor-pointer whitespace-nowrap ${
-                                            auctionFilterTab === tab
-                                                ? 'border-slate-900 text-slate-900'
-                                                : 'border-transparent text-slate-400 hover:text-slate-600'
-                                        }`}
-                                    >
-                                        {tab}
-                                    </button>
-                                ))}
-                            </div>
-
                             {auctionsLoading ? (
                                 <div className="py-12 flex justify-center"><Loader size="md" /></div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {filteredAuctions.length === 0 ? (
-                                        <div className="col-span-full py-16 text-center text-slate-400 bg-white rounded-2xl border-none">
-                                            No auctions found matching filter.
-                                        </div>
-                                    ) : (
-                                        filteredAuctions.map((auction) => (
-                                            <AuctionCard
-                                                key={auction._id}
-                                                auction={auction}
-                                                isOrganizer={isOrganizer}
-                                                actionLoading={auctionActionLoading}
-                                                onStart={() => setAuctionConfirmModal({ isOpen: true, type: 'start', auctionId: auction._id, auctionNumber: auction.auctionNumber })}
-                                                onCloseAuction={() => setAuctionConfirmModal({ isOpen: true, type: 'close', auctionId: auction._id, auctionNumber: auction.auctionNumber })}
-                                                onCancel={() => setAuctionConfirmModal({ isOpen: true, type: 'cancel', auctionId: auction._id, auctionNumber: auction.auctionNumber })}
-                                                onDeclareWinner={() => setAuctionWinnerModal({ isOpen: true, auctionId: auction._id, auctionNumber: auction.auctionNumber })}
-                                                onViewDetails={(id) => {
-                                                    setAuctionViewOrigin('LIST');
-                                                    setSelectedAuctionDetailId(id);
-                                                }}
-                                                onViewBids={(id) => {
-                                                    setAuctionViewOrigin('LIST');
-                                                    setSelectedBiddingRoomId(id);
-                                                }}
-                                            />
-                                        ))
-                                    )}
-                                </div>
+                                <AuctionTable
+                                    auctions={auctions}
+                                    isOrganizer={isOrganizer}
+                                    actionLoading={auctionActionLoading}
+                                    currency={(group as any).financialConfig?.currency}
+                                    onStart={(id) => {
+                                        const a = auctions.find((auc) => auc._id === id);
+                                        setAuctionConfirmModal({ isOpen: true, type: 'start', auctionId: id, auctionNumber: a?.auctionNumber });
+                                    }}
+                                    onCloseAuction={(id) => {
+                                        const a = auctions.find((auc) => auc._id === id);
+                                        setAuctionConfirmModal({ isOpen: true, type: 'close', auctionId: id, auctionNumber: a?.auctionNumber });
+                                    }}
+                                    onCancel={(id) => {
+                                        const a = auctions.find((auc) => auc._id === id);
+                                        setAuctionConfirmModal({ isOpen: true, type: 'cancel', auctionId: id, auctionNumber: a?.auctionNumber });
+                                    }}
+                                    onDeclareWinner={(id) => {
+                                        const a = auctions.find((auc) => auc._id === id);
+                                        setAuctionWinnerModal({ isOpen: true, auctionId: id, auctionNumber: a?.auctionNumber || 0 });
+                                    }}
+                                    onViewDetails={(id) => {
+                                        setAuctionViewOrigin('LIST');
+                                        setSelectedAuctionDetailId(id);
+                                    }}
+                                    onViewBids={(id) => {
+                                        setAuctionViewOrigin('LIST');
+                                        setSelectedBiddingRoomId(id);
+                                    }}
+                                />
                             )}
                         </>
                     )}

@@ -6,6 +6,7 @@ import { useChitCycles } from '../../hooks/useChitCycles';
 import api from '../../api/axios';
 import { AuctionHeader } from '../../components/auctions/AuctionHeader';
 import { AuctionCard } from '../../components/auctions/AuctionCard';
+import { AuctionTable } from '../../components/auctions/AuctionTable';
 import { CountdownTimer } from '../../components/auctions/CountdownTimer';
 import { ScheduleAuctionModal } from '../../components/auctions/ScheduleAuctionModal';
 import { RecordWinnerModal } from '../../components/cycles/RecordWinnerModal';
@@ -209,7 +210,7 @@ export const AuctionsPage = () => {
                 isLoading={auctionsLoading}
             />
 
-            {/* Auction Cards Content */}
+            {/* Auction Cards / List Content */}
             {filteredAuctions.length === 0 ? (
                 <EmptyState
                     title="No Auctions Scheduled"
@@ -222,23 +223,31 @@ export const AuctionsPage = () => {
                     onAction={() => setIsScheduleModalOpen(true)}
                 />
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredAuctions.map((auction) => (
-                        <AuctionCard
-                            key={auction._id}
-                            auction={auction}
-                            isOrganizer={isOrganizer}
-                            isAdmin={isAdmin}
-                            actionLoading={actionLoading}
-                            onStart={(id) => setConfirmModal({ isOpen: true, type: 'start', auctionId: id, auctionNumber: auction.auctionNumber })}
-                            onCloseAuction={(id) => setConfirmModal({ isOpen: true, type: 'close', auctionId: id, auctionNumber: auction.auctionNumber })}
-                            onDeclareWinner={(id) => setWinnerModal({ isOpen: true, auctionId: id, auctionNumber: auction.auctionNumber })}
-                            onCancel={(id) => setConfirmModal({ isOpen: true, type: 'cancel', auctionId: id, auctionNumber: auction.auctionNumber })}
-                            onViewDetails={(id) => navigate(`/auctions/${id}`)}
-                            onViewBids={(id) => navigate(`/auctions/${id}/bids`)}
-                        />
-                    ))}
-                </div>
+                <AuctionTable
+                    auctions={filteredAuctions}
+                    isOrganizer={isOrganizer}
+                    isAdmin={isAdmin}
+                    actionLoading={actionLoading}
+                    currency={group?.financialConfig?.currency}
+                    onStart={(id) => {
+                        const a = auctions.find((auc) => auc._id === id);
+                        setConfirmModal({ isOpen: true, type: 'start', auctionId: id, auctionNumber: a?.auctionNumber });
+                    }}
+                    onCloseAuction={(id) => {
+                        const a = auctions.find((auc) => auc._id === id);
+                        setConfirmModal({ isOpen: true, type: 'close', auctionId: id, auctionNumber: a?.auctionNumber });
+                    }}
+                    onDeclareWinner={(id) => {
+                        const a = auctions.find((auc) => auc._id === id);
+                        setWinnerModal({ isOpen: true, auctionId: id, auctionNumber: a?.auctionNumber || 0 });
+                    }}
+                    onCancel={(id) => {
+                        const a = auctions.find((auc) => auc._id === id);
+                        setConfirmModal({ isOpen: true, type: 'cancel', auctionId: id, auctionNumber: a?.auctionNumber });
+                    }}
+                    onViewDetails={(id) => navigate(`/auctions/${id}`)}
+                    onViewBids={(id) => navigate(`/auctions/${id}/bids`)}
+                />
             )}
 
             {/* Schedule Auction Modal */}

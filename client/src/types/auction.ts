@@ -30,6 +30,7 @@ export interface Auction {
     maximumBidPercentage: number;
     winningMembershipId?: WinnerMembership | string | null;
     winningBidId?: string | null;
+    winningBidPercentage?: number | null;
     remarks?: string | null;
     createdBy?: string | { _id: string; name: string; email: string };
     isDeleted: boolean;

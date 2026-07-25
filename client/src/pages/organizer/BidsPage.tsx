@@ -269,7 +269,7 @@ export const BidsPage = () => {
 
                 {/* Right Column: Submitted Bids Table for Organizers/Admins or Members */}
                 <div className="lg:col-span-2">
-                    <BidTable bids={bids} auctionNumber={auction.auctionNumber} isLoading={bidsLoading} />
+                    <BidTable bids={bids} auctionNumber={auction.auctionNumber} currency={(groupObj as any)?.financialConfig?.currency} isLoading={bidsLoading} />
                 </div>
             </div>
 

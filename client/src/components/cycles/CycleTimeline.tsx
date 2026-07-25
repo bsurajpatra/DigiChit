@@ -1,74 +1,111 @@
 import type { ChitCycle } from '../../types/chitCycle';
 import { CycleStatusBadge } from './CycleStatusBadge';
-import { Calendar, CheckCircle2 } from 'lucide-react';
+import { Calendar, CheckCircle2, Trophy, Clock, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatCurrency } from '../../utils/currency';
 
 interface CycleTimelineProps {
     cycles: ChitCycle[];
+    currency?: string;
     onSelectCycle?: (cycleId: string) => void;
 }
 
-export const CycleTimeline = ({ cycles, onSelectCycle }: CycleTimelineProps) => {
+export const CycleTimeline = ({ cycles, currency, onSelectCycle }: CycleTimelineProps) => {
     if (cycles.length === 0) return null;
 
     const sortedCycles = [...cycles].sort((a, b) => a.cycleNumber - b.cycleNumber);
 
+    const formatDateSafe = (dateVal: any) => {
+        if (!dateVal) return 'N/A';
+        const d = new Date(dateVal);
+        return isNaN(d.getTime()) ? 'N/A' : format(d, 'MMM dd, yyyy');
+    };
+
     return (
         <div className="bg-white p-6 rounded-2xl border-none shadow-none space-y-6">
-            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-emerald-600" />
-                <span>Cycle Roadmap & Timeline</span>
-            </h3>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-emerald-600" />
+                    <span>Cycle List Roadmap & Timeline</span>
+                </h3>
+                <span className="text-xs text-slate-400 font-bold">{sortedCycles.length} Total Cycles</span>
+            </div>
 
-            <div className="relative pl-6 space-y-6 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+            {/* List Row Timeline Layout */}
+            <div className="space-y-3">
                 {sortedCycles.map((cycle) => {
-                    const isWinner = !!cycle.winnerMembershipId;
-                    const winnerName = typeof cycle.winnerMembershipId === 'object' && cycle.winnerMembershipId?.userId?.name
-                        ? cycle.winnerMembershipId.userId.name
+                    const winMem: any = cycle.winnerMembershipId;
+                    const winnerName = typeof winMem === 'object' && winMem !== null
+                        ? (winMem.userId?.name || winMem.name || 'Recorded')
                         : null;
+
+                    const isActive = cycle.status === 'ACTIVE';
+                    const isCompleted = cycle.status === 'COMPLETED';
 
                     return (
                         <div
                             key={cycle._id}
-                            className="relative group cursor-pointer"
                             onClick={() => onSelectCycle && onSelectCycle(cycle._id)}
-                        >
-                            {/* Timeline Node Dot */}
-                            <div className={`
-                                absolute -left-[31px] top-0.5 w-5 h-5 rounded-full border-2 bg-white flex items-center justify-center transition-transform group-hover:scale-110
-                                ${cycle.status === 'ACTIVE'
-                                    ? 'border-emerald-500 bg-emerald-500'
-                                    : cycle.status === 'COMPLETED'
-                                        ? 'border-slate-900 bg-slate-900'
-                                        : cycle.status === 'CANCELLED'
-                                            ? 'border-rose-500 bg-rose-500'
-                                            : 'border-slate-300'
+                            className={`
+                                p-4 rounded-2xl border transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4
+                                ${isActive
+                                    ? 'bg-emerald-50/40 border-emerald-300/80 shadow-xs'
+                                    : isCompleted
+                                        ? 'bg-slate-50 border-slate-200/80'
+                                        : 'bg-white hover:bg-slate-50 border-slate-200/60'
                                 }
-                            `}>
-                                {cycle.status === 'ACTIVE' && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                                {cycle.status === 'COMPLETED' && <CheckCircle2 className="w-3 h-3 text-white" />}
-                            </div>
-
-                            {/* Cycle Content */}
-                            <div className="bg-slate-50 hover:bg-slate-100/80 p-4 rounded-xl border-none transition-all">
-                                <div className="flex flex-wrap items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm font-black text-slate-900">Cycle #{cycle.cycleNumber}</span>
-                                        <CycleStatusBadge status={cycle.status} size="sm" />
-                                    </div>
-                                    <span className="text-xs text-slate-400 font-medium">
-                                        Scheduled: {format(new Date(cycle.scheduledStartDate), 'MMM dd, yyyy')}
-                                    </span>
+                            `}
+                        >
+                            {/* Left Info */}
+                            <div className="flex items-center gap-3.5">
+                                <div className={`
+                                    w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xs shrink-0
+                                    ${isActive
+                                        ? 'bg-emerald-600 text-white shadow-xs'
+                                        : isCompleted
+                                            ? 'bg-slate-900 text-emerald-400'
+                                            : 'bg-slate-100 text-slate-700'
+                                    }
+                                `}>
+                                    #{cycle.cycleNumber}
                                 </div>
 
-                                {isWinner && (
-                                    <div className="mt-2.5 pt-2.5 border-t border-slate-200/60 flex items-center justify-between text-xs">
-                                        <span className="text-slate-500 font-medium">Winner: <strong className="text-slate-900 font-bold">{winnerName || 'Recorded'}</strong></span>
+                                <div className="space-y-0.5">
+                                    <div className="flex items-center gap-2">
+                                        <h4 className="text-sm font-bold text-slate-900">Cycle #{cycle.cycleNumber}</h4>
+                                        <CycleStatusBadge status={cycle.status} size="sm" />
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                                        <span>Start: {formatDateSafe(cycle.scheduledStartDate)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Middle Winner Info */}
+                            <div className="flex items-center gap-4 text-xs">
+                                {winnerName ? (
+                                    <div className="p-2 px-3 bg-amber-50 rounded-xl border border-amber-100 flex items-center gap-2">
+                                        <Trophy className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                        <div>
+                                            <span className="text-[10px] text-amber-700 font-bold block uppercase leading-none">Winner</span>
+                                            <span className="font-bold text-slate-900 text-xs">{winnerName}</span>
+                                        </div>
                                         {cycle.winningBidAmount && (
-                                            <span className="font-bold text-slate-900">₹{cycle.winningBidAmount.toLocaleString('en-IN')}</span>
+                                            <span className="font-black text-emerald-700 ml-2">
+                                                {formatCurrency(cycle.winningBidAmount, currency)}
+                                            </span>
                                         )}
                                     </div>
+                                ) : (
+                                    <span className="text-slate-400 text-xs font-medium">No winner recorded</span>
                                 )}
+                            </div>
+
+                            {/* Right Arrow Action */}
+                            <div className="flex items-center gap-1 text-xs font-bold text-slate-600 group-hover:text-emerald-600 transition shrink-0">
+                                <span>View Details</span>
+                                <ChevronRight className="w-4 h-4 text-slate-400" />
                             </div>
                         </div>
                     );
