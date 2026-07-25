@@ -41,6 +41,7 @@ import { useInstallments } from '../../hooks/useInstallments';
 import { StatisticsCards } from '../../components/installments/StatisticsCards';
 import { CollectionProgress } from '../../components/installments/CollectionProgress';
 import { InstallmentTable } from '../../components/installments/InstallmentTable';
+import { NeedHelpTab } from '../../components/help/NeedHelpTab';
 
 interface Member {
     _id: string;
@@ -1177,69 +1178,7 @@ export const ChitDetails = () => {
 
             {/* ─── 6. NEED HELP TAB ─── */}
             {activeTab === 'HELP' && (
-                <div className="bg-transparent p-0 border-none shadow-none space-y-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                            <div className="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
-                                <HelpCircle className="w-4 h-4" />
-                                <span>Support & Guidelines</span>
-                            </div>
-                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Need Circle Assistance?</h2>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Leader Info Card */}
-                        <div className="bg-white p-6 rounded-2xl border-none shadow-none space-y-4">
-                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                                <User className="w-4 h-4 text-emerald-600" />
-                                <span>Circle Leader Contact</span>
-                            </h3>
-                            <div className="p-4 bg-slate-50 rounded-xl space-y-2 text-xs border-none">
-                                <p className="font-bold text-slate-900 text-sm">{group.organizerId.name}</p>
-                                <p className="text-slate-500 font-medium">{group.organizerId.email}</p>
-                                <span className="inline-block px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-lg border-none">
-                                    Official Foreman
-                                </span>
-                            </div>
-                            {!isOrganizer ? (
-                                <button
-                                    onClick={() => window.location.href = `mailto:${group.organizerId.email}`}
-                                    className="w-full py-3 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer"
-                                >
-                                    <MessageSquare className="w-4 h-4 text-emerald-400" />
-                                    <span>Contact Organizer via Email</span>
-                                </button>
-                            ) : (
-                                <div className="p-3 bg-slate-100 text-slate-800 text-center rounded-xl border-none text-xs font-bold">
-                                    You are the leader of this chit circle
-                                </div>
-                            )}
-                        </div>
-
-                        {/* FAQ & Guidelines Card */}
-                        <div className="bg-white p-6 rounded-2xl border-none shadow-none space-y-4">
-                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                                <span>Circle Rules & FAQ</span>
-                            </h3>
-                            <ul className="space-y-3 text-xs text-slate-600 font-medium">
-                                <li className="flex items-start gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
-                                    <span><strong>Monthly Dues:</strong> Dues must be paid before the scheduled cycle auction date.</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-amber-500 mt-1.5 shrink-0" />
-                                    <span><strong>Bidding Rules:</strong> Eligible members may place bids within the minimum & maximum percentage limits.</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-slate-900 mt-1.5 shrink-0" />
-                                    <span><strong>Prize Payout:</strong> Winner receives net pot amount after deducting commission and winning bid dividend.</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+                <NeedHelpTab group={group} isOrganizer={isOrganizer} />
             )}
 
             {/* ─── MODALS ─── */}

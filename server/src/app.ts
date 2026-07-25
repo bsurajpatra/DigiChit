@@ -12,6 +12,7 @@ import chitCycleRoutes from './routes/chitCycle.routes.js';
 import auctionRoutes from './routes/auction.routes.js';
 import bidRoutes from './routes/bid.routes.js';
 import installmentRoutes from './routes/installment.routes.js';
+import chitMessageRoutes from './routes/chitMessage.routes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { globalErrorHandler } from './middlewares/error.middleware.js';
@@ -59,6 +60,7 @@ app.use('/api/chit-cycles', chitCycleRoutes);
 app.use('/api/auctions', auctionRoutes);
 app.use('/api/bids', bidRoutes);
 app.use('/api/installments', installmentRoutes);
+app.use('/api/chit-messages', chitMessageRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
