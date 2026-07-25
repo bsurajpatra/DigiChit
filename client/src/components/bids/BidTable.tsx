@@ -3,14 +3,16 @@ import type { Bid } from '../../types/bid';
 import { BidStatusBadge } from './BidStatusBadge';
 import { Search, Download, Hammer, Trophy } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatCurrency } from '../../utils/currency';
 
 interface BidTableProps {
     bids: Bid[];
     auctionNumber?: number;
+    currency?: string;
     isLoading?: boolean;
 }
 
-export const BidTable = ({ bids, auctionNumber = 1, isLoading: _isLoading = false }: BidTableProps) => {
+export const BidTable = ({ bids, auctionNumber = 1, currency, isLoading: _isLoading = false }: BidTableProps) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<'ALL' | string>('ALL');
 
@@ -163,7 +165,7 @@ export const BidTable = ({ bids, auctionNumber = 1, isLoading: _isLoading = fals
                                             {bid.bidPercentage}%
                                         </td>
                                         <td className="py-4 px-6 font-black text-emerald-600">
-                                            ₹{(bid.bidAmount || 0).toLocaleString('en-IN')}
+                                            {formatCurrency(bid.bidAmount || 0, currency)}
                                         </td>
                                         <td className="py-4 px-6 text-slate-500 font-medium">
                                             {format(new Date(bid.submittedAt || bid.createdAt), 'PPpp')}

@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { useAuth } from '../../hooks/useAuth';
 import { KYCChitGuard } from '../../components/ui/KYCChitGuard';
+import { formatCurrency } from '../../utils/currency';
 
 interface Group {
     _id: string;
@@ -145,13 +146,13 @@ export const ChitDiscovery = () => {
                                     <span className="text-[10px] font-bold text-slate-400 uppercase">Monthly</span>
                                     <div className="flex items-center gap-1 font-bold text-slate-900 text-sm">
                                         <Coins className="w-3.5 h-3.5 text-emerald-600" />
-                                        <span>₹{group.monthlyContribution.toLocaleString('en-IN')}</span>
+                                        <span>{formatCurrency(group.monthlyContribution, group.financialConfig?.currency)}</span>
                                     </div>
                                 </div>
                                 <div className="space-y-0.5">
                                     <span className="text-[10px] font-bold text-slate-400 uppercase">Pot Value</span>
                                     <div className="flex items-center gap-1 font-bold text-emerald-600 text-sm">
-                                        <span>₹{(group.monthlyContribution * group.totalMembers).toLocaleString('en-IN')}</span>
+                                        <span>{formatCurrency(group.monthlyContribution * group.totalMembers, group.financialConfig?.currency)}</span>
                                     </div>
                                 </div>
                                 <div className="space-y-0.5">

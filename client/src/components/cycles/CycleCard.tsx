@@ -2,12 +2,14 @@ import type { ChitCycle } from '../../types/chitCycle';
 import { CycleStatusBadge } from './CycleStatusBadge';
 import { Trophy, PlayCircle, CheckCircle, XCircle, ArrowRight, Award, Info, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatCurrency } from '../../utils/currency';
 
 interface CycleCardProps {
     cycle: ChitCycle;
     isOrganizer?: boolean;
     isAdmin?: boolean;
     actionLoading?: string | null;
+    currency?: string;
     onStart?: (cycleId: string) => void;
     onComplete?: (cycleId: string) => void;
     onCancel?: (cycleId: string) => void;
@@ -20,6 +22,7 @@ export const CycleCard = ({
     isOrganizer = false,
     isAdmin = false,
     actionLoading,
+    currency,
     onStart,
     onComplete,
     onCancel,
@@ -91,7 +94,7 @@ export const CycleCard = ({
                         <p className="text-sm font-bold text-slate-900">{winnerName || 'Member Winner'}</p>
                         {cycle.winningBidAmount && (
                             <div className="mt-1 flex items-center gap-3 text-xs text-slate-600 font-semibold">
-                                <span>Winning Bid: <strong className="text-slate-900 font-black">₹{cycle.winningBidAmount.toLocaleString('en-IN')}</strong></span>
+                                <span>Winning Bid: <strong className="text-slate-900 font-black">{formatCurrency(cycle.winningBidAmount, currency)}</strong></span>
                                 {cycle.winningBidPercentage && <span>({cycle.winningBidPercentage}%)</span>}
                             </div>
                         )}

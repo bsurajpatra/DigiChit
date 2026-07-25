@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Layers, LayoutDashboard, Users, Calendar,
-    Hammer, IndianRupee, MessageSquare, X
+    Hammer, Coins, MessageSquare, X
 } from 'lucide-react';
 import type { ChitTab } from '../../context/ChitSidebarContext';
 
@@ -172,7 +172,7 @@ export const ChitDetailsSidebar = ({
                     {navBtn(
                         'INSTALLMENTS',
                         () => setActiveTab('INSTALLMENTS'),
-                        <IndianRupee className={`w-5 h-5 shrink-0 ${activeTab === 'INSTALLMENTS' ? 'text-emerald-600' : 'text-slate-400'}`} />,
+                        <Coins className={`w-5 h-5 shrink-0 ${activeTab === 'INSTALLMENTS' ? 'text-emerald-600' : 'text-slate-400'}`} />,
                         'Installments & Dues',
                     )}
 

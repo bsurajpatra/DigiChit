@@ -1,18 +1,21 @@
 import type { WinnerMembership } from '../../types/auction';
 import { Trophy, Sparkles } from 'lucide-react';
+import { formatCurrency } from '../../utils/currency';
 
 interface WinnerBannerProps {
     winner: WinnerMembership | string | null;
     winningBidPercentage?: number | null;
     winningBidAmount?: number | null;
     remarks?: string | null;
+    currency?: string;
 }
 
 export const WinnerBanner = ({
     winner,
     winningBidPercentage,
     winningBidAmount,
-    remarks
+    remarks,
+    currency
 }: WinnerBannerProps) => {
     if (!winner) return null;
 
@@ -43,7 +46,7 @@ export const WinnerBanner = ({
                         {winningBidAmount && (
                             <div className="bg-black/20 px-3 py-1.5 rounded-xl border border-white/20">
                                 <span className="text-amber-200 text-[10px] uppercase block">Winning Bid</span>
-                                <span className="text-sm font-black text-white">₹{winningBidAmount.toLocaleString('en-IN')}</span>
+                                <span className="text-sm font-black text-white">{formatCurrency(winningBidAmount, currency)}</span>
                             </div>
                         )}
 
@@ -63,3 +66,4 @@ export const WinnerBanner = ({
         </div>
     );
 };
+

@@ -12,6 +12,7 @@ import {
 import { Loader } from '../../components/ui/Loader';
 import { useAuth } from '../../hooks/useAuth';
 import { KYCChitGuard } from '../../components/ui/KYCChitGuard';
+import { getCurrencySymbol, formatCurrency } from '../../utils/currency';
 
 const chitSchema = z.object({
     name: z.string().min(3, 'Chit name must be at least 3 characters'),
@@ -93,6 +94,8 @@ export const CreateChit = () => {
     const rawMonthlyContribution = watch('monthlyContribution');
     const commissionVal = watch('financialConfig.commission.value') ?? 2;
     const commissionType = watch('financialConfig.commission.type') ?? 'PERCENTAGE';
+    const selectedCurrency = watch('financialConfig.currency') || 'INR';
+    const currencySymbol = getCurrencySymbol(selectedCurrency);
 
     const totalMembers = Math.max(0, rawTotalMembers || 0);
     const monthlyContribution = Math.max(0, rawMonthlyContribution || 0);
@@ -174,7 +177,7 @@ export const CreateChit = () => {
                                     )}
                                 </div>
                                 <div>
-                                    <label className="text-xs font-bold text-slate-900 mb-1 block">Monthly Contribution (₹)</label>
+                                    <label className="text-xs font-bold text-slate-900 mb-1 block">Monthly Contribution ({currencySymbol})</label>
                                     <div className="relative">
                                         <Coins className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10" />
                                         <input 
@@ -269,7 +272,7 @@ export const CreateChit = () => {
                                             className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-slate-900 outline-none cursor-pointer"
                                         >
                                             <option value="PERCENTAGE">PERCENTAGE (%)</option>
-                                            <option value="FIXED">FIXED (₹)</option>
+                                            <option value="FIXED">FIXED ({currencySymbol})</option>
                                         </select>
                                         <p className="text-[10px] text-slate-400 font-medium mt-1">
                                             {commissionType === 'PERCENTAGE' ? 'Percentage of total pot value per cycle' : 'Fixed fee amount per cycle'}
@@ -277,13 +280,13 @@ export const CreateChit = () => {
                                     </div>
                                     <div>
                                         <label className="text-xs font-bold text-slate-900 mb-1 block">
-                                            {commissionType === 'PERCENTAGE' ? 'Organizer Commission (%)' : 'Organizer Commission Amount (₹)'}
+                                            {commissionType === 'PERCENTAGE' ? 'Organizer Commission (%)' : `Organizer Commission Amount (${currencySymbol})`}
                                         </label>
                                         <div className="relative">
                                             {commissionType === 'PERCENTAGE' ? (
                                                 <Percent className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10" />
                                             ) : (
-                                                <IndianRupee className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10" />
+                                                <Coins className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10" />
                                             )}
                                             <input 
                                                 type="number"
@@ -322,7 +325,7 @@ export const CreateChit = () => {
                                             {...register('financialConfig.lateFee.type')}
                                             className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-slate-900 outline-none cursor-pointer"
                                         >
-                                            <option value="FIXED">FIXED (₹)</option>
+                                            <option value="FIXED">FIXED ({currencySymbol})</option>
                                             <option value="PERCENTAGE">PERCENTAGE (%)</option>
                                         </select>
                                     </div>
@@ -424,7 +427,7 @@ export const CreateChit = () => {
                         <div className="text-center pb-6 border-b border-slate-100">
                             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Financial Summary</h3>
                             <div className="text-3xl font-black text-slate-900 tracking-tight">
-                                ₹{totalPotValue.toLocaleString('en-IN')}
+                                {formatCurrency(totalPotValue, selectedCurrency)}
                             </div>
                             <p className="text-xs font-bold text-emerald-600 mt-1">Total Pot Value</p>
                         </div>
@@ -432,7 +435,9 @@ export const CreateChit = () => {
                         <div className="space-y-3">
                             <div className="flex justify-between items-center text-xs font-bold">
                                 <span className="text-slate-400">Organizer Fee</span>
-                                <span className="text-slate-900">{commissionVal}%</span>
+                                <span className="text-slate-900">
+                                    {commissionType === 'PERCENTAGE' ? `${commissionVal}%` : formatCurrency(commissionVal, selectedCurrency)}
+                                </span>
                             </div>
                             <div className="flex justify-between items-center text-xs font-bold">
                                 <span className="text-slate-400">Duration</span>
@@ -440,7 +445,7 @@ export const CreateChit = () => {
                             </div>
                             <div className="flex justify-between items-center text-xs font-bold">
                                 <span className="text-slate-400">Monthly Contribution</span>
-                                <span className="text-slate-900">₹{monthlyContribution.toLocaleString('en-IN')}</span>
+                                <span className="text-slate-900">{formatCurrency(monthlyContribution, selectedCurrency)}</span>
                             </div>
                         </div>
 
@@ -469,5 +474,4 @@ export const CreateChit = () => {
         </div>
     );
 };
-
 

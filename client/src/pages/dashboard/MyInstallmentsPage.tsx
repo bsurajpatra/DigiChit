@@ -4,8 +4,9 @@ import { InstallmentCard } from '../../components/installments/InstallmentCard';
 import { PaymentHistory } from '../../components/installments/PaymentHistory';
 import { LoadingSkeleton } from '../../components/cycles/LoadingSkeleton';
 import { EmptyState } from '../../components/cycles/EmptyState';
-import { IndianRupee, RefreshCw } from 'lucide-react';
+import { Coins, RefreshCw } from 'lucide-react';
 import type { InstallmentPaymentStatus } from '../../types/installment';
+import { formatCurrency } from '../../utils/currency';
 
 export const MyInstallmentsPage = () => {
     const [activeTab, setActiveTab] = useState<'ALL' | InstallmentPaymentStatus>('ALL');
@@ -36,7 +37,7 @@ export const MyInstallmentsPage = () => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
-                            <IndianRupee className="w-3.5 h-3.5" />
+                            <Coins className="w-3.5 h-3.5" />
                             <span>My Financial Dues</span>
                         </div>
                         <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
@@ -63,7 +64,7 @@ export const MyInstallmentsPage = () => {
                 <div className="mt-6 p-4 bg-emerald-950 text-white rounded-2xl flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 block">Total Pending Dues</span>
-                        <span className="text-2xl font-black text-white mt-0.5 block">₹{totalPendingDues.toLocaleString('en-IN')}</span>
+                        <span className="text-2xl font-black text-white mt-0.5 block">{formatCurrency(totalPendingDues)}</span>
                     </div>
                     <span className="px-3 py-1 bg-emerald-800/80 text-emerald-200 text-xs font-bold rounded-xl border border-emerald-700">
                         {pendingInstallments.length} Dues Pending

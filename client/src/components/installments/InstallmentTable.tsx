@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import type { Installment, InstallmentPaymentStatus } from '../../types/installment';
 import { PaymentStatusBadge } from './PaymentStatusBadge';
-import { Search, Download, ShieldCheck, IndianRupee, Loader2 } from 'lucide-react';
+import { Search, Download, ShieldCheck, Coins, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatCurrency } from '../../utils/currency';
 
 interface InstallmentTableProps {
     installments: Installment[];
     isOrganizer?: boolean;
     isAdmin?: boolean;
     actionLoading?: string | null;
+    currency?: string;
     onWaiveLateFee?: (installmentId: string) => void;
 }
 
@@ -17,6 +19,7 @@ export const InstallmentTable = ({
     isOrganizer = false,
     isAdmin = false,
     actionLoading,
+    currency,
     onWaiveLateFee
 }: InstallmentTableProps) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -158,16 +161,16 @@ export const InstallmentTable = ({
                                             </div>
                                         </td>
                                         <td className="py-4 px-6 font-black text-slate-900">
-                                            ₹{inst.amount.toLocaleString('en-IN')}
+                                            {formatCurrency(inst.amount, currency)}
                                         </td>
                                         <td className="py-4 px-6 text-slate-500 font-medium">
                                             {format(new Date(inst.dueDate), 'PP')}
                                         </td>
                                         <td className="py-4 px-6 font-bold">
                                             {inst.lateFee > 0 ? (
-                                                <span className="text-rose-600">+ ₹{inst.lateFee.toLocaleString('en-IN')}</span>
+                                                <span className="text-rose-600">+ {formatCurrency(inst.lateFee, currency)}</span>
                                             ) : (
-                                                <span className="text-slate-400">₹0</span>
+                                                <span className="text-slate-400">{formatCurrency(0, currency)}</span>
                                             )}
                                         </td>
                                         <td className="py-4 px-6">

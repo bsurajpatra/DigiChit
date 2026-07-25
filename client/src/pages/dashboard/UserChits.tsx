@@ -10,6 +10,7 @@ import { Loader } from '../../components/ui/Loader';
 import { useAuth } from '../../hooks/useAuth';
 import { KYCChitGuard } from '../../components/ui/KYCChitGuard';
 import { format } from 'date-fns';
+import { formatCurrency } from '../../utils/currency';
 
 export const UserChits = () => {
     const { user } = useAuth();
@@ -96,6 +97,7 @@ export const UserChits = () => {
                         const group = m.chitGroupId;
                         if (!group) return null;
                         const potValue = (group.monthlyContribution || 0) * (group.totalMembers || 0);
+                        const curr = group.financialConfig?.currency;
 
                         return (
                             <motion.div 
@@ -123,13 +125,13 @@ export const UserChits = () => {
                                         <span className="text-[10px] font-bold text-slate-400 uppercase">Monthly</span>
                                         <div className="flex items-center gap-1 font-bold text-slate-900 text-sm">
                                             <Coins className="w-3.5 h-3.5 text-emerald-600" />
-                                            <span>₹{(group.monthlyContribution || 0).toLocaleString('en-IN')}</span>
+                                            <span>{formatCurrency(group.monthlyContribution || 0, curr)}</span>
                                         </div>
                                     </div>
                                     <div className="space-y-0.5">
                                         <span className="text-[10px] font-bold text-slate-400 uppercase">Pot Value</span>
                                         <div className="flex items-center gap-1 font-bold text-emerald-600 text-sm">
-                                            <span>₹{potValue.toLocaleString('en-IN')}</span>
+                                            <span>{formatCurrency(potValue, curr)}</span>
                                         </div>
                                     </div>
                                     <div className="space-y-0.5">

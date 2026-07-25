@@ -2,12 +2,14 @@ import type { Installment } from '../../types/installment';
 import { PaymentStatusBadge } from './PaymentStatusBadge';
 import { History, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatCurrency } from '../../utils/currency';
 
 interface PaymentHistoryProps {
     installments: Installment[];
+    currency?: string;
 }
 
-export const PaymentHistory = ({ installments }: PaymentHistoryProps) => {
+export const PaymentHistory = ({ installments, currency }: PaymentHistoryProps) => {
     const paidInstallments = installments.filter((i) => (i.paymentStatus || i.status) === 'PAID');
 
     if (paidInstallments.length === 0) {
@@ -29,6 +31,8 @@ export const PaymentHistory = ({ installments }: PaymentHistoryProps) => {
             <div className="space-y-3">
                 {paidInstallments.map((inst) => {
                     const groupObj = typeof inst.groupId === 'object' ? inst.groupId : null;
+                    const activeCurrency = currency || (groupObj as any)?.financialConfig?.currency;
+
                     return (
                         <div
                             key={inst._id}
@@ -45,7 +49,7 @@ export const PaymentHistory = ({ installments }: PaymentHistoryProps) => {
 
                             <div className="text-right">
                                 <span className="font-black text-emerald-700 text-xs block">
-                                    ₹{inst.amount.toLocaleString('en-IN')}
+                                    {formatCurrency(inst.amount, activeCurrency)}
                                 </span>
                                 <PaymentStatusBadge status="PAID" size="sm" />
                             </div>

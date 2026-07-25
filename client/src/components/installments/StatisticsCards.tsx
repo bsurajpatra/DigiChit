@@ -1,11 +1,13 @@
 import type { InstallmentGroupStats } from '../../types/installment';
-import { Wallet, IndianRupee, PieChart, AlertCircle, TrendingUp } from 'lucide-react';
+import { Wallet, Coins, PieChart, AlertCircle, TrendingUp } from 'lucide-react';
+import { formatCurrency } from '../../utils/currency';
 
 interface StatisticsCardsProps {
     stats: InstallmentGroupStats | null;
+    currency?: string;
 }
 
-export const StatisticsCards = ({ stats }: StatisticsCardsProps) => {
+export const StatisticsCards = ({ stats, currency }: StatisticsCardsProps) => {
     if (!stats) return null;
 
     return (
@@ -19,7 +21,7 @@ export const StatisticsCards = ({ stats }: StatisticsCardsProps) => {
                     </div>
                 </div>
                 <div className="text-2xl font-black text-slate-900">
-                    ₹{stats.totalCollectedAmount.toLocaleString('en-IN')}
+                    {formatCurrency(stats.totalCollectedAmount, currency)}
                 </div>
                 <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 mt-2">
                     <TrendingUp className="w-3.5 h-3.5" />
@@ -32,11 +34,11 @@ export const StatisticsCards = ({ stats }: StatisticsCardsProps) => {
                 <div className="flex items-center justify-between mb-3">
                     <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Pending Amount</span>
                     <div className="w-10 h-10 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center font-bold shrink-0">
-                        <IndianRupee className="w-5 h-5" />
+                        <Coins className="w-5 h-5" />
                     </div>
                 </div>
                 <div className="text-2xl font-black text-slate-900">
-                    ₹{stats.totalPendingAmount.toLocaleString('en-IN')}
+                    {formatCurrency(stats.totalPendingAmount, currency)}
                 </div>
                 <p className="text-[11px] font-medium text-slate-400 mt-2">
                     {stats.pendingCount} Installments Pending
@@ -55,7 +57,7 @@ export const StatisticsCards = ({ stats }: StatisticsCardsProps) => {
                     {stats.collectionPercentage.toFixed(1)}%
                 </div>
                 <p className="text-[11px] font-medium text-slate-400 mt-2">
-                    Target: ₹{stats.totalExpectedAmount.toLocaleString('en-IN')}
+                    Target: {formatCurrency(stats.totalExpectedAmount, currency)}
                 </p>
             </div>
 
@@ -68,7 +70,7 @@ export const StatisticsCards = ({ stats }: StatisticsCardsProps) => {
                     </div>
                 </div>
                 <div className="text-2xl font-black text-slate-900">
-                    ₹{stats.totalLateFeesAccrued.toLocaleString('en-IN')}
+                    {formatCurrency(stats.totalLateFeesAccrued, currency)}
                 </div>
                 <p className="text-[11px] font-medium text-slate-400 mt-2">
                     Penalty Charges Total
@@ -77,3 +79,4 @@ export const StatisticsCards = ({ stats }: StatisticsCardsProps) => {
         </div>
     );
 };
+

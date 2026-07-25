@@ -1,11 +1,13 @@
 import { X, CreditCard, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatCurrency } from '../../utils/currency';
 
 interface PayNowPlaceholderModalProps {
     isOpen: boolean;
     installmentNumber?: number;
     amount?: number;
     lateFee?: number;
+    currency?: string;
     onClose: () => void;
 }
 
@@ -14,6 +16,7 @@ export const PayNowPlaceholderModal = ({
     installmentNumber = 1,
     amount = 0,
     lateFee = 0,
+    currency,
     onClose
 }: PayNowPlaceholderModalProps) => {
     if (!isOpen) return null;
@@ -61,17 +64,17 @@ export const PayNowPlaceholderModal = ({
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2 text-xs mb-6">
                         <div className="flex justify-between text-slate-600">
                             <span>Base Monthly Dues:</span>
-                            <span className="font-bold text-slate-900">₹{amount.toLocaleString('en-IN')}</span>
+                            <span className="font-bold text-slate-900">{formatCurrency(amount, currency)}</span>
                         </div>
                         {lateFee > 0 && (
                             <div className="flex justify-between text-rose-600">
                                 <span>Late Fee Accrued:</span>
-                                <span className="font-bold">₹{lateFee.toLocaleString('en-IN')}</span>
+                                <span className="font-bold">{formatCurrency(lateFee, currency)}</span>
                             </div>
                         )}
                         <div className="pt-2 border-t border-slate-200 flex justify-between text-sm font-black text-slate-900">
                             <span>Total Payable Amount:</span>
-                            <span className="text-emerald-600">₹{netAmount.toLocaleString('en-IN')}</span>
+                            <span className="text-emerald-600">{formatCurrency(netAmount, currency)}</span>
                         </div>
                     </div>
 
@@ -98,3 +101,4 @@ export const PayNowPlaceholderModal = ({
         </AnimatePresence>
     );
 };
+

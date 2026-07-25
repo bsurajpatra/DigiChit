@@ -1,15 +1,18 @@
 import { PieChart } from 'lucide-react';
+import { formatCurrency } from '../../utils/currency';
 
 interface CollectionProgressProps {
     collectedAmount: number;
     expectedAmount: number;
     percentage: number;
+    currency?: string;
 }
 
 export const CollectionProgress = ({
     collectedAmount,
     expectedAmount,
-    percentage
+    percentage,
+    currency
 }: CollectionProgressProps) => {
     const safePercentage = Math.min(Math.max(percentage, 0), 100);
 
@@ -35,10 +38,11 @@ export const CollectionProgress = ({
                 </div>
 
                 <div className="flex justify-between text-[11px] font-bold text-slate-500">
-                    <span>Collected: ₹{collectedAmount.toLocaleString('en-IN')}</span>
-                    <span>Target: ₹{expectedAmount.toLocaleString('en-IN')}</span>
+                    <span>Collected: {formatCurrency(collectedAmount, currency)}</span>
+                    <span>Target: {formatCurrency(expectedAmount, currency)}</span>
                 </div>
             </div>
         </div>
     );
 };
+

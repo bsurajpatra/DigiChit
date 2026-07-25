@@ -2,19 +2,22 @@ import { useState } from 'react';
 import type { Installment } from '../../types/installment';
 import { PaymentStatusBadge } from './PaymentStatusBadge';
 import { PayNowPlaceholderModal } from './PayNowPlaceholderModal';
-import { CreditCard, Download, AlertCircle, CheckCircle2, IndianRupee } from 'lucide-react';
+import { CreditCard, Download, AlertCircle, CheckCircle2, Coins } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatCurrency } from '../../utils/currency';
 
 interface InstallmentCardProps {
     installment: Installment;
+    currency?: string;
     onDownloadReceipt?: (installmentId: string) => void;
 }
 
-export const InstallmentCard = ({ installment, onDownloadReceipt }: InstallmentCardProps) => {
+export const InstallmentCard = ({ installment, currency, onDownloadReceipt }: InstallmentCardProps) => {
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
     const groupObj = typeof installment.groupId === 'object' ? installment.groupId : null;
     const cycleObj = typeof installment.cycleId === 'object' ? installment.cycleId : null;
+    const activeCurrency = currency || (groupObj as any)?.financialConfig?.currency;
 
     const currentStatus = installment.paymentStatus || installment.status || 'PENDING';
     const netAmount = installment.amount + (installment.lateFee || 0);
@@ -34,7 +37,7 @@ export const InstallmentCard = ({ installment, onDownloadReceipt }: InstallmentC
                 <div className="flex items-center justify-between gap-3 mb-4">
                     <div className="flex items-center gap-2.5">
                         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black ${isPaid ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                            {isPaid ? <CheckCircle2 className="w-5 h-5" /> : <IndianRupee className="w-5 h-5" />}
+                            {isPaid ? <CheckCircle2 className="w-5 h-5" /> : <Coins className="w-5 h-5" />}
                         </div>
                         <div>
                             <h4 className="text-sm font-bold text-slate-900">
@@ -53,7 +56,7 @@ export const InstallmentCard = ({ installment, onDownloadReceipt }: InstallmentC
                 <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100 text-xs mb-4">
                     <div>
                         <span className="text-slate-400 font-medium block text-[10px] uppercase">Base Amount</span>
-                        <span className="text-base font-black text-slate-900">₹{installment.amount.toLocaleString('en-IN')}</span>
+                        <span className="text-base font-black text-slate-900">{formatCurrency(installment.amount, activeCurrency)}</span>
                     </div>
 
                     <div>
@@ -71,7 +74,7 @@ export const InstallmentCard = ({ installment, onDownloadReceipt }: InstallmentC
                             <AlertCircle className="w-3.5 h-3.5" />
                             <span>Late Fee Accrued</span>
                         </span>
-                        <span>+ ₹{installment.lateFee.toLocaleString('en-IN')}</span>
+                        <span>+ {formatCurrency(installment.lateFee, activeCurrency)}</span>
                     </div>
                 )}
 
@@ -99,7 +102,7 @@ export const InstallmentCard = ({ installment, onDownloadReceipt }: InstallmentC
                             className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
                         >
                             <CreditCard className="w-3.5 h-3.5" />
-                            <span>Pay Now (₹{netAmount.toLocaleString('en-IN')})</span>
+                            <span>Pay Now ({formatCurrency(netAmount, activeCurrency)})</span>
                         </button>
                     )}
                 </div>
@@ -111,8 +114,10 @@ export const InstallmentCard = ({ installment, onDownloadReceipt }: InstallmentC
                 installmentNumber={installment.installmentNumber}
                 amount={installment.amount}
                 lateFee={installment.lateFee}
+                currency={activeCurrency}
                 onClose={() => setIsPaymentModalOpen(false)}
             />
         </>
     );
 };
+

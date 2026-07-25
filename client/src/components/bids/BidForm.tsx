@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { CheckCircle2, Loader2, ArrowUpRight, Sparkles, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatCurrency } from '../../utils/currency';
 
 export interface BidFormData {
     bidPercentage: number;
@@ -15,6 +16,7 @@ interface BidFormProps {
     maxBidPercentage?: number;
     monthlyContribution?: number;
     totalMembers?: number;
+    currency?: string;
     existingBid?: {
         _id: string;
         bidPercentage: number;
@@ -33,6 +35,7 @@ export const BidForm = ({
     maxBidPercentage = 50,
     monthlyContribution = 10000,
     totalMembers = 10,
+    currency,
     existingBid,
     isLoading = false,
     onSubmitBid,
@@ -123,7 +126,7 @@ export const BidForm = ({
                         <div>
                             <p>Bid Successfully {isEditMode ? 'Updated' : 'Submitted'}!</p>
                             <p className="text-[10px] font-medium text-emerald-700 mt-0.5">
-                                Discount of {computedPercentage}% (₹{computedDiscountAmount.toLocaleString('en-IN')}) recorded.
+                                Discount of {computedPercentage}% ({formatCurrency(computedDiscountAmount, currency)}) recorded.
                             </p>
                         </div>
                     </motion.div>
@@ -148,13 +151,13 @@ export const BidForm = ({
                         <div className="bg-white p-3 rounded-xl">
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Discount Amount</span>
                             <span className="text-sm font-black text-amber-600 mt-0.5 block">
-                                ₹{computedDiscountAmount.toLocaleString('en-IN')}
+                                {formatCurrency(computedDiscountAmount, currency)}
                             </span>
                         </div>
                         <div className="bg-white p-3 rounded-xl">
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Est. Take-Home</span>
                             <span className="text-sm font-black text-emerald-600 mt-0.5 block">
-                                ₹{computedTakeHomeAmount.toLocaleString('en-IN')}
+                                {formatCurrency(computedTakeHomeAmount, currency)}
                             </span>
                         </div>
                     </div>

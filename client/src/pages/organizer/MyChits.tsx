@@ -8,6 +8,7 @@ import {
 import { Loader } from '../../components/ui/Loader';
 import { useAuth } from '../../hooks/useAuth';
 import { KYCChitGuard } from '../../components/ui/KYCChitGuard';
+import { formatCurrency } from '../../utils/currency';
 
 interface Group {
     _id: string;
@@ -112,7 +113,7 @@ export const MyOrganizedChits = () => {
                                 </div>
                                 <div className="flex justify-between items-center text-xs font-bold">
                                     <span className="text-slate-400">Monthly Yield</span>
-                                    <span className="text-emerald-600">₹{(group.monthlyContribution * group.totalMembers).toLocaleString('en-IN')}</span>
+                                    <span className="text-emerald-600">{formatCurrency(group.monthlyContribution * group.totalMembers, (group as any).financialConfig?.currency)}</span>
                                 </div>
                             </div>
 

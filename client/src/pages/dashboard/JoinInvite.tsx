@@ -7,12 +7,28 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Loader } from '../../components/ui/Loader';
+import { formatCurrency } from '../../utils/currency';
+
+interface Group {
+    _id: string;
+    name: string;
+    totalMembers: number;
+    currentMemberCount: number;
+    monthlyContribution: number;
+    startDate: string;
+    auctionType: string;
+    financialConfig?: any;
+    organizerId: {
+        name: string;
+        email: string;
+    };
+}
 
 export const JoinInvite = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
-    const [group, setGroup] = useState<any>(null);
+    const [group, setGroup] = useState<Group | null>(null);
     const [loading, setLoading] = useState(true);
     const [requesting, setRequesting] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -87,13 +103,13 @@ export const JoinInvite = () => {
                         <span className="text-[10px] font-bold text-slate-400 uppercase block">Monthly</span>
                         <div className="flex items-center gap-1 font-bold text-slate-900 text-sm">
                             <Coins className="w-4 h-4 text-emerald-600" />
-                            <span>₹{group.monthlyContribution.toLocaleString('en-IN')}</span>
+                            <span>{formatCurrency(group.monthlyContribution, group.financialConfig?.currency)}</span>
                         </div>
                     </div>
                     <div className="p-4 bg-slate-50 rounded-xl border-none space-y-1">
                         <span className="text-[10px] font-bold text-slate-400 uppercase block">Pot Value</span>
                         <div className="flex items-center gap-1 font-bold text-emerald-600 text-sm">
-                            <span>₹{(group.monthlyContribution * group.totalMembers).toLocaleString('en-IN')}</span>
+                            <span>{formatCurrency(group.monthlyContribution * group.totalMembers, group.financialConfig?.currency)}</span>
                         </div>
                     </div>
                     <div className="p-4 bg-slate-50 rounded-xl border-none space-y-1">

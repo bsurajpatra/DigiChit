@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../api/axios';
 import {
-    Users, Calendar, Coins, IndianRupee,
+    Users, Calendar, Coins, Wallet,
     Loader2, User, ShieldCheck,
     MessageSquare, Clock, XCircle,
     UserPlus, Share2, Check, Hammer, PlusCircle, RefreshCw, Grid, HelpCircle,
@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { useAuth } from '../../context/AuthContext';
 import { KYCChitGuard } from '../../components/ui/KYCChitGuard';
 import { useChitSidebar } from '../../context/ChitSidebarContext';
+import { getCurrencySymbol, formatCurrency } from '../../utils/currency';
 
 // Cycles Module Components & Hooks
 import { useChitCycles } from '../../hooks/useChitCycles';
@@ -400,13 +401,13 @@ export const ChitDetails = () => {
                         <div className="bg-white p-5 rounded-2xl border-none shadow-none">
                             <Coins className="w-5 h-5 text-emerald-500 mb-2" />
                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Pot Value</span>
-                            <div className="text-2xl font-black text-slate-900 tracking-tight mt-1">₹{totalPoolAmount.toLocaleString('en-IN')}</div>
+                            <div className="text-2xl font-black text-slate-900 tracking-tight mt-1">{formatCurrency(totalPoolAmount, (group as any).financialConfig?.currency)}</div>
                         </div>
 
                         <div className="bg-white p-5 rounded-2xl border-none shadow-none">
-                            <IndianRupee className="w-5 h-5 text-sky-500 mb-2" />
+                            <Wallet className="w-5 h-5 text-sky-500 mb-2" />
                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Monthly Dues</span>
-                            <div className="text-2xl font-black text-slate-900 tracking-tight mt-1">₹{group.monthlyContribution.toLocaleString('en-IN')}</div>
+                            <div className="text-2xl font-black text-slate-900 tracking-tight mt-1">{formatCurrency(group.monthlyContribution, (group as any).financialConfig?.currency)}</div>
                         </div>
 
                         <div className="bg-white p-5 rounded-2xl border-none shadow-none">
@@ -448,14 +449,21 @@ export const ChitDetails = () => {
                             <div className="bg-slate-50 p-4 rounded-xl">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Commission</span>
                                 <span className="text-sm font-black text-slate-900 mt-0.5 block">
-                                    {(group as any).financialConfig?.commission?.value ?? group.commissionPercent ?? 2}
-                                    {(group as any).financialConfig?.commission?.type === 'FIXED' ? ' ₹' : '%'} ({(group as any).financialConfig?.commission?.type || 'PERCENTAGE'})
+                                    {(group as any).financialConfig?.commission?.type === 'FIXED' 
+                                        ? formatCurrency((group as any).financialConfig?.commission?.value || 0, (group as any).financialConfig?.currency)
+                                        : `${(group as any).financialConfig?.commission?.value ?? group.commissionPercent ?? 2}%`} 
+                                    ({(group as any).financialConfig?.commission?.type || 'PERCENTAGE'})
                                 </span>
                             </div>
                             <div className="bg-slate-50 p-4 rounded-xl">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Late Fee</span>
                                 <span className="text-sm font-black text-slate-900 mt-0.5 block">
-                                    {(group as any).financialConfig?.lateFee?.value ? `₹${(group as any).financialConfig.lateFee.value}` : 'No Fee'} ({(group as any).financialConfig?.lateFee?.type || 'FIXED'})
+                                    {(group as any).financialConfig?.lateFee?.value 
+                                        ? ((group as any).financialConfig?.lateFee?.type === 'PERCENTAGE' 
+                                            ? `${(group as any).financialConfig.lateFee.value}%` 
+                                            : formatCurrency((group as any).financialConfig.lateFee.value, (group as any).financialConfig?.currency))
+                                        : 'No Fee'} 
+                                    ({(group as any).financialConfig?.lateFee?.type || 'FIXED'})
                                 </span>
                             </div>
                             <div className="bg-slate-50 p-4 rounded-xl">
@@ -785,7 +793,7 @@ export const ChitDetails = () => {
                                                 </p>
                                                 {selectedCycle.winningBidAmount && (
                                                     <p className="text-xs text-slate-600 font-semibold">
-                                                        Winning Bid Amount: <strong className="text-slate-900">₹{selectedCycle.winningBidAmount.toLocaleString('en-IN')}</strong>
+                                                        Winning Bid Amount: <strong className="text-slate-900">{formatCurrency(selectedCycle.winningBidAmount, (group as any)?.financialConfig?.currency)}</strong>
                                                         {selectedCycle.winningBidPercentage && ` (${selectedCycle.winningBidPercentage}%)`}
                                                     </p>
                                                 )}
@@ -1110,7 +1118,7 @@ export const ChitDetails = () => {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
-                                <IndianRupee className="w-4 h-4" />
+                                <Coins className="w-4 h-4" />
                                 <span>Financial Collections</span>
                             </div>
                             <h2 className="text-xl font-black text-slate-900 tracking-tight">Installments & Member Dues</h2>

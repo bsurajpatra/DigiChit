@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { X, Trophy, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getCurrencySymbol } from '../../utils/currency';
 
 export interface RecordWinnerFormData {
     winnerMembershipId: string;
@@ -22,6 +23,7 @@ interface RecordWinnerModalProps {
     isOpen: boolean;
     cycleNumber: number;
     members: MemberOption[];
+    currency?: string;
     isLoading?: boolean;
     onClose: () => void;
     onSubmit: (data: RecordWinnerFormData) => Promise<void>;
@@ -31,11 +33,13 @@ export const RecordWinnerModal = ({
     isOpen,
     cycleNumber,
     members,
+    currency,
     isLoading = false,
     onClose,
     onSubmit
 }: RecordWinnerModalProps) => {
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const symbol = getCurrencySymbol(currency);
 
     const {
         register,
@@ -138,7 +142,7 @@ export const RecordWinnerModal = ({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                    Winning Bid Amount (₹)
+                                    Winning Bid Amount ({symbol})
                                 </label>
                                 <input
                                     type="number"
@@ -165,7 +169,7 @@ export const RecordWinnerModal = ({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                    Net Prize Amount (₹)
+                                    Net Prize Amount ({symbol})
                                 </label>
                                 <input
                                     type="number"
@@ -177,7 +181,7 @@ export const RecordWinnerModal = ({
 
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                    Dividend Per Member (₹)
+                                    Dividend Per Member ({symbol})
                                 </label>
                                 <input
                                     type="number"

@@ -2,10 +2,12 @@ import type { Bid } from '../../types/bid';
 import { BidStatusBadge } from './BidStatusBadge';
 import { Hammer, Edit3, Trash2, Trophy } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatCurrency, getCurrencySymbol } from '../../utils/currency';
 
 interface BidCardProps {
     bid: Bid;
     isAuctionOpen?: boolean;
+    currency?: string;
     onEdit?: (bid: Bid) => void;
     onWithdraw?: (bidId: string) => void;
 }
@@ -13,6 +15,7 @@ interface BidCardProps {
 export const BidCard = ({
     bid,
     isAuctionOpen = false,
+    currency,
     onEdit,
     onWithdraw
 }: BidCardProps) => {
@@ -53,9 +56,9 @@ export const BidCard = ({
                 </div>
 
                 <div>
-                    <span className="text-slate-400 font-medium block text-[10px] uppercase">Discount Amount (₹)</span>
+                    <span className="text-slate-400 font-medium block text-[10px] uppercase">Discount Amount ({getCurrencySymbol(currency)})</span>
                     <span className="text-base font-black text-emerald-600">
-                        ₹{(bid.bidAmount || 0).toLocaleString('en-IN')}
+                        {formatCurrency(bid.bidAmount || 0, currency)}
                     </span>
                 </div>
             </div>
