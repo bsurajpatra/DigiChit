@@ -36,6 +36,7 @@ import { AuctionDetailsPage } from './pages/organizer/AuctionDetailsPage';
 import { BidsPage } from './pages/organizer/BidsPage';
 import { MyInstallmentsPage } from './pages/dashboard/MyInstallmentsPage';
 import { GroupInstallmentsPage } from './pages/organizer/GroupInstallmentsPage';
+import { PaymentHistoryPage } from './pages/dashboard/PaymentHistoryPage';
 import { KYCPanel } from './pages/admin/KYCPanel';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { OrganizerApplications } from './pages/admin/OrganizerApplications';
@@ -106,6 +107,7 @@ function App() {
                             <Route path="/auctions/:auctionId/bids" element={<BidsPage />} />
                             <Route path="/my-installments" element={<MyInstallmentsPage />} />
                             <Route path="/chits/:groupId/installments" element={<GroupInstallmentsPage />} />
+                            <Route path="/payments" element={<PaymentHistoryPage />} />
 
                             {/* Organizer specific routes */}
                             <Route element={<ProtectedRoute allowedRoles={['ORGANIZER']} />}>

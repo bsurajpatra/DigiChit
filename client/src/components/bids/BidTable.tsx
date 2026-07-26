@@ -98,21 +98,23 @@ export const BidTable = ({ bids, auctionNumber = 1, currency, isLoading: _isLoad
 
             {/* Filter Pills */}
             <div className="px-6 py-3 bg-slate-50/50 border-b border-slate-100 flex items-center gap-2 overflow-x-auto">
-                {(['ALL', 'SUBMITTED', 'VALID', 'WINNING', 'WITHDRAWN', 'REJECTED'] as const).map((st) => (
-                    <button
-                        key={st}
-                        onClick={() => setStatusFilter(st)}
-                        className={`
-                            px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap
-                            ${statusFilter === st
-                                ? 'bg-slate-900 text-white'
-                                : 'text-slate-500 hover:bg-slate-200/60'
-                            }
-                        `}
-                    >
-                        {st}
-                    </button>
-                ))}
+                <div className="p-1 bg-slate-100/80 rounded-xl border border-slate-200/60 inline-flex items-center gap-1">
+                    {(['ALL', 'SUBMITTED', 'VALID', 'WINNING', 'WITHDRAWN', 'REJECTED'] as const).map((st) => (
+                        <button
+                            key={st}
+                            onClick={() => setStatusFilter(st)}
+                            className={`
+                                px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap
+                                ${statusFilter === st
+                                    ? 'bg-slate-900 text-white shadow-xs'
+                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                                }
+                            `}
+                        >
+                            {st}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Table Content */}

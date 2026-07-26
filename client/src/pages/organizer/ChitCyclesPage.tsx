@@ -124,7 +124,6 @@ export const ChitCyclesPage = () => {
             groupId,
             scheduledStartDate: data.scheduledStartDate,
             scheduledEndDate: data.scheduledEndDate || undefined,
-            auctionDate: data.auctionDate || undefined,
             remarks: data.remarks || undefined
         });
     };

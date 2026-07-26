@@ -1,3 +1,5 @@
+import type { IFinancialConfig } from './financialConfig';
+
 export type AuctionStatus = 'SCHEDULED' | 'OPEN' | 'CLOSED' | 'WINNER_DECLARED' | 'CANCELLED';
 
 export interface WinnerUser {
@@ -18,7 +20,14 @@ export interface WinnerMembership {
 export interface Auction {
     _id: string;
     cycleId: string | { _id: string; cycleNumber: number; status: string; scheduledStartDate: string };
-    groupId: string | { _id: string; name: string; totalMembers: number; monthlyContribution: number };
+    groupId: string | { 
+        _id: string; 
+        name: string; 
+        totalMembers: number; 
+        monthlyContribution: number;
+        organizerId?: string | { _id: string; name?: string; email?: string };
+        financialConfig?: IFinancialConfig;
+    };
     organizerId: string;
     auctionNumber: number;
     scheduledStartTime: string;

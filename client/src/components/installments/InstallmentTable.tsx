@@ -138,7 +138,7 @@ export const InstallmentTable = ({
                             <th className="py-3.5 px-6">Due Date</th>
                             <th className="py-3.5 px-6">Late Fee</th>
                             <th className="py-3.5 px-6">Status</th>
-                            <th className="py-3.5 px-6 text-right">Actions</th>
+                            <th className="py-3.5 px-6">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -183,7 +183,7 @@ export const InstallmentTable = ({
                                         <td className="py-4 px-6">
                                             <PaymentStatusBadge status={inst.paymentStatus || inst.status || 'PENDING'} size="sm" />
                                         </td>
-                                        <td className="py-4 px-6 text-right">
+                                        <td className="py-4 px-6">
                                             {(isOrganizer || isAdmin) && inst.lateFee > 0 && !inst.isLateFeeWaived && onWaiveLateFee && (
                                                 <button
                                                     disabled={!!actionLoading}

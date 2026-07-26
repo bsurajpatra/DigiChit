@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../../api/axios';
 import {
     Users, Calendar, Coins, Wallet,
@@ -52,9 +52,9 @@ interface Member {
         name: string;
         email: string;
     };
+    role: string;
+    joinedAt: string;
     status: string;
-    joinedAt?: string;
-    createdAt: string;
 }
 
 interface Group {
@@ -77,15 +77,28 @@ interface Group {
 
 export const ChitDetails = () => {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { user } = useAuth();
 
     const {
         activeTab,
+        setActiveTab,
         setGroup: setSidebarGroup,
         setPendingCount,
         setIsOrganizer: setSidebarIsOrganizer,
         reset,
     } = useChitSidebar();
+
+    useEffect(() => {
+        const tabParam = searchParams.get('tab');
+        if (tabParam) {
+            const uppercaseTab = tabParam.toUpperCase() as any;
+            if (['OVERVIEW', 'MEMBERS', 'CYCLES', 'AUCTIONS', 'INSTALLMENTS', 'HELP'].includes(uppercaseTab)) {
+                setActiveTab(uppercaseTab);
+            }
+        }
+    }, [searchParams, setActiveTab]);
 
     const [group, setGroup] = useState<Group | null>(null);
     const [members, setMembers] = useState<Member[]>([]);
@@ -1070,14 +1083,8 @@ export const ChitDetails = () => {
                                         const a = auctions.find((auc) => auc._id === id);
                                         setAuctionWinnerModal({ isOpen: true, auctionId: id, auctionNumber: a?.auctionNumber || 0 });
                                     }}
-                                    onViewDetails={(id) => {
-                                        setAuctionViewOrigin('LIST');
-                                        setSelectedAuctionDetailId(id);
-                                    }}
-                                    onViewBids={(id) => {
-                                        setAuctionViewOrigin('LIST');
-                                        setSelectedBiddingRoomId(id);
-                                    }}
+                                    onViewDetails={(id) => navigate(`/auctions/${id}`)}
+                                    onViewBids={(id) => navigate(`/auctions/${id}/bids`)}
                                 />
                             )}
                         </>

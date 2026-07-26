@@ -9,9 +9,18 @@ import { ChitSidebarProvider, useChitSidebar } from '../../context/ChitSidebarCo
 const LayoutInner = () => {
     const [isMobileOpen, setMobileOpen] = useState(false);
     const isChitDetails = useMatch('/chit-details/:id');
+    const isChitAuctions = useMatch('/chits/:groupId/auctions');
+    const isAuctionDetails = useMatch('/auctions/:auctionId');
+    const isAuctionBids = useMatch('/auctions/:auctionId/bids');
+    const isChitCycles = useMatch('/chits/:groupId/cycles');
+    const isCycleDetails = useMatch('/cycles/:cycleId');
+    const isChitInstallments = useMatch('/chits/:groupId/installments');
+
     const { group, activeTab, setActiveTab, pendingCount, isOrganizer, setHelpOpen } = useChitSidebar();
 
-    const showChitDetailsSidebar = Boolean(isChitDetails && group);
+    const showChitDetailsSidebar = Boolean(
+        group && (isChitDetails || isChitAuctions || isAuctionDetails || isAuctionBids || isChitCycles || isCycleDetails || isChitInstallments)
+    );
 
     return (
         <div className="h-screen bg-slate-50 flex flex-col md:flex-row overflow-hidden w-full">

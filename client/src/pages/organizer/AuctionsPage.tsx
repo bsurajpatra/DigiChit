@@ -17,10 +17,13 @@ import { LoadingSkeleton } from '../../components/cycles/LoadingSkeleton';
 import { ArrowLeft, Hammer } from 'lucide-react';
 import type { AuctionStatus } from '../../types/auction';
 
+import { useChitSidebar } from '../../context/ChitSidebarContext';
+
 export const AuctionsPage = () => {
     const { groupId } = useParams<{ groupId: string }>();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { setGroup: setSidebarGroup, setActiveTab: setSidebarActiveTab, setIsOrganizer: setSidebarIsOrganizer } = useChitSidebar();
 
     const [group, setGroup] = useState<any>(null);
     const [groupMembers, setGroupMembers] = useState<any[]>([]);
@@ -64,6 +67,11 @@ export const AuctionsPage = () => {
                 const res = await api.get(`/chit-groups/details/${groupId}`);
                 setGroup(res.data.data.group);
                 setGroupMembers(res.data.data.members || []);
+                if (res.data.data.group) {
+                    setSidebarGroup(res.data.data.group);
+                    setSidebarActiveTab('AUCTIONS');
+                    setSidebarIsOrganizer(user?.id === res.data.data.group.organizerId._id);
+                }
             } catch (err) {
                 console.error('Failed to load group details', err);
             } finally {

@@ -1,0 +1,121 @@
+import mongoose from 'mongoose';
+import Transaction, { ITransaction, TransactionStatus } from '../models/Transaction.js';
+
+export interface PaginationOptions {
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+}
+
+export interface PaginatedResult<T> {
+    data: T[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
+export class TransactionRepository {
+    public async create(data: Partial<ITransaction>): Promise<ITransaction> {
+        return await Transaction.create(data);
+    }
+
+    public async findById(id: string): Promise<ITransaction | null> {
+        if (!mongoose.Types.ObjectId.isValid(id)) return null;
+        return await Transaction.findOne({ _id: id, deletedAt: null })
+            .populate('memberId', 'name email')
+            .populate('groupId', 'name monthlyContribution')
+            .populate('cycleId', 'cycleNumber status')
+            .populate('installmentId', 'installmentNumber dueDate amount paymentStatus');
+    }
+
+    public async findByTransactionNumber(txnNumber: string): Promise<ITransaction | null> {
+        return await Transaction.findOne({ transactionNumber: txnNumber, deletedAt: null });
+    }
+
+    public async findByGatewayOrderId(orderId: string): Promise<ITransaction | null> {
+        return await Transaction.findOne({ gatewayOrderId: orderId, deletedAt: null });
+    }
+
+    public async findByInstallmentAndStatus(
+        installmentId: string,
+        statuses: TransactionStatus[]
+    ): Promise<ITransaction[]> {
+        return await Transaction.find({
+            installmentId: new mongoose.Types.ObjectId(installmentId),
+            status: { $in: statuses },
+            deletedAt: null
+        });
+    }
+
+    public async findPaginated(
+        filter: Record<string, any>,
+        options: PaginationOptions = {}
+    ): Promise<PaginatedResult<ITransaction>> {
+        const page = Math.max(1, options.page || 1);
+        const limit = Math.max(1, Math.min(100, options.limit || 20));
+        const skip = (page - 1) * limit;
+
+        const sortField = options.sortBy || 'createdAt';
+        const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
+        const sortOptions: Record<string, 1 | -1> = { [sortField]: sortOrder };
+
+        const queryFilter: Record<string, any> = {
+            ...filter,
+            deletedAt: null
+        };
+
+        const [data, total] = await Promise.all([
+            Transaction.find(queryFilter)
+                .populate('memberId', 'name email')
+                .populate('groupId', 'name')
+                .populate('cycleId', 'cycleNumber')
+                .populate('installmentId', 'installmentNumber dueDate amount')
+                .sort(sortOptions)
+                .skip(skip)
+                .limit(limit)
+                .exec(),
+            Transaction.countDocuments(queryFilter)
+        ]);
+
+        return {
+            data,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit) || 1
+        };
+    }
+
+    public async updateStatus(
+        id: string,
+        status: TransactionStatus,
+        updates: Partial<ITransaction> = {}
+    ): Promise<ITransaction | null> {
+        return await Transaction.findOneAndUpdate(
+            { _id: id, deletedAt: null },
+            {
+                $set: {
+                    status,
+                    ...updates,
+                    updatedAt: new Date()
+                }
+            },
+            { new: true }
+        );
+    }
+
+    public async softDelete(id: string, userId: string): Promise<ITransaction | null> {
+        return await Transaction.findOneAndUpdate(
+            { _id: id, deletedAt: null },
+            {
+                $set: {
+                    deletedAt: new Date(),
+                    updatedBy: new mongoose.Types.ObjectId(userId)
+                }
+            },
+            { new: true }
+        );
+    }
+}

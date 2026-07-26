@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Auction, AuctionStatus } from '../../types/auction';
 import { AuctionStatusBadge } from './AuctionStatusBadge';
 import { Search, Download, Hammer, Trophy, PlayCircle, XCircle, CheckCircle, ArrowRight, Eye, ShieldCheck } from 'lucide-react';
@@ -32,6 +33,7 @@ export const AuctionTable = ({
     onViewDetails,
     onViewBids
 }: AuctionTableProps) => {
+    const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<'ALL' | AuctionStatus>('ALL');
 
@@ -115,21 +117,23 @@ export const AuctionTable = ({
 
             {/* Status Filter Tabs */}
             <div className="px-6 py-3 bg-slate-50/50 border-b border-slate-100 flex items-center gap-2 overflow-x-auto">
-                {(['ALL', 'SCHEDULED', 'OPEN', 'CLOSED', 'CANCELLED'] as const).map((st) => (
-                    <button
-                        key={st}
-                        onClick={() => setStatusFilter(st)}
-                        className={`
-                            px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap
-                            ${statusFilter === st
-                                ? 'bg-slate-900 text-white'
-                                : 'text-slate-500 hover:bg-slate-200/60'
-                            }
-                        `}
-                    >
-                        {st}
-                    </button>
-                ))}
+                <div className="p-1 bg-slate-100/80 rounded-xl border border-slate-200/60 inline-flex items-center gap-1">
+                    {(['ALL', 'SCHEDULED', 'OPEN', 'CLOSED', 'CANCELLED'] as const).map((st) => (
+                        <button
+                            key={st}
+                            onClick={() => setStatusFilter(st)}
+                            className={`
+                                px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap
+                                ${statusFilter === st
+                                    ? 'bg-slate-900 text-white shadow-xs'
+                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                                }
+                            `}
+                        >
+                            {st}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* List Table */}
@@ -142,7 +146,7 @@ export const AuctionTable = ({
                             <th className="py-3.5 px-6">Bid Limits (%)</th>
                             <th className="py-3.5 px-6">Scheduled Start</th>
                             <th className="py-3.5 px-6">Winner / Winning Bid</th>
-                            <th className="py-3.5 px-6 text-right">Actions</th>
+                            <th className="py-3.5 px-6">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -209,60 +213,21 @@ export const AuctionTable = ({
                                         </td>
 
                                         {/* Actions */}
-                                        <td className="py-4 px-6 text-right">
-                                            <div className="flex items-center justify-end gap-2">
-                                                {onViewBids && (
-                                                    <button
-                                                        onClick={() => onViewBids(a._id)}
-                                                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1"
-                                                    >
-                                                        <Hammer className="w-3.5 h-3.5 text-emerald-600" />
-                                                        <span>Bids</span>
-                                                    </button>
-                                                )}
-
-                                                {onViewDetails && (
-                                                    <button
-                                                        onClick={() => onViewDetails(a._id)}
-                                                        className="px-3 py-1.5 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1"
-                                                    >
-                                                        <Eye className="w-3.5 h-3.5 text-emerald-400" />
-                                                        <span>Details</span>
-                                                    </button>
-                                                )}
-
-                                                {(isOrganizer || isAdmin) && a.status === 'SCHEDULED' && onStart && (
-                                                    <button
-                                                        disabled={!!actionLoading}
-                                                        onClick={() => onStart(a._id)}
-                                                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition cursor-pointer disabled:opacity-50"
-                                                    >
-                                                        Start
-                                                    </button>
-                                                )}
-
-                                                {(isOrganizer || isAdmin) && a.status === 'OPEN' && (
-                                                    <>
-                                                        {onCloseAuction && (
-                                                            <button
-                                                                disabled={!!actionLoading}
-                                                                onClick={() => onCloseAuction(a._id)}
-                                                                className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition cursor-pointer disabled:opacity-50"
-                                                            >
-                                                                Close
-                                                            </button>
-                                                        )}
-                                                        {onDeclareWinner && (
-                                                            <button
-                                                                disabled={!!actionLoading}
-                                                                onClick={() => onDeclareWinner(a._id)}
-                                                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition cursor-pointer disabled:opacity-50"
-                                                            >
-                                                                Winner
-                                                            </button>
-                                                        )}
-                                                    </>
-                                                )}
+                                        <td className="py-4 px-6">
+                                            <div className="flex items-center justify-start">
+                                                <button
+                                                    onClick={() => {
+                                                        if (onViewDetails) {
+                                                            onViewDetails(a._id);
+                                                        } else {
+                                                            navigate(`/auctions/${a._id}`);
+                                                        }
+                                                    }}
+                                                    className="px-4 py-2 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                                                >
+                                                    <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                                                    <span>View & Manage</span>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>

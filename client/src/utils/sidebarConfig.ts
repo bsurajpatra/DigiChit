@@ -1,6 +1,6 @@
 import {
     UserCheck, Briefcase, UserCircle,
-    PlusCircle, FolderKanban, Search, Wallet, ShieldPlus, ShieldAlert, Inbox, MessageSquare
+    PlusCircle, FolderKanban, Search, Wallet, ShieldPlus, ShieldAlert, Inbox, MessageSquare, CreditCard
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -17,6 +17,7 @@ export const getSidebarMenu = (role: string, organizerStatus: string, kycStatus?
             { label: 'KYC Approvals', path: '/admin/kyc', icon: UserCheck },
             { label: 'Organizer Apps', path: '/admin/organizers', icon: Briefcase },
             { label: 'Inquiry Inbox', path: '/admin/queries', icon: Inbox },
+            { label: 'Payments', path: '/payments', icon: CreditCard },
             { label: 'Profile Settings', path: '/profile', icon: UserCircle },
         ];
     }
@@ -31,6 +32,7 @@ export const getSidebarMenu = (role: string, organizerStatus: string, kycStatus?
     }
 
     const supportItem = { label: 'Support', path: '/support', icon: MessageSquare };
+    const paymentsItem = { label: 'Payments', path: '/payments', icon: CreditCard };
 
     if (role === 'ORGANIZER') {
         return [
@@ -46,6 +48,7 @@ export const getSidebarMenu = (role: string, organizerStatus: string, kycStatus?
                 ]
             },
             ...baseItems,
+            paymentsItem,
             { label: 'Profile', path: '/profile', icon: UserCircle },
             supportItem
         ];
@@ -70,6 +73,7 @@ export const getSidebarMenu = (role: string, organizerStatus: string, kycStatus?
         baseMenu.push({ label: 'Reapply Organizer', path: '/organizer-status', icon: ShieldAlert });
     }
 
+    baseMenu.push(paymentsItem);
     baseMenu.push({ label: 'Profile', path: '/profile', icon: UserCircle });
     baseMenu.push(supportItem);
 

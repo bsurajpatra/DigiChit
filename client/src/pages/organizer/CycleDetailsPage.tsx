@@ -8,14 +8,17 @@ import { ConfirmationDialog } from '../../components/cycles/ConfirmationDialog';
 import { LoadingSkeleton } from '../../components/cycles/LoadingSkeleton';
 import {
     ArrowLeft, Trophy, PlayCircle, CheckCircle,
-    XCircle, Info
+    XCircle, Info, Calendar
 } from 'lucide-react';
 import { format } from 'date-fns';
+
+import { useChitSidebar } from '../../context/ChitSidebarContext';
 
 export const CycleDetailsPage = () => {
     const { cycleId } = useParams<{ cycleId: string }>();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { setGroup, setActiveTab, setIsOrganizer: setSidebarIsOrganizer } = useChitSidebar();
 
     const [cycle, setCycle] = useState<ChitCycle | null>(null);
     const [loading, setLoading] = useState(true);
@@ -34,6 +37,11 @@ export const CycleDetailsPage = () => {
         try {
             const data = await cycleApi.fetchCycleDetails(cycleId);
             setCycle(data);
+            if (data.groupId && typeof data.groupId === 'object') {
+                setGroup(data.groupId as any);
+                setActiveTab('CYCLES');
+                setSidebarIsOrganizer(user?.id === (data.groupId as any).organizerId);
+            }
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to fetch cycle details');
         } finally {
@@ -113,15 +121,25 @@ export const CycleDetailsPage = () => {
         );
     }
 
+    const handleBackNav = () => {
+        const grpId = typeof cycle?.groupId === 'object' ? cycle.groupId._id : cycle?.groupId;
+        if (grpId) {
+            setActiveTab('CYCLES');
+            navigate(`/chit-details/${grpId}?tab=CYCLES`);
+        } else {
+            navigate(-1);
+        }
+    };
+
     return (
         <div className="space-y-6 max-w-5xl mx-auto pb-12">
             {/* Back Nav */}
             <button
-                onClick={() => navigate(-1)}
+                onClick={handleBackNav}
                 className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition cursor-pointer"
             >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
+                <ArrowLeft className="w-4 h-4 text-emerald-600" />
+                <span>Back to Cycles & Timeline</span>
             </button>
 
             {error && (
@@ -130,25 +148,25 @@ export const CycleDetailsPage = () => {
                 </div>
             )}
 
-            {/* Header Card */}
-            <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-xl shadow-md shadow-emerald-600/30 shrink-0">
-                            #{cycle.cycleNumber}
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-2xl font-black text-slate-900">Cycle #{cycle.cycleNumber} Details</h1>
-                                <CycleStatusBadge status={cycle.status} size="lg" />
-                            </div>
-                            <p className="text-xs text-slate-500 mt-1">
-                                {groupObj?.name ? `Group: ${groupObj.name}` : 'Monthly Chit Cycle'}
-                            </p>
-                        </div>
+            {/* Header Title Section */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
+                        <Calendar className="w-4 h-4" />
+                        <span>Cycle Details & Operations</span>
                     </div>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
+                            Cycle #{cycle.cycleNumber} Details
+                        </h1>
+                        <CycleStatusBadge status={cycle.status} size="md" />
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">
+                        {groupObj?.name ? `Group: ${groupObj.name}` : 'Monthly Chit Cycle Operations'}
+                    </p>
+                </div>
 
-                    {(isOrganizer || isAdmin) && (
+                {(isOrganizer || isAdmin) && (
                         <div className="flex items-center gap-2">
                             {cycle.status === 'UPCOMING' && (
                                 <button
@@ -182,7 +200,6 @@ export const CycleDetailsPage = () => {
                         </div>
                     )}
                 </div>
-            </div>
 
             {/* Grid Layout */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 const createCycleSchema = z.object({
     scheduledStartDate: z.string().min(1, 'Scheduled start date is required'),
     scheduledEndDate: z.string().optional(),
-    auctionDate: z.string().optional(),
     remarks: z.string().optional()
 });
 
@@ -43,7 +42,6 @@ export const CreateCycleModal = ({
         defaultValues: {
             scheduledStartDate: tomorrowStr,
             scheduledEndDate: '',
-            auctionDate: '',
             remarks: ''
         }
     });
@@ -105,25 +103,22 @@ export const CreateCycleModal = ({
                     )}
 
                     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-                        {/* Scheduled Start Date */}
-                        <div>
-                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Scheduled Start Date <span className="text-rose-500">*</span>
-                            </label>
-                            <div className="relative">
+                        {/* Scheduled Start Date & Scheduled End Date */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Scheduled Start Date <span className="text-rose-500">*</span>
+                                </label>
                                 <input
                                     type="date"
                                     {...register('scheduledStartDate')}
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
                                 />
+                                {errors.scheduledStartDate && (
+                                    <p className="text-xs text-rose-500 mt-1">{errors.scheduledStartDate.message}</p>
+                                )}
                             </div>
-                            {errors.scheduledStartDate && (
-                                <p className="text-xs text-rose-500 mt-1">{errors.scheduledStartDate.message}</p>
-                            )}
-                        </div>
 
-                        {/* Optional Scheduled End Date & Auction Date */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                                     Scheduled End Date (Optional)
@@ -131,17 +126,6 @@ export const CreateCycleModal = ({
                                 <input
                                     type="date"
                                     {...register('scheduledEndDate')}
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                    Auction Date (Optional)
-                                </label>
-                                <input
-                                    type="date"
-                                    {...register('auctionDate')}
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
                                 />
                             </div>

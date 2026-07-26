@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import type { ChitCycle, CycleStatus } from '../../types/chitCycle';
+import type { ChitCycle, ChitCycleStatus } from '../../types/chitCycle';
 import { CycleStatusBadge } from './CycleStatusBadge';
-import { Search, Download, Calendar, Trophy, PlayCircle, CheckCircle2, XCircle, Eye } from 'lucide-react';
+import { Search, Download, Calendar, Trophy, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatCurrency } from '../../utils/currency';
 
@@ -29,7 +29,7 @@ export const CycleTable = ({
     onViewDetails
 }: CycleTableProps) => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState<'ALL' | CycleStatus>('ALL');
+    const [statusFilter, setStatusFilter] = useState<'ALL' | ChitCycleStatus>('ALL');
 
     const filteredCycles = cycles.filter((c) => {
         const matchesSearch = searchTerm === '' ||
@@ -111,22 +111,24 @@ export const CycleTable = ({
             </div>
 
             {/* Status Filter Tabs */}
-            <div className="px-6 py-2 flex items-center gap-2 overflow-x-auto">
-                {(['ALL', 'ACTIVE', 'UPCOMING', 'COMPLETED'] as const).map((st) => (
-                    <button
-                        key={st}
-                        onClick={() => setStatusFilter(st)}
-                        className={`
-                            px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap
-                            ${statusFilter === st
-                                ? 'bg-slate-900 text-white'
-                                : 'text-slate-500 hover:bg-slate-200/60'
-                            }
-                        `}
-                    >
-                        {st}
-                    </button>
-                ))}
+            <div className="px-6 py-3 bg-slate-50/50 border-b border-slate-100 flex items-center gap-2 overflow-x-auto">
+                <div className="p-1 bg-slate-100/80 rounded-xl border border-slate-200/60 inline-flex items-center gap-1">
+                    {(['ALL', 'ACTIVE', 'UPCOMING', 'COMPLETED'] as const).map((st) => (
+                        <button
+                            key={st}
+                            onClick={() => setStatusFilter(st)}
+                            className={`
+                                px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap
+                                ${statusFilter === st
+                                    ? 'bg-slate-900 text-white shadow-xs'
+                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                                }
+                            `}
+                        >
+                            {st}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* List Table */}
@@ -139,7 +141,7 @@ export const CycleTable = ({
                             <th className="py-3.5 px-6">Scheduled Start</th>
                             <th className="py-3.5 px-6">Winner Member</th>
                             <th className="py-3.5 px-6">Winning Bid</th>
-                            <th className="py-3.5 px-6 text-right">Actions</th>
+                            <th className="py-3.5 px-6">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -201,8 +203,8 @@ export const CycleTable = ({
                                         </td>
 
                                         {/* Actions */}
-                                        <td className="py-4 px-6 text-right">
-                                            <div className="flex items-center justify-end gap-2">
+                                        <td className="py-4 px-6">
+                                            <div className="flex items-center justify-start gap-2">
                                                 {onViewDetails && (
                                                     <button
                                                         onClick={() => onViewDetails(c._id)}

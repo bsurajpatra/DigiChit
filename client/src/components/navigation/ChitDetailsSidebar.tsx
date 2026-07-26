@@ -41,9 +41,15 @@ export const ChitDetailsSidebar = ({
         callback();
     };
 
+    const handleTabClick = (tabKey: ChitTab) => {
+        setActiveTab(tabKey);
+        if (group) {
+            navigate(`/chit-details/${group._id}?tab=${tabKey}`);
+        }
+    };
+
     const navBtn = (
         tabKey: ChitTab,
-        onClick: () => void,
         icon: React.ReactNode,
         label: string,
         badge?: React.ReactNode,
@@ -51,7 +57,7 @@ export const ChitDetailsSidebar = ({
         const isActive = activeTab === tabKey;
         return (
             <button
-                onClick={() => handleAction(onClick)}
+                onClick={() => handleAction(() => handleTabClick(tabKey))}
                 className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all duration-300 cursor-pointer text-sm ${
                     isActive
                         ? 'text-emerald-600 bg-emerald-50 translate-x-1'
@@ -138,14 +144,12 @@ export const ChitDetailsSidebar = ({
 
                     {navBtn(
                         'OVERVIEW',
-                        () => setActiveTab('OVERVIEW'),
                         <LayoutDashboard className={`w-5 h-5 shrink-0 ${activeTab === 'OVERVIEW' ? 'text-emerald-600' : 'text-slate-400'}`} />,
                         'Overview',
                     )}
 
                     {navBtn(
                         'MEMBERS',
-                        () => setActiveTab('MEMBERS'),
                         <Users className={`w-5 h-5 shrink-0 ${activeTab === 'MEMBERS' ? 'text-emerald-600' : 'text-slate-400'}`} />,
                         'Members & Quota',
                         isOrganizer && pendingCount > 0 ? (
@@ -157,28 +161,24 @@ export const ChitDetailsSidebar = ({
 
                     {navBtn(
                         'CYCLES',
-                        () => setActiveTab('CYCLES'),
                         <Calendar className={`w-5 h-5 shrink-0 ${activeTab === 'CYCLES' ? 'text-emerald-600' : 'text-slate-400'}`} />,
                         'Cycles & Timeline',
                     )}
 
                     {navBtn(
                         'AUCTIONS',
-                        () => setActiveTab('AUCTIONS'),
                         <Hammer className={`w-5 h-5 shrink-0 ${activeTab === 'AUCTIONS' ? 'text-emerald-600' : 'text-slate-400'}`} />,
                         'Auctions & Bids',
                     )}
 
                     {navBtn(
                         'INSTALLMENTS',
-                        () => setActiveTab('INSTALLMENTS'),
                         <Coins className={`w-5 h-5 shrink-0 ${activeTab === 'INSTALLMENTS' ? 'text-emerald-600' : 'text-slate-400'}`} />,
                         'Installments & Dues',
                     )}
 
                     {navBtn(
                         'HELP',
-                        () => setActiveTab('HELP'),
                         <MessageSquare className={`w-5 h-5 shrink-0 ${activeTab === 'HELP' ? 'text-emerald-600' : 'text-slate-400'}`} />,
                         'Need Help?',
                     )}

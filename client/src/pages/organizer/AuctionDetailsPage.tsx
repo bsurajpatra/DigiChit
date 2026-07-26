@@ -1,28 +1,34 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useChitSidebar } from '../../context/ChitSidebarContext';
 import * as auctionApi from '../../api/auction.api';
+import api from '../../api/axios';
 import type { Auction } from '../../types/auction';
 import { AuctionStatusBadge } from '../../components/auctions/AuctionStatusBadge';
 import { CountdownTimer } from '../../components/auctions/CountdownTimer';
 import { WinnerBanner } from '../../components/auctions/WinnerBanner';
 import { AuctionTimeline } from '../../components/auctions/AuctionTimeline';
 import { ConfirmationDialog } from '../../components/cycles/ConfirmationDialog';
+import { RecordWinnerModal, type RecordWinnerFormData } from '../../components/cycles/RecordWinnerModal';
 import { LoadingSkeleton } from '../../components/cycles/LoadingSkeleton';
 import {
-    ArrowLeft, Hammer, PlayCircle, CheckCircle, XCircle
+    ArrowLeft, Hammer, PlayCircle, CheckCircle, XCircle, Trophy, Sparkles
 } from 'lucide-react';
 
 export const AuctionDetailsPage = () => {
     const { auctionId } = useParams<{ auctionId: string }>();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { setGroup, setActiveTab, setIsOrganizer: setSidebarIsOrganizer } = useChitSidebar();
 
     const [auction, setAuction] = useState<Auction | null>(null);
+    const [groupMembers, setGroupMembers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const [isWinnerModalOpen, setIsWinnerModalOpen] = useState(false);
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
         type: 'start' | 'close' | 'cancel' | null;
@@ -35,6 +41,17 @@ export const AuctionDetailsPage = () => {
         try {
             const data = await auctionApi.fetchAuctionDetails(auctionId);
             setAuction(data);
+
+            const grpId = typeof data.groupId === 'object' ? data.groupId._id : data.groupId;
+            if (grpId) {
+                const groupRes = await api.get(`/chit-groups/details/${grpId}`);
+                setGroupMembers(groupRes.data.data.members || []);
+                if (groupRes.data.data.group) {
+                    setGroup(groupRes.data.data.group);
+                    setActiveTab('AUCTIONS');
+                    setSidebarIsOrganizer(user?.id === groupRes.data.data.group.organizerId._id);
+                }
+            }
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to fetch auction details');
         } finally {
@@ -49,6 +66,12 @@ export const AuctionDetailsPage = () => {
     const groupObj = typeof auction?.groupId === 'object' ? auction.groupId : null;
     const isOrganizer = user?.id === auction?.organizerId;
     const isAdmin = user?.role === 'ADMIN';
+
+    const memberOptions = groupMembers.map((m: any) => ({
+        membershipId: m._id,
+        userName: m.userId?.name || 'Member',
+        userEmail: m.userId?.email || ''
+    }));
 
     const handleStart = async () => {
         if (!auctionId) return;
@@ -92,6 +115,23 @@ export const AuctionDetailsPage = () => {
         }
     };
 
+    const handleWinnerSubmit = async (data: RecordWinnerFormData) => {
+        if (!auctionId) return;
+        setActionLoading(true);
+        try {
+            await auctionApi.declareAuctionWinner(auctionId, {
+                winningMembershipId: data.winnerMembershipId,
+                remarks: data.remarks
+            });
+            await loadAuction();
+            setIsWinnerModalOpen(false);
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Failed to declare winner');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     if (loading) {
         return <LoadingSkeleton />;
     }
@@ -110,15 +150,25 @@ export const AuctionDetailsPage = () => {
         );
     }
 
+    const handleBackNav = () => {
+        const grpId = typeof auction?.groupId === 'object' ? auction.groupId._id : auction?.groupId;
+        if (grpId) {
+            setActiveTab('AUCTIONS');
+            navigate(`/chit-details/${grpId}?tab=AUCTIONS`);
+        } else {
+            navigate(-1);
+        }
+    };
+
     return (
-        <div className="space-y-6 max-w-5xl mx-auto pb-12">
+        <div className="space-y-6 max-w-7xl mx-auto pb-12">
             {/* Back Nav */}
             <button
-                onClick={() => navigate(-1)}
+                onClick={handleBackNav}
                 className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition cursor-pointer"
             >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
+                <ArrowLeft className="w-4 h-4 text-emerald-600" />
+                <span>Back to Auctions & Bids</span>
             </button>
 
             {error && (
@@ -127,26 +177,36 @@ export const AuctionDetailsPage = () => {
                 </div>
             )}
 
-            {/* Header Card */}
-            <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-xl shadow-md shadow-emerald-600/30 shrink-0">
-                            <Hammer className="w-7 h-7" />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-2xl font-black text-slate-900">Auction #{auction.auctionNumber} Details</h1>
-                                <AuctionStatusBadge status={auction.status} size="lg" />
-                            </div>
-                            <p className="text-xs text-slate-500 mt-1">
-                                {groupObj?.name ? `Group: ${groupObj.name}` : 'Monthly Member Auction'}
-                            </p>
-                        </div>
+            {/* Header Title Section */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
+                        <Hammer className="w-4 h-4" />
+                        <span>Auction Control Room</span>
                     </div>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
+                            Auction #{auction.auctionNumber} Control Room
+                        </h1>
+                        <AuctionStatusBadge status={auction.status} size="md" />
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">
+                        {groupObj?.name ? `Group: ${groupObj.name}` : 'Monthly Member Auction Control Room'}
+                    </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                    {/* Live Bids Room Button */}
+                    <button
+                        onClick={() => navigate(`/auctions/${auction._id}/bids`)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
+                    >
+                        <Hammer className="w-4 h-4 text-emerald-400" />
+                        <span>Bids Room</span>
+                    </button>
 
                     {(isOrganizer || isAdmin) && (
-                        <div className="flex items-center gap-2">
+                        <>
                             {auction.status === 'SCHEDULED' && (
                                 <button
                                     onClick={() => setConfirmModal({ isOpen: true, type: 'start' })}
@@ -158,12 +218,31 @@ export const AuctionDetailsPage = () => {
                             )}
 
                             {auction.status === 'OPEN' && (
+                                <>
+                                    <button
+                                        onClick={() => setConfirmModal({ isOpen: true, type: 'close' })}
+                                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
+                                    >
+                                        <CheckCircle className="w-4 h-4" />
+                                        <span>Close Bidding</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setIsWinnerModalOpen(true)}
+                                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
+                                    >
+                                        <Trophy className="w-4 h-4 text-amber-300" />
+                                        <span>Declare Winner</span>
+                                    </button>
+                                </>
+                            )}
+
+                            {auction.status === 'CLOSED' && (
                                 <button
-                                    onClick={() => setConfirmModal({ isOpen: true, type: 'close' })}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
+                                    onClick={() => setIsWinnerModalOpen(true)}
+                                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
                                 >
-                                    <CheckCircle className="w-4 h-4" />
-                                    <span>Close Bidding</span>
+                                    <Trophy className="w-4 h-4 text-amber-300" />
+                                    <span>Declare Winner</span>
                                 </button>
                             )}
 
@@ -176,7 +255,7 @@ export const AuctionDetailsPage = () => {
                                     <XCircle className="w-5 h-5" />
                                 </button>
                             )}
-                        </div>
+                        </>
                     )}
                 </div>
             </div>
@@ -266,6 +345,16 @@ export const AuctionDetailsPage = () => {
                 isLoading={actionLoading}
                 onConfirm={handleCancel}
                 onCancel={() => setConfirmModal({ isOpen: false, type: null })}
+            />
+
+            {/* Record Winner Modal */}
+            <RecordWinnerModal
+                isOpen={isWinnerModalOpen}
+                cycleNumber={auction.auctionNumber}
+                members={memberOptions}
+                isLoading={actionLoading}
+                onClose={() => setIsWinnerModalOpen(false)}
+                onSubmit={handleWinnerSubmit}
             />
         </div>
     );
