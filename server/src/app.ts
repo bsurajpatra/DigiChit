@@ -15,6 +15,7 @@ import installmentRoutes from './routes/installment.routes.js';
 import chitMessageRoutes from './routes/chitMessage.routes.js';
 import transactionRoutes from './modules/payment/routes/transaction.routes.js';
 import collectionRoutes from './modules/collection/routes/collection.routes.js';
+import ledgerRoutes from './modules/ledger/routes/ledger.routes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { globalErrorHandler } from './middlewares/error.middleware.js';
@@ -66,6 +67,7 @@ app.use('/api/bids', bidRoutes);
 app.use('/api/installments', installmentRoutes);
 app.use('/api/chit-messages', chitMessageRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/ledger', ledgerRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
