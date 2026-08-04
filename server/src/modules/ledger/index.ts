@@ -6,4 +6,5 @@ export * from './models/LedgerEntry.js';
 export * from './repositories/LedgerRepository.js';
 export * from './services/LedgerService.js';
 export * from './controllers/LedgerController.js';
+export * from './listeners/LedgerEventListener.js';
 export { default as ledgerRoutes } from './routes/ledger.routes.js';

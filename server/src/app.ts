@@ -16,6 +16,7 @@ import chitMessageRoutes from './routes/chitMessage.routes.js';
 import transactionRoutes from './modules/payment/routes/transaction.routes.js';
 import collectionRoutes from './modules/collection/routes/collection.routes.js';
 import ledgerRoutes from './modules/ledger/routes/ledger.routes.js';
+import { initLedgerEventListeners } from './modules/ledger/listeners/LedgerEventListener.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { globalErrorHandler } from './middlewares/error.middleware.js';
@@ -29,8 +30,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Initialize Cron Jobs
+// Initialize Cron Jobs & Domain Event Listeners
 initInactivityCron();
+initLedgerEventListeners();
 
 // Security Middlewares
 app.use(helmet({

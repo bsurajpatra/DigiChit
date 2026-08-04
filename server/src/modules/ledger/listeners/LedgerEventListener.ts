@@ -1,0 +1,86 @@
+import { eventBus } from '../../payment/events/eventBus.js';
+import { PaymentDomainEvent, PaymentDomainEventType } from '../../payment/events/domainEvents.js';
+import { ITransaction, TransactionStatus } from '../../payment/models/Transaction.js';
+import ChitGroup from '../../../models/ChitGroup.js';
+import { LedgerService } from '../services/LedgerService.js';
+import { LedgerRepository } from '../repositories/LedgerRepository.js';
+import {
+    LedgerEntryType,
+    LedgerDirection,
+    LedgerReferenceType,
+    LedgerAccountType
+} from '../enums/ledger.enum.js';
+
+const ledgerService = new LedgerService();
+const ledgerRepo = new LedgerRepository();
+
+/**
+ * Initializes listeners for Ledger Domain Events.
+ * Listens to TRANSACTION_SUCCESS domain events to create corresponding immutable Ledger Entries.
+ */
+export const initLedgerEventListeners = (): void => {
+    eventBus.on(PaymentDomainEventType.TRANSACTION_SUCCESS, async (event: PaymentDomainEvent<ITransaction>) => {
+        try {
+            const txn = event.data;
+
+            if (!txn || !txn._id) {
+                return;
+            }
+
+            // Rule: Only process successful transactions (Ignore PENDING, FAILED, CANCELLED)
+            if (txn.status !== TransactionStatus.SUCCESS) {
+                return;
+            }
+
+            const transactionIdStr = txn._id.toString();
+
+            // Duplicate Protection (Idempotency Check)
+            const existingEntry = await ledgerRepo.findByTransactionId(transactionIdStr);
+            if (existingEntry) {
+                console.log(`[LedgerEventListener] Duplicate event detected. Ledger entry already exists for Transaction ID: ${transactionIdStr}. Safely ignoring.`);
+                return;
+            }
+
+            // Fetch associated ChitGroup to obtain organizerId
+            const group = await ChitGroup.findById(txn.groupId);
+            if (!group) {
+                console.error(`[LedgerEventListener Error] Associated ChitGroup ${txn.groupId} not found for transaction ${transactionIdStr}`);
+                return;
+            }
+
+            const organizerIdStr = group.organizerId.toString();
+
+            // Create Immutable Ledger Entry
+            const ledgerEntry = await ledgerService.createEntry({
+                entryType: LedgerEntryType.INSTALLMENT_PAYMENT,
+                referenceType: LedgerReferenceType.TRANSACTION,
+                referenceId: transactionIdStr,
+                transactionId: transactionIdStr,
+                memberId: txn.memberId.toString(),
+                organizerId: organizerIdStr,
+                groupId: txn.groupId.toString(),
+                cycleId: txn.cycleId.toString(),
+                installmentId: txn.installmentId.toString(),
+                amount: txn.amount,
+                direction: LedgerDirection.CREDIT,
+                account: {
+                    type: LedgerAccountType.MEMBER_RECEIVABLE,
+                    name: 'Member Receivable'
+                },
+                description: 'Installment Payment',
+                remarks: `Installment payment created for group ${group.name}`,
+                createdBy: txn.memberId.toString()
+            });
+
+            // Structured Audit Output Log
+            console.log(
+                `[LedgerEventListener] Ledger Entry Created | Transaction ID: ${transactionIdStr} | Ledger Entry Number: ${ledgerEntry.entryNumber} | Timestamp: ${new Date(ledgerEntry.createdAt).toISOString()}`
+            );
+        } catch (error: any) {
+            // Error Isolation: Prevent Ledger failures from corrupting Transaction status
+            console.error('[LedgerEventListener Error] Failed to create ledger entry for transaction:', error.message || error);
+        }
+    });
+
+    console.log('[LedgerEventListener] Event listeners registered for TRANSACTION_SUCCESS.');
+};

@@ -53,6 +53,14 @@ export class LedgerRepository {
     }
 
     /**
+     * Finds a single LedgerEntry by transaction ID for duplicate checking.
+     */
+    public async findByTransactionId(transactionId: string): Promise<ILedgerEntry | null> {
+        if (!mongoose.Types.ObjectId.isValid(transactionId)) return null;
+        return await LedgerEntry.findOne({ transactionId: new mongoose.Types.ObjectId(transactionId) });
+    }
+
+    /**
      * Generic paginated filter query for ledger entries.
      */
     public async findPaginated(
