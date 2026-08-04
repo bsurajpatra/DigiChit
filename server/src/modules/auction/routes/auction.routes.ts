@@ -5,7 +5,7 @@ import {
     createAuctionValidation,
     updateAuctionValidation,
     declareAuctionWinnerValidation
-} from '../../../middlewares/validator.middleware.js';
+} from '../validators/auction.validator.js';
 import { UserRole } from '../../user/models/User.js';
 
 const router = Router();

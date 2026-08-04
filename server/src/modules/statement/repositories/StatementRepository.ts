@@ -49,6 +49,20 @@ export class StatementRepository {
     }
 
     /**
+     * Fetches populated ledger entries for CSV export.
+     */
+    public async getStatementCSVEntries(filter: Record<string, any>) {
+        return await LedgerEntry.find(filter)
+            .populate('memberId', 'name email')
+            .populate('groupId', 'name')
+            .populate('cycleId', 'cycleNumber')
+            .populate('installmentId', 'installmentNumber')
+            .sort({ createdAt: -1 })
+            .limit(1000)
+            .exec();
+    }
+
+    /**
      * Fetches paginated ledger entries with populate for timeline views.
      */
     public async getLedgerTimeline(filter: Record<string, any>, query: StatementQueryDTO) {

@@ -1,7 +1,23 @@
 import mongoose from 'mongoose';
 import Membership, { IMembership, MembershipStatus } from '../models/Membership.js';
+import ChitGroup, { IChitGroup } from '../../chit-group/models/ChitGroup.js';
 
 export class MembershipRepository {
+    /**
+     * Finds a single ChitGroup by ID.
+     */
+    public async findGroupById(groupId: string): Promise<IChitGroup | null> {
+        if (!mongoose.Types.ObjectId.isValid(groupId)) return null;
+        return await ChitGroup.findById(groupId);
+    }
+
+    /**
+     * Saves changes on an existing ChitGroup document.
+     */
+    public async saveGroup(groupDoc: IChitGroup): Promise<IChitGroup> {
+        return await groupDoc.save();
+    }
+
     /**
      * Creates a new Membership record.
      */

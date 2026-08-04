@@ -7,8 +7,8 @@ import {
     IRejectMemberInput,
     IMarkWinnerInput
 } from '../interfaces/IMembership.js';
-import ChitGroup, { IChitGroup, ChitGroupStatus } from '../../chit-group/models/ChitGroup.js';
-import User, { UserRole } from '../../user/models/User.js';
+import { IChitGroup, ChitGroupStatus } from '../../chit-group/models/ChitGroup.js';
+import { UserRole } from '../../user/models/User.js';
 import { AppError } from '../../../utils/appError.js';
 import { logAction } from '../../../utils/auditLogger.js';
 
@@ -25,7 +25,7 @@ export class MembershipService {
     public async requestJoin(input: IRequestJoinInput): Promise<IMembership> {
         const { userId, chitGroupId } = input;
 
-        const group = await ChitGroup.findById(chitGroupId);
+        const group = await this.repo.findGroupById(chitGroupId);
         if (!group) throw new AppError('Group not found.', 404);
         if (group.status !== ChitGroupStatus.FORMING) {
             throw new AppError('Joining is only allowed during the FORMING phase.', 400);
@@ -87,11 +87,11 @@ export class MembershipService {
 
         const newApprovedCount = approvedCount + 1;
         group.currentMemberCount = newApprovedCount;
-        await group.save();
+        await this.repo.saveGroup(group);
 
         if (newApprovedCount === group.totalMembers) {
             group.status = ChitGroupStatus.ACTIVE;
-            await group.save();
+            await this.repo.saveGroup(group);
 
             await logAction(organizerId, UserRole.ORGANIZER, 'CHIT_GROUP_ACTIVATED', {
                 newValue: { chitGroupId: group._id.toString() }

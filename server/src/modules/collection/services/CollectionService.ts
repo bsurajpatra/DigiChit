@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
-import ChitCycle, { PaymentCollectionStatus } from '../../../models/ChitCycle.js';
-import ChitGroup from '../../../models/ChitGroup.js';
-import { UserRole } from '../../../models/User.js';
+import { PaymentCollectionStatus } from '../../chit-cycle/models/ChitCycle.js';
+import { UserRole } from '../../user/models/User.js';
 import { AppError } from '../../../utils/appError.js';
 import { logAction } from '../../../utils/auditLogger.js';
 import { eventBus } from '../../payment/events/eventBus.js';
@@ -24,12 +23,12 @@ export class CollectionService {
         cycleId: string,
         remarks?: string
     ) {
-        const cycle = await ChitCycle.findById(cycleId);
+        const cycle = await this.repo.findCycleById(cycleId);
         if (!cycle) {
             throw new AppError('Chit Cycle not found.', 404, 'CYCLE_NOT_FOUND');
         }
 
-        const group = await ChitGroup.findById(cycle.groupId);
+        const group = await this.repo.findGroupById(cycle.groupId);
         if (!group) {
             throw new AppError('Associated Chit Group not found.', 404, 'GROUP_NOT_FOUND');
         }
@@ -68,7 +67,7 @@ export class CollectionService {
             remarks: remarks || cycle.paymentCollection?.remarks || null
         };
 
-        await cycle.save();
+        await this.repo.saveCycle(cycle);
 
         // Domain Event
         eventBus.publish({
@@ -106,12 +105,12 @@ export class CollectionService {
         cycleId: string,
         remarks?: string
     ) {
-        const cycle = await ChitCycle.findById(cycleId);
+        const cycle = await this.repo.findCycleById(cycleId);
         if (!cycle) {
             throw new AppError('Chit Cycle not found.', 404, 'CYCLE_NOT_FOUND');
         }
 
-        const group = await ChitGroup.findById(cycle.groupId);
+        const group = await this.repo.findGroupById(cycle.groupId);
         if (!group) {
             throw new AppError('Associated Chit Group not found.', 404, 'GROUP_NOT_FOUND');
         }
@@ -139,7 +138,7 @@ export class CollectionService {
             remarks: remarks || cycle.paymentCollection?.remarks || null
         };
 
-        await cycle.save();
+        await this.repo.saveCycle(cycle);
 
         // Domain Event
         eventBus.publish({
@@ -172,7 +171,7 @@ export class CollectionService {
      * Retrieves lightweight collection status info.
      */
     public async getCollectionStatus(cycleId: string) {
-        const cycle = await ChitCycle.findById(cycleId).select('paymentCollection cycleNumber groupId');
+        const cycle = await this.repo.findCycleById(cycleId);
         if (!cycle) {
             throw new AppError('Chit Cycle not found.', 404, 'CYCLE_NOT_FOUND');
         }
@@ -200,7 +199,7 @@ export class CollectionService {
      * Retrieves member installment list for collection tracking.
      */
     public async getPendingMembers(cycleId: string, statusFilter?: string, searchTerm?: string) {
-        const cycle = await ChitCycle.findById(cycleId);
+        const cycle = await this.repo.findCycleById(cycleId);
         if (!cycle) {
             throw new AppError('Chit Cycle not found.', 404, 'CYCLE_NOT_FOUND');
         }

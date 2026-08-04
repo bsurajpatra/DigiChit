@@ -1,8 +1,7 @@
 import mongoose from 'mongoose';
-import Installment, { PaymentStatus } from '../../../models/Installment.js';
-import ChitGroup from '../../../models/ChitGroup.js';
-import ChitCycle, { PaymentCollectionStatus } from '../../../models/ChitCycle.js';
-import User, { UserRole } from '../../../models/User.js';
+import { PaymentStatus } from '../../installment/models/Installment.js';
+import { PaymentCollectionStatus } from '../../chit-cycle/models/ChitCycle.js';
+import { UserRole } from '../../user/models/User.js';
 import { logAction } from '../../../utils/auditLogger.js';
 
 import { TransactionRepository, PaginatedResult } from '../repositories/TransactionRepository.js';
@@ -29,13 +28,13 @@ export class TransactionService {
      * Initiates a payment order for a specific Installment obligation.
      */
     public async initiatePayment(actorId: string, dto: InitiatePaymentDTO): Promise<ITransaction> {
-        const installment = await Installment.findById(dto.installmentId);
+        const installment = await this.repo.findInstallmentById(dto.installmentId);
         if (!installment) {
             throw new Error('Installment obligation not found');
         }
 
         // Business Rule: Validate ChitCycle paymentCollection.status == OPEN
-        const cycle = await ChitCycle.findById(installment.cycleId);
+        const cycle = await this.repo.findCycleById(installment.cycleId);
         if (!cycle) {
             throw new Error('Associated Chit Cycle not found');
         }
@@ -74,7 +73,7 @@ export class TransactionService {
         }
 
         // Get group financial config for currency
-        const group = await ChitGroup.findById(installment.groupId);
+        const group = await this.repo.findGroupById(installment.groupId);
         const currency = dto.currency || group?.financialConfig?.currency || 'INR';
 
         const gatewayProvider = dto.paymentGateway || PaymentGatewayProvider.MOCK;
@@ -166,7 +165,7 @@ export class TransactionService {
 
         const verification = await gateway.verifyPayment(verifyPayload);
 
-        const actor = await User.findById(actorId);
+        const actor = await this.repo.findUserById(actorId);
 
         if (verification.isVerified) {
             // Build Receipt Metadata
@@ -287,7 +286,7 @@ export class TransactionService {
             throw new Error('Failed to update transaction state for refund');
         }
 
-        const actor = await User.findById(actorId);
+        const actor = await this.repo.findUserById(actorId);
 
         // Audit log
         await logAction(actorId, (actor?.role as UserRole) || UserRole.ORGANIZER, `PAYMENT_REFUNDED`, {

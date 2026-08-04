@@ -5,7 +5,7 @@ import {
     generateInstallmentsValidation,
     updateInstallmentValidation,
     updateInstallmentStatusValidation
-} from '../../../middlewares/validator.middleware.js';
+} from '../validators/installment.validator.js';
 import { UserRole } from '../../user/models/User.js';
 
 const router = Router();

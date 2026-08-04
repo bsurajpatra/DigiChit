@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import ChitCycle from '../../../models/ChitCycle.js';
-import Installment, { PaymentStatus } from '../../../models/Installment.js';
-import ChitGroup from '../../../models/ChitGroup.js';
+import ChitCycle, { IChitCycle } from '../../chit-cycle/models/ChitCycle.js';
+import Installment, { PaymentStatus } from '../../installment/models/Installment.js';
+import ChitGroup, { IChitGroup } from '../../chit-group/models/ChitGroup.js';
 
 export interface CollectionSummaryResult {
     cycleId: string;
@@ -36,6 +36,19 @@ export interface CollectionSummaryResult {
 }
 
 export class CollectionRepository {
+    public async findCycleById(cycleId: string): Promise<IChitCycle | null> {
+        if (!mongoose.Types.ObjectId.isValid(cycleId)) return null;
+        return await ChitCycle.findById(cycleId);
+    }
+
+    public async findGroupById(groupId: any): Promise<IChitGroup | null> {
+        return await ChitGroup.findById(groupId);
+    }
+
+    public async saveCycle(cycleDoc: IChitCycle): Promise<IChitCycle> {
+        return await cycleDoc.save();
+    }
+
     public async getCollectionSummary(cycleId: string): Promise<CollectionSummaryResult | null> {
         const cycle = await ChitCycle.findById(cycleId)
             .populate('groupId', 'name monthlyContribution totalMembers financialConfig')

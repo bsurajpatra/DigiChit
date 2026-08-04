@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 import { StatementRepository } from '../repositories/StatementRepository.js';
 import { StatementQueryDTO } from '../dto/StatementQueryDTO.js';
 import { AppError } from '../../../utils/appError.js';
-import LedgerEntry from '../../ledger/models/LedgerEntry.js';
 
 export class StatementService {
     private repo: StatementRepository;
@@ -131,15 +130,7 @@ export class StatementService {
         }
 
         const filter = this.repo.buildLedgerFilter(baseFilter, query);
-
-        const entries = await LedgerEntry.find(filter)
-            .populate('memberId', 'name email')
-            .populate('groupId', 'name')
-            .populate('cycleId', 'cycleNumber')
-            .populate('installmentId', 'installmentNumber')
-            .sort({ createdAt: -1 })
-            .limit(1000)
-            .exec();
+        const entries = await this.repo.getStatementCSVEntries(filter);
 
         const headers = [
             'Entry Number',

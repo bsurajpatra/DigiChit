@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
 import Transaction, { ITransaction, TransactionStatus } from '../models/Transaction.js';
+import Installment, { IInstallment } from '../../installment/models/Installment.js';
+import ChitCycle, { IChitCycle } from '../../chit-cycle/models/ChitCycle.js';
+import ChitGroup, { IChitGroup } from '../../chit-group/models/ChitGroup.js';
+import User, { IUser } from '../../user/models/User.js';
 
 export interface PaginationOptions {
     page?: number;
@@ -17,6 +21,24 @@ export interface PaginatedResult<T> {
 }
 
 export class TransactionRepository {
+    public async findInstallmentById(installmentId: string): Promise<IInstallment | null> {
+        if (!mongoose.Types.ObjectId.isValid(installmentId)) return null;
+        return await Installment.findById(installmentId);
+    }
+
+    public async findCycleById(cycleId: any): Promise<IChitCycle | null> {
+        return await ChitCycle.findById(cycleId);
+    }
+
+    public async findGroupById(groupId: any): Promise<IChitGroup | null> {
+        return await ChitGroup.findById(groupId);
+    }
+
+    public async findUserById(userId: string): Promise<IUser | null> {
+        if (!mongoose.Types.ObjectId.isValid(userId)) return null;
+        return await User.findById(userId);
+    }
+
     public async create(data: Partial<ITransaction>): Promise<ITransaction> {
         return await Transaction.create(data);
     }

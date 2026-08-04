@@ -3,7 +3,7 @@ import { KYCController } from '../controllers/KYCController.js';
 import { protect, restrictTo, checkAccountActive } from '../../../middlewares/auth.js';
 import { UserRole } from '../../user/models/User.js';
 import { upload } from '../../../utils/upload.js';
-import { kycSubmissionValidation } from '../../../middlewares/validator.middleware.js';
+import { kycSubmissionValidation } from '../validators/kyc.validator.js';
 
 const router = Router();
 

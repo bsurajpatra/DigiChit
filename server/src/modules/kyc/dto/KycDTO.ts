@@ -1,0 +1,12 @@
+import { KYCStatus } from '../../user/models/User.js';
+
+export interface SubmitKycDto {
+    aadhaar: string;
+    undertakingAccepted: boolean;
+}
+
+export interface AdminReviewKycDto {
+    kycId: string;
+    status: KYCStatus;
+    rejectionReason?: string;
+}

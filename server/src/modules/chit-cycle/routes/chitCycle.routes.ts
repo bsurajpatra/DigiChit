@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { ChitCycleController } from '../controllers/ChitCycleController.js';
 import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '../../../middlewares/auth.js';
-import { createCycleValidation, recordWinnerValidation } from '../../../middlewares/validator.middleware.js';
+import { createCycleValidation, recordWinnerValidation } from '../validators/chitCycle.validator.js';
 import { UserRole } from '../../user/models/User.js';
 
 const router = Router();
