@@ -16,6 +16,7 @@ import chitMessageRoutes from './routes/chitMessage.routes.js';
 import transactionRoutes from './modules/payment/routes/transaction.routes.js';
 import collectionRoutes from './modules/collection/routes/collection.routes.js';
 import ledgerRoutes from './modules/ledger/routes/ledger.routes.js';
+import statementRoutes from './modules/statement/routes/statement.routes.js';
 import { initLedgerEventListeners } from './modules/ledger/listeners/LedgerEventListener.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -70,6 +71,7 @@ app.use('/api/installments', installmentRoutes);
 app.use('/api/chit-messages', chitMessageRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/ledger', ledgerRoutes);
+app.use('/api/statements', statementRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

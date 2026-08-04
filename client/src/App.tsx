@@ -38,6 +38,8 @@ import { BidsPage } from './pages/organizer/BidsPage';
 import { MyInstallmentsPage } from './pages/dashboard/MyInstallmentsPage';
 import { GroupInstallmentsPage } from './pages/organizer/GroupInstallmentsPage';
 import { PaymentHistoryPage } from './pages/dashboard/PaymentHistoryPage';
+import { MemberStatementPage } from './pages/statements/MemberStatementPage';
+import { OrganizerStatementPage } from './pages/statements/OrganizerStatementPage';
 import { KYCPanel } from './pages/admin/KYCPanel';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { OrganizerApplications } from './pages/admin/OrganizerApplications';
@@ -110,11 +112,13 @@ function App() {
                             <Route path="/my-installments" element={<MyInstallmentsPage />} />
                             <Route path="/chits/:groupId/installments" element={<GroupInstallmentsPage />} />
                             <Route path="/payments" element={<PaymentHistoryPage />} />
+                            <Route path="/my-statement" element={<MemberStatementPage />} />
 
                             {/* Organizer specific routes */}
                             <Route element={<ProtectedRoute allowedRoles={['ORGANIZER']} />}>
                                 <Route path="/organizer/create-chit" element={<CreateChit />} />
                                 <Route path="/organizer/my-chits" element={<MyOrganizedChits />} />
+                                <Route path="/organizer/statements" element={<OrganizerStatementPage />} />
                             </Route>
 
                             {/* Admin specific routes */}

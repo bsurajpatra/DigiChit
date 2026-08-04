@@ -1,6 +1,6 @@
 import {
     UserCheck, Briefcase, UserCircle,
-    PlusCircle, FolderKanban, Search, Wallet, ShieldPlus, ShieldAlert, Inbox, MessageSquare, CreditCard
+    PlusCircle, FolderKanban, Search, Wallet, ShieldPlus, ShieldAlert, Inbox, MessageSquare, CreditCard, FileText
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -33,6 +33,8 @@ export const getSidebarMenu = (role: string, organizerStatus: string, kycStatus?
 
     const supportItem = { label: 'Support', path: '/support', icon: MessageSquare };
     const paymentsItem = { label: 'Payments', path: '/payments', icon: CreditCard };
+    const memberStatementItem = { label: 'My Statement', path: '/my-statement', icon: FileText };
+    const organizerStatementItem = { label: 'Statements', path: '/organizer/statements', icon: FileText };
 
     if (role === 'ORGANIZER') {
         return [
@@ -49,6 +51,7 @@ export const getSidebarMenu = (role: string, organizerStatus: string, kycStatus?
             },
             ...baseItems,
             paymentsItem,
+            organizerStatementItem,
             { label: 'Profile', path: '/profile', icon: UserCircle },
             supportItem
         ];
@@ -74,6 +77,7 @@ export const getSidebarMenu = (role: string, organizerStatus: string, kycStatus?
     }
 
     baseMenu.push(paymentsItem);
+    baseMenu.push(memberStatementItem);
     baseMenu.push({ label: 'Profile', path: '/profile', icon: UserCircle });
     baseMenu.push(supportItem);
 
