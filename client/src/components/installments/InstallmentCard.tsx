@@ -30,6 +30,8 @@ export const InstallmentCard = ({ installment, currency, onDownloadReceipt }: In
     const netAmount = (installment.amount || 0) + (installment.lateFee || 0);
     const isPaid = currentStatus === 'PAID';
 
+    const collectionStatus = (cycleObj as any)?.paymentCollection?.status || (cycleObj as any)?.paymentCollectionStatus || 'NOT_STARTED';
+
     return (
         <>
             <div className={`
@@ -103,7 +105,12 @@ export const InstallmentCard = ({ installment, currency, onDownloadReceipt }: In
                             <Download className="w-3.5 h-3.5" />
                             <span>Download Receipt</span>
                         </button>
-                    ) : (
+                    ) : collectionStatus === 'CLOSED' ? (
+                        <div className="w-full py-2.5 px-3 bg-slate-100 border border-slate-200 text-slate-600 text-[11px] font-bold rounded-xl text-center flex items-center justify-center gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                            <span>Collections for this cycle have been closed.</span>
+                        </div>
+                    ) : collectionStatus === 'OPEN' ? (
                         <button
                             onClick={() => setIsPaymentModalOpen(true)}
                             className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
@@ -111,6 +118,11 @@ export const InstallmentCard = ({ installment, currency, onDownloadReceipt }: In
                             <CreditCard className="w-3.5 h-3.5" />
                             <span>Pay Now ({formatCurrency(netAmount, activeCurrency)})</span>
                         </button>
+                    ) : (
+                        <div className="w-full py-2.5 px-3 bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold rounded-xl text-center flex items-center justify-center gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <span>Collections have not been opened by the organizer yet.</span>
+                        </div>
                     )}
                 </div>
             </div>

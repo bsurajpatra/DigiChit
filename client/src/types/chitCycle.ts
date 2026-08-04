@@ -1,4 +1,14 @@
 export type ChitCycleStatus = 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+export type PaymentCollectionStatus = 'NOT_STARTED' | 'OPEN' | 'CLOSED';
+
+export interface IPaymentCollectionInfo {
+    status: PaymentCollectionStatus;
+    openedAt?: string | null;
+    openedBy?: string | null;
+    closedAt?: string | null;
+    closedBy?: string | null;
+    remarks?: string | null;
+}
 
 export interface WinnerUser {
     _id: string;
@@ -21,6 +31,12 @@ export interface ChitCycle {
     groupId: string | { _id: string; name: string; totalMembers: number; monthlyContribution: number; organizerId: string; status: string };
     cycleNumber: number;
     status: ChitCycleStatus;
+    paymentCollection?: IPaymentCollectionInfo;
+    paymentCollectionStatus?: PaymentCollectionStatus;
+    collectionsOpenedAt?: string | null;
+    collectionsOpenedBy?: string | null;
+    collectionsClosedAt?: string | null;
+    collectionsClosedBy?: string | null;
     scheduledStartDate: string;
     actualStartDate?: string | null;
     scheduledEndDate?: string | null;

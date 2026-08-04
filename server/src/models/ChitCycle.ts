@@ -12,6 +12,24 @@ export enum ChitCycleStatus {
 }
 
 /**
+ * Payment collection status for a chit cycle controlled by organizer.
+ */
+export enum PaymentCollectionStatus {
+    NOT_STARTED = 'NOT_STARTED',
+    OPEN = 'OPEN',
+    CLOSED = 'CLOSED'
+}
+
+export interface IPaymentCollectionInfo {
+    status: PaymentCollectionStatus;
+    openedAt?: Date | null;
+    openedBy?: mongoose.Types.ObjectId | null;
+    closedAt?: Date | null;
+    closedBy?: mongoose.Types.ObjectId | null;
+    remarks?: string | null;
+}
+
+/**
  * Interface representing a ChitCycle document in MongoDB.
  * Represents one monthly financial and operational cycle of a ChitGroup.
  */
@@ -19,6 +37,7 @@ export interface IChitCycle extends Document {
     groupId: mongoose.Types.ObjectId;
     cycleNumber: number;
     status: ChitCycleStatus;
+    paymentCollection: IPaymentCollectionInfo;
     financialConfigSnapshot?: IFinancialConfig;
     scheduledStartDate: Date;
     actualStartDate?: Date | null;
@@ -34,6 +53,41 @@ export interface IChitCycle extends Document {
     createdAt: Date;
     updatedAt: Date;
 }
+
+const PaymentCollectionSchema = new Schema<IPaymentCollectionInfo>(
+    {
+        status: {
+            type: String,
+            enum: Object.values(PaymentCollectionStatus),
+            default: PaymentCollectionStatus.NOT_STARTED,
+            required: true
+        },
+        openedAt: {
+            type: Date,
+            default: null
+        },
+        openedBy: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            default: null
+        },
+        closedAt: {
+            type: Date,
+            default: null
+        },
+        closedBy: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            default: null
+        },
+        remarks: {
+            type: String,
+            trim: true,
+            default: null
+        }
+    },
+    { _id: false }
+);
 
 const ChitCycleSchema: Schema = new Schema<IChitCycle>(
     {
@@ -52,6 +106,17 @@ const ChitCycleSchema: Schema = new Schema<IChitCycle>(
             enum: Object.values(ChitCycleStatus),
             default: ChitCycleStatus.UPCOMING,
             required: true
+        },
+        paymentCollection: {
+            type: PaymentCollectionSchema,
+            default: () => ({
+                status: PaymentCollectionStatus.NOT_STARTED,
+                openedAt: null,
+                openedBy: null,
+                closedAt: null,
+                closedBy: null,
+                remarks: null
+            })
         },
         financialConfigSnapshot: {
             type: Schema.Types.Mixed,
@@ -114,14 +179,8 @@ const ChitCycleSchema: Schema = new Schema<IChitCycle>(
     }
 );
 
-// -----------------------------------------------------------------------------
-// INDEXES
-// -----------------------------------------------------------------------------
-
-// Business Rule 1 & 2: Ensure cycleNumber is unique within a specific chit group
+// Indexes
 ChitCycleSchema.index({ groupId: 1, cycleNumber: 1 }, { unique: true });
-
-// Business Rule 6: DB-level constraint to guarantee only ONE active cycle exists per group
 ChitCycleSchema.index(
     { groupId: 1, status: 1 },
     {
@@ -129,8 +188,6 @@ ChitCycleSchema.index(
         partialFilterExpression: { status: ChitCycleStatus.ACTIVE }
     }
 );
-
-// Efficient querying by group and cycle status
 ChitCycleSchema.index({ groupId: 1, status: 1 });
 
 export default mongoose.model<IChitCycle>('ChitCycle', ChitCycleSchema);

@@ -304,12 +304,15 @@ export const BidsPage = () => {
                     <div className="w-full">
                         {isMember ? (
                             myActiveBid && !editingBid ? (
-                                <BidCard
-                                    bid={myActiveBid}
-                                    isAuctionOpen={isAuctionOpen}
-                                    onEdit={(b) => setEditingBid(b)}
-                                    onWithdraw={(bidId) => setConfirmModal({ isOpen: true, type: 'withdraw', bidId })}
-                                />
+                                <div className="w-full">
+                                    <BidCard
+                                        bid={myActiveBid}
+                                        isAuctionOpen={isAuctionOpen}
+                                        currency={groupObj?.financialConfig?.currency}
+                                        onEdit={(b) => setEditingBid(b)}
+                                        onWithdraw={(bidId) => setConfirmModal({ isOpen: true, type: 'withdraw', bidId })}
+                                    />
+                                </div>
                             ) : (
                                 <BidForm
                                     auctionId={auction._id}
@@ -318,6 +321,7 @@ export const BidsPage = () => {
                                     maxBidPercentage={auction.maximumBidPercentage}
                                     monthlyContribution={monthlyContribution}
                                     totalMembers={totalMembers}
+                                    currency={groupObj?.financialConfig?.currency}
                                     existingBid={editingBid || myActiveBid}
                                     isLoading={!!actionLoading}
                                     onSubmitBid={handleFormSubmit}

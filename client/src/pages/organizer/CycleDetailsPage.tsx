@@ -4,11 +4,12 @@ import { useAuth } from '../../hooks/useAuth';
 import * as cycleApi from '../../api/chitCycle.api';
 import type { ChitCycle } from '../../types/chitCycle';
 import { CycleStatusBadge } from '../../components/cycles/CycleStatusBadge';
+import { PaymentCollectionBadge } from '../../components/cycles/PaymentCollectionBadge';
 import { ConfirmationDialog } from '../../components/cycles/ConfirmationDialog';
 import { LoadingSkeleton } from '../../components/cycles/LoadingSkeleton';
 import {
     ArrowLeft, Trophy, PlayCircle, CheckCircle,
-    XCircle, Info, Calendar
+    XCircle, Info, Calendar, Unlock, Lock, LayoutDashboard, ArrowUpRight
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -27,23 +28,33 @@ export const CycleDetailsPage = () => {
 
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
-        type: 'start' | 'complete' | 'cancel' | null;
+        type: 'start' | 'complete' | 'cancel' | 'openCollections' | 'closeCollections' | null;
     }>({ isOpen: false, type: null });
+
+    const isOrganizer = user?.role === 'ORGANIZER';
+    const isAdmin = user?.role === 'ADMIN';
 
     const loadCycle = async () => {
         if (!cycleId) return;
         setLoading(true);
         setError(null);
         try {
-            const data = await cycleApi.fetchCycleDetails(cycleId);
-            setCycle(data);
-            if (data.groupId && typeof data.groupId === 'object') {
-                setGroup(data.groupId as any);
-                setActiveTab('CYCLES');
-                setSidebarIsOrganizer(user?.id === (data.groupId as any).organizerId);
+            const res = await cycleApi.fetchCycleDetails(cycleId);
+            setCycle(res);
+
+            if (res.groupId && typeof res.groupId === 'object') {
+                const groupObj: any = res.groupId;
+                setGroup({
+                    _id: groupObj._id,
+                    name: groupObj.name,
+                    totalMembers: groupObj.totalMembers,
+                    monthlyContribution: groupObj.monthlyContribution,
+                    organizerId: groupObj.organizerId
+                } as any);
+                setSidebarIsOrganizer(groupObj.organizerId === user?.id || user?.role === 'ADMIN');
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to fetch cycle details');
+            setError(err.response?.data?.message || 'Failed to load cycle details');
         } finally {
             setLoading(false);
         }
@@ -52,14 +63,6 @@ export const CycleDetailsPage = () => {
     useEffect(() => {
         loadCycle();
     }, [cycleId]);
-
-    const groupObj = typeof cycle?.groupId === 'object' ? cycle.groupId : null;
-    const isOrganizer = user?.id === groupObj?.organizerId;
-    const isAdmin = user?.role === 'ADMIN';
-
-    const winnerUser = typeof cycle?.winnerMembershipId === 'object' && cycle?.winnerMembershipId?.userId
-        ? cycle.winnerMembershipId.userId
-        : null;
 
     const handleStart = async () => {
         if (!cycleId) return;
@@ -103,6 +106,34 @@ export const CycleDetailsPage = () => {
         }
     };
 
+    const handleOpenCollections = async () => {
+        if (!cycleId) return;
+        setActionLoading(true);
+        try {
+            await cycleApi.openCollections(cycleId);
+            await loadCycle();
+            setConfirmModal({ isOpen: false, type: null });
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Failed to open payment collections');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleCloseCollections = async () => {
+        if (!cycleId) return;
+        setActionLoading(true);
+        try {
+            await cycleApi.closeCollections(cycleId);
+            await loadCycle();
+            setConfirmModal({ isOpen: false, type: null });
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Failed to close payment collections');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     if (loading) {
         return <LoadingSkeleton />;
     }
@@ -131,6 +162,11 @@ export const CycleDetailsPage = () => {
         }
     };
 
+    const collectionStatus = cycle.paymentCollection?.status || cycle.paymentCollectionStatus || 'NOT_STARTED';
+    const groupObj = typeof cycle.groupId === 'object' ? cycle.groupId : null;
+    const winnerMemObj = typeof cycle.winnerMembershipId === 'object' ? cycle.winnerMembershipId : null;
+    const winnerUser = winnerMemObj && typeof winnerMemObj.userId === 'object' ? winnerMemObj.userId : null;
+
     return (
         <div className="space-y-6 max-w-5xl mx-auto pb-12">
             {/* Back Nav */}
@@ -148,37 +184,61 @@ export const CycleDetailsPage = () => {
                 </div>
             )}
 
-            {/* Header Title Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* Top Header Card */}
+            <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>Cycle Details & Operations</span>
-                    </div>
                     <div className="flex items-center gap-3">
-                        <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
-                            Cycle #{cycle.cycleNumber} Details
-                        </h1>
-                        <CycleStatusBadge status={cycle.status} size="md" />
+                        <div className="w-12 h-12 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center font-black text-base shrink-0">
+                            #{cycle.cycleNumber}
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <CycleStatusBadge status={cycle.status} />
+                                <PaymentCollectionBadge status={collectionStatus} />
+                            </div>
+                            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
+                                Chit Cycle #{cycle.cycleNumber} Details
+                            </h1>
+                        </div>
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">
-                        {groupObj?.name ? `Group: ${groupObj.name}` : 'Monthly Chit Cycle Operations'}
-                    </p>
                 </div>
 
                 {(isOrganizer || isAdmin) && (
-                        <div className="flex items-center gap-2">
-                            {cycle.status === 'UPCOMING' && (
-                                <button
-                                    onClick={() => setConfirmModal({ isOpen: true, type: 'start' })}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
-                                >
-                                    <PlayCircle className="w-4 h-4" />
-                                    <span>Start Cycle</span>
-                                </button>
-                            )}
+                    <div className="flex flex-wrap items-center gap-2">
+                        {cycle.status === 'UPCOMING' && (
+                            <button
+                                onClick={() => setConfirmModal({ isOpen: true, type: 'start' })}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
+                            >
+                                <PlayCircle className="w-4 h-4" />
+                                <span>Start Cycle</span>
+                            </button>
+                        )}
 
-                            {cycle.status === 'ACTIVE' && (
+                        {cycle.status === 'ACTIVE' && (
+                            <>
+                                {/* Open Collections: winner must be declared & NOT_STARTED */}
+                                {cycle.winnerMembershipId && collectionStatus === 'NOT_STARTED' && (
+                                    <button
+                                        onClick={() => setConfirmModal({ isOpen: true, type: 'openCollections' })}
+                                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
+                                    >
+                                        <Unlock className="w-4 h-4" />
+                                        <span>Open Collections</span>
+                                    </button>
+                                )}
+
+                                {/* Close Collections: status == OPEN */}
+                                {collectionStatus === 'OPEN' && (
+                                    <button
+                                        onClick={() => setConfirmModal({ isOpen: true, type: 'closeCollections' })}
+                                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
+                                    >
+                                        <Lock className="w-4 h-4" />
+                                        <span>Close Collections</span>
+                                    </button>
+                                )}
+
                                 <button
                                     onClick={() => setConfirmModal({ isOpen: true, type: 'complete' })}
                                     className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
@@ -186,20 +246,21 @@ export const CycleDetailsPage = () => {
                                     <CheckCircle className="w-4 h-4" />
                                     <span>Complete Cycle</span>
                                 </button>
-                            )}
+                            </>
+                        )}
 
-                            {cycle.status !== 'COMPLETED' && cycle.status !== 'CANCELLED' && (
-                                <button
-                                    onClick={() => setConfirmModal({ isOpen: true, type: 'cancel' })}
-                                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer"
-                                    title="Cancel Cycle"
-                                >
-                                    <XCircle className="w-5 h-5" />
-                                </button>
-                            )}
-                        </div>
-                    )}
-                </div>
+                        {cycle.status !== 'COMPLETED' && cycle.status !== 'CANCELLED' && (
+                            <button
+                                onClick={() => setConfirmModal({ isOpen: true, type: 'cancel' })}
+                                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer"
+                                title="Cancel Cycle"
+                            >
+                                <XCircle className="w-5 h-5" />
+                            </button>
+                        )}
+                    </div>
+                )}
+            </div>
 
             {/* Grid Layout */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -295,8 +356,42 @@ export const CycleDetailsPage = () => {
                     )}
                 </div>
 
-                {/* Right Column: Group Overview */}
+                {/* Right Column: Collection Management & Group Overview */}
                 <div className="space-y-6">
+                    {/* Collection Management Section */}
+                    <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Collection Management</h3>
+                            <PaymentCollectionBadge status={collectionStatus} size="sm" />
+                        </div>
+
+                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 text-xs">
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-500 font-medium">Winner:</span>
+                                <span className="font-bold text-slate-900">{winnerUser ? winnerUser.name : 'Not Declared'}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-500 font-medium">Prize Amount:</span>
+                                <span className="font-bold text-emerald-600">
+                                    {cycle.prizeAmount ? `₹${cycle.prizeAmount.toLocaleString('en-IN')}` : 'N/A'}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-500 font-medium">Collection Status:</span>
+                                <span className="font-bold text-slate-900">{collectionStatus}</span>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => navigate(`/cycles/${cycle._id}/collections`)}
+                            className="w-full py-2.5 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                        >
+                            <LayoutDashboard className="w-4 h-4 text-emerald-400" />
+                            <span>View Collection Dashboard</span>
+                            <ArrowUpRight className="w-4 h-4 text-emerald-400" />
+                        </button>
+                    </div>
+
                     <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Group Context</h3>
                         {groupObj ? (
@@ -348,6 +443,28 @@ export const CycleDetailsPage = () => {
                 confirmVariant="indigo"
                 isLoading={actionLoading}
                 onConfirm={handleComplete}
+                onCancel={() => setConfirmModal({ isOpen: false, type: null })}
+            />
+
+            <ConfirmationDialog
+                isOpen={confirmModal.isOpen && confirmModal.type === 'openCollections'}
+                title={`Open Payment Collections for Cycle #${cycle.cycleNumber}?`}
+                description="Opening payment collections will allow group members to initiate installment payments for this cycle."
+                confirmLabel="Open Collections"
+                confirmVariant="emerald"
+                isLoading={actionLoading}
+                onConfirm={handleOpenCollections}
+                onCancel={() => setConfirmModal({ isOpen: false, type: null })}
+            />
+
+            <ConfirmationDialog
+                isOpen={confirmModal.isOpen && confirmModal.type === 'closeCollections'}
+                title={`Close Payment Collections for Cycle #${cycle.cycleNumber}?`}
+                description="Closing payment collections will prevent members from initiating further payments for this cycle. This action cannot be reopened."
+                confirmLabel="Close Collections"
+                confirmVariant="rose"
+                isLoading={actionLoading}
+                onConfirm={handleCloseCollections}
                 onCancel={() => setConfirmModal({ isOpen: false, type: null })}
             />
 

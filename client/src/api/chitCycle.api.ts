@@ -42,3 +42,19 @@ export const recordCycleWinner = async (cycleId: string, input: RecordWinnerInpu
     const res = await api.patch(`/chit-cycles/${cycleId}/winner`, input);
     return res.data.data.cycle;
 };
+
+export const openCollections = async (cycleId: string): Promise<ChitCycle> => {
+    const res = await api.patch(`/chit-cycles/${cycleId}/open-collections`);
+    return res.data.data.cycle;
+};
+
+export const closeCollections = async (cycleId: string): Promise<ChitCycle> => {
+    const res = await api.patch(`/chit-cycles/${cycleId}/close-collections`);
+    return res.data.data.cycle;
+};
+
+export const fetchPaymentCollectionStatus = async (cycleId: string) => {
+    const res = await api.get(`/chit-cycles/${cycleId}/payment-status`);
+    return res.data.data;
+};
+

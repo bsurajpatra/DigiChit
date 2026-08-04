@@ -1,10 +1,12 @@
 import mongoose from 'mongoose';
-import ChitCycle, { IChitCycle, ChitCycleStatus } from '../models/ChitCycle.js';
+import ChitCycle, { IChitCycle, ChitCycleStatus, PaymentCollectionStatus } from '../models/ChitCycle.js';
 import ChitGroup from '../models/ChitGroup.js';
 import Membership, { MembershipStatus } from '../models/Membership.js';
 import { AppError } from '../utils/appError.js';
 import { logAction } from '../utils/auditLogger.js';
 import { UserRole } from '../models/User.js';
+import { eventBus } from '../modules/payment/events/eventBus.js';
+import { PaymentDomainEventType } from '../modules/payment/events/domainEvents.js';
 
 export interface ICreateCycleInput {
     groupId: string;
@@ -432,3 +434,157 @@ export const getActiveCycle = async (groupId: string): Promise<IChitCycle | null
             }
         });
 };
+
+/**
+ * Opens payment collections for a chit cycle.
+ * Business Rules:
+ * - Only Organizer or Admin can open collections.
+ * - Winner must have already been declared.
+ * - Cannot open twice or reopen after closed.
+ */
+export const openCollections = async (
+    actorId: string,
+    actorRole: UserRole,
+    cycleId: string
+): Promise<IChitCycle> => {
+    const cycle = await ChitCycle.findById(cycleId);
+    if (!cycle) {
+        throw new AppError('Chit Cycle not found.', 404, 'CYCLE_NOT_FOUND');
+    }
+
+    const group = await ChitGroup.findById(cycle.groupId);
+    if (!group) {
+        throw new AppError('Associated Chit Group not found.', 404, 'GROUP_NOT_FOUND');
+    }
+
+    if (actorRole !== UserRole.ADMIN && group.organizerId.toString() !== actorId) {
+        throw new AppError('Unauthorized to manage payment collections for this Chit Group.', 403, 'UNAUTHORIZED');
+    }
+
+    if (!cycle.winnerMembershipId) {
+        throw new AppError(
+            'Cannot open payment collections. Winner must be declared for this cycle first.',
+            400,
+            'WINNER_NOT_DECLARED'
+        );
+    }
+
+    const currentStatus = cycle.paymentCollection?.status || PaymentCollectionStatus.NOT_STARTED;
+
+    if (currentStatus === PaymentCollectionStatus.OPEN) {
+        throw new AppError('Payment collections are already OPEN for this cycle.', 400, 'COLLECTIONS_ALREADY_OPEN');
+    }
+
+    if (currentStatus === PaymentCollectionStatus.CLOSED) {
+        throw new AppError('Payment collections are CLOSED for this cycle and cannot be reopened.', 400, 'COLLECTIONS_CLOSED');
+    }
+
+    cycle.paymentCollection = {
+        status: PaymentCollectionStatus.OPEN,
+        openedAt: new Date(),
+        openedBy: new mongoose.Types.ObjectId(actorId),
+        closedAt: cycle.paymentCollection?.closedAt || null,
+        closedBy: cycle.paymentCollection?.closedBy || null,
+        remarks: cycle.paymentCollection?.remarks || null
+    };
+
+    await cycle.save();
+
+    eventBus.publish({
+        eventType: PaymentDomainEventType.COLLECTIONS_OPENED,
+        timestamp: new Date(),
+        data: {
+            cycleId: (cycle._id as mongoose.Types.ObjectId).toString(),
+            groupId: cycle.groupId.toString(),
+            openedBy: actorId
+        } as any
+    });
+
+    await logAction(actorId, actorRole, 'COLLECTIONS_OPENED', {
+        newValue: {
+            cycleId: (cycle._id as mongoose.Types.ObjectId).toString(),
+            groupId: cycle.groupId.toString(),
+            cycleNumber: cycle.cycleNumber,
+            paymentCollection: cycle.paymentCollection
+        }
+    });
+
+    return cycle;
+};
+
+export const closeCollections = async (
+    actorId: string,
+    actorRole: UserRole,
+    cycleId: string
+): Promise<IChitCycle> => {
+    const cycle = await ChitCycle.findById(cycleId);
+    if (!cycle) {
+        throw new AppError('Chit Cycle not found.', 404, 'CYCLE_NOT_FOUND');
+    }
+
+    const group = await ChitGroup.findById(cycle.groupId);
+    if (!group) {
+        throw new AppError('Associated Chit Group not found.', 404, 'GROUP_NOT_FOUND');
+    }
+
+    if (actorRole !== UserRole.ADMIN && group.organizerId.toString() !== actorId) {
+        throw new AppError('Unauthorized to manage payment collections for this Chit Group.', 403, 'UNAUTHORIZED');
+    }
+
+    const currentStatus = cycle.paymentCollection?.status || PaymentCollectionStatus.NOT_STARTED;
+
+    if (currentStatus === PaymentCollectionStatus.NOT_STARTED) {
+        throw new AppError('Cannot close payment collections before opening them.', 400, 'COLLECTIONS_NOT_STARTED');
+    }
+
+    if (currentStatus === PaymentCollectionStatus.CLOSED) {
+        throw new AppError('Payment collections are already CLOSED for this cycle.', 400, 'COLLECTIONS_ALREADY_CLOSED');
+    }
+
+    cycle.paymentCollection = {
+        status: PaymentCollectionStatus.CLOSED,
+        openedAt: cycle.paymentCollection?.openedAt || null,
+        openedBy: cycle.paymentCollection?.openedBy || null,
+        closedAt: new Date(),
+        closedBy: new mongoose.Types.ObjectId(actorId),
+        remarks: cycle.paymentCollection?.remarks || null
+    };
+
+    await cycle.save();
+
+    eventBus.publish({
+        eventType: PaymentDomainEventType.COLLECTIONS_CLOSED,
+        timestamp: new Date(),
+        data: {
+            cycleId: (cycle._id as mongoose.Types.ObjectId).toString(),
+            groupId: cycle.groupId.toString(),
+            closedBy: actorId
+        } as any
+    });
+
+    await logAction(actorId, actorRole, 'COLLECTIONS_CLOSED', {
+        newValue: {
+            cycleId: (cycle._id as mongoose.Types.ObjectId).toString(),
+            groupId: cycle.groupId.toString(),
+            cycleNumber: cycle.cycleNumber,
+            paymentCollection: cycle.paymentCollection
+        }
+    });
+
+    return cycle;
+};
+
+export const getPaymentStatus = async (cycleId: string) => {
+    const cycle = await ChitCycle.findById(cycleId).select('paymentCollection cycleNumber groupId');
+    if (!cycle) {
+        throw new AppError('Chit Cycle not found.', 404, 'CYCLE_NOT_FOUND');
+    }
+
+    return {
+        cycleId: cycle._id,
+        groupId: cycle.groupId,
+        cycleNumber: cycle.cycleNumber,
+        paymentCollection: cycle.paymentCollection || { status: PaymentCollectionStatus.NOT_STARTED }
+    };
+};
+

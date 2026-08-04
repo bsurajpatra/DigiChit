@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import Installment, { PaymentStatus } from '../../../models/Installment.js';
 import ChitGroup from '../../../models/ChitGroup.js';
+import ChitCycle, { PaymentCollectionStatus } from '../../../models/ChitCycle.js';
 import User, { UserRole } from '../../../models/User.js';
 import { logAction } from '../../../utils/auditLogger.js';
 
@@ -31,6 +32,24 @@ export class TransactionService {
         const installment = await Installment.findById(dto.installmentId);
         if (!installment) {
             throw new Error('Installment obligation not found');
+        }
+
+        // Business Rule: Validate ChitCycle paymentCollection.status == OPEN
+        const cycle = await ChitCycle.findById(installment.cycleId);
+        if (!cycle) {
+            throw new Error('Associated Chit Cycle not found');
+        }
+
+        const collectionStatus = cycle.paymentCollection?.status || PaymentCollectionStatus.NOT_STARTED;
+
+        if (collectionStatus !== PaymentCollectionStatus.OPEN) {
+            if (collectionStatus === PaymentCollectionStatus.NOT_STARTED) {
+                throw new Error('Collections have not been opened by the organizer yet.');
+            }
+            if (collectionStatus === PaymentCollectionStatus.CLOSED) {
+                throw new Error('Collections for this cycle have been closed.');
+            }
+            throw new Error('Payment collections are not open for this cycle');
         }
 
         // Business Rule: Prevent payments for already paid installments

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { ChitCycle, ChitCycleStatus } from '../../types/chitCycle';
 import { CycleStatusBadge } from './CycleStatusBadge';
-import { Search, Download, Calendar, Trophy, Eye } from 'lucide-react';
+import { PaymentCollectionBadge } from './PaymentCollectionBadge';
+import { Search, Download, Calendar, Trophy, Eye, Unlock, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatCurrency } from '../../utils/currency';
 
@@ -13,6 +14,8 @@ interface CycleTableProps {
     onStart?: (cycleId: string) => void;
     onComplete?: (cycleId: string) => void;
     onRecordWinner?: (cycleId: string) => void;
+    onOpenCollections?: (cycleId: string) => void;
+    onCloseCollections?: (cycleId: string) => void;
     onCancel?: (cycleId: string) => void;
     onViewDetails?: (cycleId: string) => void;
 }
@@ -25,6 +28,8 @@ export const CycleTable = ({
     onStart,
     onComplete,
     onRecordWinner,
+    onOpenCollections,
+    onCloseCollections,
     onCancel,
     onViewDetails
 }: CycleTableProps) => {
@@ -45,7 +50,7 @@ export const CycleTable = ({
     };
 
     const handleExportCSV = () => {
-        const headers = ['Cycle #', 'Status', 'Scheduled Start', 'Actual Start', 'Actual End', 'Winner Name', 'Winning Bid Amount'];
+        const headers = ['Cycle #', 'Status', 'Collections Status', 'Scheduled Start', 'Actual Start', 'Actual End', 'Winner Name', 'Winning Bid Amount'];
         const rows = filteredCycles.map((c) => {
             const winMem: any = c.winnerMembershipId;
             const winnerName = typeof winMem === 'object' && winMem !== null
@@ -55,6 +60,7 @@ export const CycleTable = ({
             return [
                 c.cycleNumber,
                 c.status,
+                c.paymentCollectionStatus || 'NOT_STARTED',
                 `"${formatDateSafe(c.scheduledStartDate)}"`,
                 c.actualStartDate ? `"${formatDateSafe(c.actualStartDate)}"` : 'N/A',
                 c.actualEndDate ? `"${formatDateSafe(c.actualEndDate)}"` : 'N/A',
@@ -101,10 +107,9 @@ export const CycleTable = ({
 
                     <button
                         onClick={handleExportCSV}
-                        disabled={cycles.length === 0}
-                        className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition cursor-pointer disabled:opacity-40"
+                        className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5"
                     >
-                        <Download className="w-3.5 h-3.5" />
+                        <Download className="w-4 h-4" />
                         <span>Export CSV</span>
                     </button>
                 </div>
@@ -131,13 +136,13 @@ export const CycleTable = ({
                 </div>
             </div>
 
-            {/* List Table */}
+            {/* Cycles Table */}
             <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
+                <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                        <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                            <th className="py-3.5 px-6">Cycle</th>
-                            <th className="py-3.5 px-6">Status</th>
+                        <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider bg-slate-50/50">
+                            <th className="py-3.5 px-6">Cycle #</th>
+                            <th className="py-3.5 px-6">Status & Collections</th>
                             <th className="py-3.5 px-6">Scheduled Start</th>
                             <th className="py-3.5 px-6">Winner Member</th>
                             <th className="py-3.5 px-6">Winning Bid</th>
@@ -159,6 +164,7 @@ export const CycleTable = ({
                                     : null;
 
                                 const isActive = c.status === 'ACTIVE';
+                                const collectionStatus = c.paymentCollection?.status || c.paymentCollectionStatus || 'NOT_STARTED';
 
                                 return (
                                     <tr key={c._id} className={`hover:bg-slate-50/80 transition ${isActive ? 'bg-emerald-50/30' : ''}`}>
@@ -175,9 +181,12 @@ export const CycleTable = ({
                                             </div>
                                         </td>
 
-                                        {/* Status */}
+                                        {/* Status & Collections */}
                                         <td className="py-4 px-6">
-                                            <CycleStatusBadge status={c.status} size="sm" />
+                                            <div className="flex flex-col gap-1.5">
+                                                <CycleStatusBadge status={c.status} size="sm" />
+                                                <PaymentCollectionBadge status={collectionStatus} size="sm" />
+                                            </div>
                                         </td>
 
                                         {/* Scheduled Start */}
@@ -204,7 +213,7 @@ export const CycleTable = ({
 
                                         {/* Actions */}
                                         <td className="py-4 px-6">
-                                            <div className="flex items-center justify-start gap-2">
+                                            <div className="flex flex-wrap items-center justify-start gap-2">
                                                 {onViewDetails && (
                                                     <button
                                                         onClick={() => onViewDetails(c._id)}
@@ -227,7 +236,7 @@ export const CycleTable = ({
 
                                                 {isOrganizer && c.status === 'ACTIVE' && (
                                                     <>
-                                                        {onRecordWinner && (
+                                                        {onRecordWinner && !c.winnerMembershipId && (
                                                             <button
                                                                 disabled={!!actionLoading}
                                                                 onClick={() => onRecordWinner(c._id)}
@@ -236,6 +245,31 @@ export const CycleTable = ({
                                                                 Winner
                                                             </button>
                                                         )}
+
+                                                        {/* Open Collections button: winner must be declared & status == NOT_STARTED */}
+                                                        {c.winnerMembershipId && collectionStatus === 'NOT_STARTED' && onOpenCollections && (
+                                                            <button
+                                                                disabled={!!actionLoading}
+                                                                onClick={() => onOpenCollections(c._id)}
+                                                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                                                            >
+                                                                <Unlock className="w-3.5 h-3.5" />
+                                                                <span>Open Collections</span>
+                                                            </button>
+                                                        )}
+
+                                                        {/* Close Collections button: status == OPEN */}
+                                                        {collectionStatus === 'OPEN' && onCloseCollections && (
+                                                            <button
+                                                                disabled={!!actionLoading}
+                                                                onClick={() => onCloseCollections(c._id)}
+                                                                className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                                                            >
+                                                                <Lock className="w-3.5 h-3.5" />
+                                                                <span>Close Collections</span>
+                                                            </button>
+                                                        )}
+
                                                         {onComplete && (
                                                             <button
                                                                 disabled={!!actionLoading}

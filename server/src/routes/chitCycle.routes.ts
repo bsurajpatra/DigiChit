@@ -15,6 +15,7 @@ router.use(checkAccountActive);
 // Read cycle details & queries
 router.get('/group/:groupId', chitCycleController.getCyclesByGroup);
 router.get('/group/:groupId/active', chitCycleController.getActiveCycle);
+router.get('/:id/payment-status', chitCycleController.getPaymentStatus);
 router.get('/:id', chitCycleController.getCycleDetails);
 
 // =============================================================================
@@ -30,6 +31,10 @@ router.post('/', createCycleValidation, chitCycleController.createCycle);
 router.patch('/:id/start', chitCycleController.startCycle);
 router.patch('/:id/complete', chitCycleController.completeCycle);
 router.patch('/:id/cancel', chitCycleController.cancelCycle);
+
+// Payment Collection Controls
+router.patch('/:id/open-collections', chitCycleController.openCollections);
+router.patch('/:id/close-collections', chitCycleController.closeCollections);
 
 // Record Auction Winner
 router.patch('/:id/winner', recordWinnerValidation, chitCycleController.recordWinner);

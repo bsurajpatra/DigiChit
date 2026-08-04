@@ -1,5 +1,6 @@
 import type { ChitCycle } from '../../types/chitCycle';
 import { CycleStatusBadge } from './CycleStatusBadge';
+import { PaymentCollectionBadge } from './PaymentCollectionBadge';
 import { Trophy, PlayCircle, CheckCircle, XCircle, ArrowRight, Award, Info, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatCurrency } from '../../utils/currency';
@@ -42,7 +43,7 @@ export const CycleCard = ({
         <div className="bg-white rounded-2xl border-none p-6 flex flex-col justify-between relative shadow-none hover:shadow-xs transition-all space-y-4">
             {/* Cycle Header & Badge */}
             <div>
-                <div className="flex items-center justify-between gap-3 mb-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">
                             #{cycle.cycleNumber}
@@ -52,7 +53,10 @@ export const CycleCard = ({
                             <p className="text-[11px] font-medium text-slate-400">Monthly Financial Cycle</p>
                         </div>
                     </div>
-                    <CycleStatusBadge status={cycle.status} size="sm" />
+                    <div className="flex items-center gap-1.5">
+                        <CycleStatusBadge status={cycle.status} size="sm" />
+                        <PaymentCollectionBadge status={cycle.paymentCollection?.status || cycle.paymentCollectionStatus || 'NOT_STARTED'} size="sm" />
+                    </div>
                 </div>
 
                 {/* Timeline info */}

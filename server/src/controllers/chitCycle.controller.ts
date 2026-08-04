@@ -170,3 +170,66 @@ export const getCycleDetails = async (req: AuthRequest, res: Response, next: Nex
         next(error);
     }
 };
+
+/**
+ * Controller to open payment collections for a cycle.
+ * PATCH /api/chit-cycles/:id/open-collections
+ */
+export const openCollections = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+        const actorId = req.user!.id;
+        const actorRole = req.user!.role as UserRole;
+        const cycleId = req.params.id as string;
+
+        const cycle = await chitCycleService.openCollections(actorId, actorRole, cycleId);
+
+        res.status(200).json({
+            success: true,
+            message: `Payment collections are now OPEN for Cycle ${cycle.cycleNumber}`,
+            data: { cycle }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Controller to close payment collections for a cycle.
+ * PATCH /api/chit-cycles/:id/close-collections
+ */
+export const closeCollections = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+        const actorId = req.user!.id;
+        const actorRole = req.user!.role as UserRole;
+        const cycleId = req.params.id as string;
+
+        const cycle = await chitCycleService.closeCollections(actorId, actorRole, cycleId);
+
+        res.status(200).json({
+            success: true,
+            message: `Payment collections are now CLOSED for Cycle ${cycle.cycleNumber}`,
+            data: { cycle }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Controller to fetch payment collection status for a cycle.
+ * GET /api/chit-cycles/:id/payment-status
+ */
+export const getPaymentStatus = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+        const cycleId = req.params.id as string;
+        const data = await chitCycleService.getPaymentStatus(cycleId);
+
+        res.status(200).json({
+            success: true,
+            data
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+

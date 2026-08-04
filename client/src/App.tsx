@@ -31,6 +31,7 @@ import { UserChits } from './pages/dashboard/UserChits';
 import { ChitDetails } from './pages/dashboard/ChitDetails';
 import { ChitCyclesPage } from './pages/organizer/ChitCyclesPage';
 import { CycleDetailsPage } from './pages/organizer/CycleDetailsPage';
+import { CycleCollectionPage } from './pages/organizer/CycleCollectionPage';
 import { AuctionsPage } from './pages/organizer/AuctionsPage';
 import { AuctionDetailsPage } from './pages/organizer/AuctionDetailsPage';
 import { BidsPage } from './pages/organizer/BidsPage';
@@ -102,6 +103,7 @@ function App() {
                             <Route path="/chit-details/:id" element={<ChitDetails />} />
                             <Route path="/chits/:groupId/cycles" element={<ChitCyclesPage />} />
                             <Route path="/cycles/:cycleId" element={<CycleDetailsPage />} />
+                            <Route path="/cycles/:cycleId/collections" element={<CycleCollectionPage />} />
                             <Route path="/chits/:groupId/auctions" element={<AuctionsPage />} />
                             <Route path="/auctions/:auctionId" element={<AuctionDetailsPage />} />
                             <Route path="/auctions/:auctionId/bids" element={<BidsPage />} />
