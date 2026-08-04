@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import * as installmentController from '../controllers/installment.controller.js';
-import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '../middlewares/auth.js';
+import { InstallmentController } from '../controllers/InstallmentController.js';
+import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '../../../middlewares/auth.js';
 import {
     generateInstallmentsValidation,
     updateInstallmentValidation,
     updateInstallmentStatusValidation
-} from '../middlewares/validator.middleware.js';
-import { UserRole } from '../models/User.js';
+} from '../../../middlewares/validator.middleware.js';
+import { UserRole } from '../../user/models/User.js';
 
 const router = Router();
 
@@ -16,10 +16,10 @@ const router = Router();
 router.use(protect);
 router.use(checkAccountActive);
 
-router.get('/cycle/:cycleId', installmentController.getInstallmentsByCycle);
-router.get('/member/:membershipId', installmentController.getInstallmentsByMember);
-router.get('/group/:groupId', installmentController.getInstallmentsByGroup);
-router.get('/:id', installmentController.getInstallmentById);
+router.get('/cycle/:cycleId', InstallmentController.getInstallmentsByCycle);
+router.get('/member/:membershipId', InstallmentController.getInstallmentsByMember);
+router.get('/group/:groupId', InstallmentController.getInstallmentsByGroup);
+router.get('/:id', InstallmentController.getInstallmentById);
 
 // =============================================================================
 // ORGANIZER & ADMIN MANAGEMENT ROUTES
@@ -28,12 +28,12 @@ router.use(restrictTo(UserRole.ORGANIZER, UserRole.ADMIN));
 router.use(checkKYCApproved);
 
 // Bulk Generate Installments for a Cycle
-router.post('/generate/:cycleId', generateInstallmentsValidation, installmentController.generateInstallments);
+router.post('/generate/:cycleId', generateInstallmentsValidation, InstallmentController.generateInstallments);
 
 // Update Status (PAID, PARTIALLY_PAID, WAIVED, OVERDUE)
-router.patch('/:id/status', updateInstallmentStatusValidation, installmentController.updateInstallmentStatus);
+router.patch('/:id/status', updateInstallmentStatusValidation, InstallmentController.updateInstallmentStatus);
 
 // Update General Installment Fields (amount, dueDate, lateFee, remarks)
-router.patch('/:id', updateInstallmentValidation, installmentController.updateInstallment);
+router.patch('/:id', updateInstallmentValidation, InstallmentController.updateInstallment);
 
 export default router;
