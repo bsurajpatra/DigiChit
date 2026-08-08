@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { AppError } from '@shared/errors/AppError.js';
 import { StatementService } from '../services/StatementService.js';
 
 const statementService = new StatementService();

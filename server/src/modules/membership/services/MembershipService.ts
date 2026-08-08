@@ -7,10 +7,10 @@ import {
     IRejectMemberInput,
     IMarkWinnerInput
 } from '../interfaces/IMembership.js';
-import { IChitGroup, ChitGroupStatus } from '../../chit-group/models/ChitGroup.js';
-import { UserRole } from '../../user/models/User.js';
-import { AppError } from '../../../shared/errors/AppError.js';
-import { logAction } from '../../../shared/logger/auditLogger.js';
+import { IChitGroup, ChitGroupStatus } from '@modules/chit-group/models/ChitGroup.js';
+import { UserRole } from '@modules/user/models/User.js';
+import { AppError } from '@shared/errors/AppError.js';
+import { logAction } from '@shared/logger/auditLogger.js';
 
 export class MembershipService {
     private repo: MembershipRepository;

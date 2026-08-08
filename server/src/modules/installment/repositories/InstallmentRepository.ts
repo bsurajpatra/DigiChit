@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import Installment, { IInstallment, PaymentStatus } from '../models/Installment.js';
-import ChitCycle, { IChitCycle } from '../../chit-cycle/models/ChitCycle.js';
-import ChitGroup, { IChitGroup } from '../../chit-group/models/ChitGroup.js';
-import Membership, { IMembership, MembershipStatus } from '../../membership/models/Membership.js';
+import ChitCycle, { IChitCycle } from '@modules/chit-cycle/models/ChitCycle.js';
+import ChitGroup, { IChitGroup } from '@modules/chit-group/models/ChitGroup.js';
+import Membership, { IMembership, MembershipStatus } from '@modules/membership/models/Membership.js';
 
 export class InstallmentRepository {
     public async findCycleById(cycleId: string): Promise<IChitCycle | null> {

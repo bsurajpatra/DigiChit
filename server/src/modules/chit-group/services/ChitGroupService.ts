@@ -8,11 +8,11 @@ import ChitGroup, {
     AuctionStrategy,
     IFinancialConfig
 } from '../models/ChitGroup.js';
-import Membership, { IMembership, MembershipStatus } from '../../membership/models/Membership.js';
-import User, { UserRole } from '../../user/models/User.js';
-import { AppError } from '../../../shared/errors/AppError.js';
-import { logAction } from '../../../shared/logger/auditLogger.js';
-import { sendChitGroupCreatedEmail } from '../../../shared/utils/email.js';
+import Membership, { IMembership, MembershipStatus } from '@modules/membership/models/Membership.js';
+import User, { UserRole } from '@modules/user/models/User.js';
+import { AppError } from '@shared/errors/AppError.js';
+import { logAction } from '@shared/logger/auditLogger.js';
+import { sendChitGroupCreatedEmail } from '@shared/utils/email.js';
 import { ICreateChitGroupInput } from '../interfaces/IChitGroup.js';
 
 export class ChitGroupService {

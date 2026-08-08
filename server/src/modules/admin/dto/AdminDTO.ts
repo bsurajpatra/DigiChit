@@ -1,4 +1,4 @@
-import { UserRole } from '../../user/models/User.js';
+import { UserRole } from '@modules/user/models/User.js';
 
 export interface FreezeAccountDto {
     targetUserId: string;

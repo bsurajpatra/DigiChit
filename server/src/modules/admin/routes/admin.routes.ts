@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { AdminController } from '../controllers/AdminController.js';
-import { protect, restrictTo } from '../../auth/middlewares/auth.js';
-import { UserRole } from '../../user/models/User.js';
+import { protect, restrictTo } from '@modules/auth/middlewares/auth.js';
+import { UserRole } from '@modules/user/models/User.js';
 
 const router = Router();
 

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import KYC, { IKYC } from '../models/KYC.js';
-import User, { IUser, KYCStatus } from '../../user/models/User.js';
+import User, { IUser, KYCStatus } from '@modules/user/models/User.js';
 
 export class KYCRepository {
     /**

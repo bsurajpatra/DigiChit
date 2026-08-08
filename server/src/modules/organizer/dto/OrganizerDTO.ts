@@ -1,4 +1,4 @@
-import { OrganizerStatus } from '../../user/models/User.js';
+import { OrganizerStatus } from '@modules/user/models/User.js';
 
 export interface ApplyOrganizerDto {
     businessName: string;

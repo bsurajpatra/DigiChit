@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import User, { UserRole, AccountStatus, KYCStatus, OrganizerStatus } from '../../user/models/User.js';
-import { AppError } from '../../../shared/errors/AppError.js';
+import User, { UserRole, AccountStatus, KYCStatus, OrganizerStatus } from '@modules/user/models/User.js';
+import { AppError } from '@shared/errors/AppError.js';
 
 export interface AuthRequest extends Request {
     user?: {

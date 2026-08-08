@@ -1,4 +1,4 @@
-import { IUser } from '../../user/models/User.js';
+import { IUser } from '@modules/user/models/User.js';
 import { IToken } from '../models/Token.js';
 
 export interface IRegisterInput {

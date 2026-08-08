@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
-import LedgerEntry from '../../ledger/models/LedgerEntry.js';
-import Installment, { PaymentStatus } from '../../installment/models/Installment.js';
-import ChitGroup from '../../chit-group/models/ChitGroup.js';
-import User from '../../user/models/User.js';
+import LedgerEntry from '@modules/ledger/models/LedgerEntry.js';
+import Installment, { PaymentStatus } from '@modules/installment/models/Installment.js';
+import ChitGroup from '@modules/chit-group/models/ChitGroup.js';
+import User from '@modules/user/models/User.js';
 import { StatementQueryDTO } from '../dto/StatementQueryDTO.js';
 
 export class StatementRepository {

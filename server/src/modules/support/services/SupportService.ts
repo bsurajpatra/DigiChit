@@ -7,8 +7,8 @@ import {
     IRespondQueryInput,
     IUpdateStatusInput
 } from '../interfaces/ISupport.js';
-import { AppError } from '../../../shared/errors/AppError.js';
-import { sendContactReplyEmail } from '../../../shared/utils/email.js';
+import { AppError } from '@shared/errors/AppError.js';
+import { sendContactReplyEmail } from '@shared/utils/email.js';
 
 export class SupportService {
     private repo: SupportRepository;

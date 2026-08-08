@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import ChitCycle, { IChitCycle, ChitCycleStatus } from '../models/ChitCycle.js';
-import ChitGroup, { IChitGroup } from '../../chit-group/models/ChitGroup.js';
-import Membership, { IMembership } from '../../membership/models/Membership.js';
+import ChitGroup, { IChitGroup } from '@modules/chit-group/models/ChitGroup.js';
+import Membership, { IMembership } from '@modules/membership/models/Membership.js';
 
 export class ChitCycleRepository {
     public async findGroupById(groupId: string): Promise<IChitGroup | null> {

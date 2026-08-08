@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { AuctionController } from '../controllers/AuctionController.js';
-import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '../../auth/middlewares/auth.js';
+import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '@modules/auth/middlewares/auth.js';
 import {
     createAuctionValidation,
     updateAuctionValidation,
     declareAuctionWinnerValidation
 } from '../validators/auction.validator.js';
-import { UserRole } from '../../user/models/User.js';
+import { UserRole } from '@modules/user/models/User.js';
 
 const router = Router();
 

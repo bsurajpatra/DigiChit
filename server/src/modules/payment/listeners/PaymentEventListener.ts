@@ -1,6 +1,6 @@
-import { eventBus } from '../../../shared/event-bus/EventBus.js';
+import { eventBus } from '@shared/event-bus/EventBus.js';
 import { PaymentDomainEvent, PaymentDomainEventType } from '../events/domainEvents.js';
-import Installment, { PaymentStatus } from '../../installment/models/Installment.js';
+import Installment, { PaymentStatus } from '@modules/installment/models/Installment.js';
 
 export const initPaymentEventListeners = (): void => {
     eventBus.on(PaymentDomainEventType.TRANSACTION_SUCCESS, async (event: PaymentDomainEvent<any>) => {

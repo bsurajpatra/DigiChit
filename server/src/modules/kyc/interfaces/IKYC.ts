@@ -1,5 +1,5 @@
 import { IKYC } from '../models/KYC.js';
-import { KYCStatus, UserRole } from '../../user/models/User.js';
+import { KYCStatus, UserRole } from '@modules/user/models/User.js';
 
 export interface KYCUploadFiles {
     document: Express.Multer.File;

@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
-import { PaymentStatus } from '../../installment/models/Installment.js';
-import { PaymentCollectionStatus } from '../../chit-cycle/models/ChitCycle.js';
-import { UserRole } from '../../user/models/User.js';
-import { logAction } from '../../../shared/logger/auditLogger.js';
+import { PaymentStatus } from '@modules/installment/models/Installment.js';
+import { PaymentCollectionStatus } from '@modules/chit-cycle/models/ChitCycle.js';
+import { UserRole } from '@modules/user/models/User.js';
+import { logAction } from '@shared/logger/auditLogger.js';
 
 import { TransactionRepository, PaginatedResult } from '../repositories/TransactionRepository.js';
 import { ITransaction, TransactionStatus, PaymentMethod, PaymentGatewayProvider } from '../models/Transaction.js';

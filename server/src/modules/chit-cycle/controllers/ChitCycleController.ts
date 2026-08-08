@@ -1,8 +1,8 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from '../../auth/middlewares/auth.js';
+import { AuthRequest } from '@modules/auth/middlewares/auth.js';
 import { ChitCycleService } from '../services/ChitCycleService.js';
 import { ChitCycleStatus } from '../models/ChitCycle.js';
-import { UserRole } from '../../user/models/User.js';
+import { UserRole } from '@modules/user/models/User.js';
 
 const chitCycleService = new ChitCycleService();
 

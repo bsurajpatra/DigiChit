@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import User, { IUser } from '../../user/models/User.js';
+import User, { IUser } from '@modules/user/models/User.js';
 import Token, { IToken } from '../models/Token.js';
 
 export class AuthRepository {

@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { IFinancialConfig } from '../../chit-group/models/ChitGroup.js';
+import { IFinancialConfig } from '@modules/chit-group/models/ChitGroup.js';
 
 /**
  * Lifecycle status of a single monthly chit cycle.

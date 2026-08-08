@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { CollectionController } from '../controllers/CollectionController.js';
-import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '../../auth/middlewares/auth.js';
-import { UserRole } from '../../user/models/User.js';
+import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '@modules/auth/middlewares/auth.js';
+import { UserRole } from '@modules/user/models/User.js';
 
 const router = Router({ mergeParams: true });
 

@@ -1,8 +1,8 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from '../../auth/middlewares/auth.js';
+import { AuthRequest } from '@modules/auth/middlewares/auth.js';
 import { ChitGroupService } from '../services/ChitGroupService.js';
 import { ChitGroupRepository } from '../repositories/ChitGroupRepository.js';
-import { AppError } from '../../../shared/errors/AppError.js';
+import { AppError } from '@shared/errors/AppError.js';
 
 const chitGroupService = new ChitGroupService();
 const chitGroupRepo = new ChitGroupRepository();

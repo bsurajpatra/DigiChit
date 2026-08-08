@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { KYCStatus } from '../../user/models/User.js';
+import { KYCStatus } from '@modules/user/models/User.js';
 
 export interface IKYC extends Document {
     userId: mongoose.Types.ObjectId;

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import Membership, { IMembership, MembershipStatus } from '../models/Membership.js';
-import ChitGroup, { IChitGroup } from '../../chit-group/models/ChitGroup.js';
+import ChitGroup, { IChitGroup } from '@modules/chit-group/models/ChitGroup.js';
 
 export class MembershipRepository {
     /**

@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 import { ChitCycleRepository } from '../repositories/ChitCycleRepository.js';
 import ChitCycle, { IChitCycle, ChitCycleStatus, PaymentCollectionStatus } from '../models/ChitCycle.js';
-import { MembershipStatus } from '../../membership/models/Membership.js';
-import { UserRole } from '../../user/models/User.js';
-import { AppError } from '../../../shared/errors/AppError.js';
-import { logAction } from '../../../shared/logger/auditLogger.js';
-import { eventBus } from '../../payment/events/eventBus.js';
-import { PaymentDomainEventType } from '../../payment/events/domainEvents.js';
+import { MembershipStatus } from '@modules/membership/models/Membership.js';
+import { UserRole } from '@modules/user/models/User.js';
+import { AppError } from '@shared/errors/AppError.js';
+import { logAction } from '@shared/logger/auditLogger.js';
+import { eventBus } from '@shared/event-bus/EventBus.js';
+import { PaymentDomainEventType } from '@modules/payment/events/domainEvents.js';
 import { ICreateCycleInput, IRecordWinnerInput } from '../interfaces/IChitCycle.js';
 
 export class ChitCycleService {

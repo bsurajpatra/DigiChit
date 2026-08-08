@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { InstallmentController } from '../controllers/InstallmentController.js';
-import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '../../auth/middlewares/auth.js';
+import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '@modules/auth/middlewares/auth.js';
 import {
     generateInstallmentsValidation,
     updateInstallmentValidation,
     updateInstallmentStatusValidation
 } from '../validators/installment.validator.js';
-import { UserRole } from '../../user/models/User.js';
+import { UserRole } from '@modules/user/models/User.js';
 
 const router = Router();
 

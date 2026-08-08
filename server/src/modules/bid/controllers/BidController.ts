@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from '../../auth/middlewares/auth.js';
+import { AuthRequest } from '@modules/auth/middlewares/auth.js';
 import { BidService } from '../services/BidService.js';
-import { UserRole } from '../../user/models/User.js';
+import { UserRole } from '@modules/user/models/User.js';
 
 const bidService = new BidService();
 

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/AuthService.js';
-import { AppError } from '../../../shared/errors/AppError.js';
+import { AppError } from '@shared/errors/AppError.js';
 
 const authService = new AuthService();
 

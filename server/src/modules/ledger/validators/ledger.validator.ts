@@ -1,5 +1,5 @@
 import { param, query, body } from 'express-validator';
-import { validate } from '../../../shared/validators/validate.middleware.js';
+import { validate } from '@shared/validators/validate.middleware.js';
 
 export { validate };
 

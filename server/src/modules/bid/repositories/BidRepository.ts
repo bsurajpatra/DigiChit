@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 import Bid, { IBid, BidStatus } from '../models/Bid.js';
-import User, { IUser } from '../../user/models/User.js';
-import Auction, { IAuction } from '../../auction/models/Auction.js';
-import Membership, { IMembership } from '../../membership/models/Membership.js';
-import ChitGroup, { IChitGroup } from '../../chit-group/models/ChitGroup.js';
+import User, { IUser } from '@modules/user/models/User.js';
+import Auction, { IAuction } from '@modules/auction/models/Auction.js';
+import Membership, { IMembership } from '@modules/membership/models/Membership.js';
+import ChitGroup, { IChitGroup } from '@modules/chit-group/models/ChitGroup.js';
 
 export class BidRepository {
     public async findUserById(userId: string): Promise<IUser | null> {

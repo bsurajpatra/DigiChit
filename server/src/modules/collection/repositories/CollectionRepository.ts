@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import ChitCycle, { IChitCycle } from '../../chit-cycle/models/ChitCycle.js';
-import Installment, { PaymentStatus } from '../../installment/models/Installment.js';
-import ChitGroup, { IChitGroup } from '../../chit-group/models/ChitGroup.js';
+import ChitCycle, { IChitCycle } from '@modules/chit-cycle/models/ChitCycle.js';
+import Installment, { PaymentStatus } from '@modules/installment/models/Installment.js';
+import ChitGroup, { IChitGroup } from '@modules/chit-group/models/ChitGroup.js';
 
 export interface CollectionSummaryResult {
     cycleId: string;

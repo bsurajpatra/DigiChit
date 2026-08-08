@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 import Transaction, { ITransaction, TransactionStatus } from '../models/Transaction.js';
-import Installment, { IInstallment } from '../../installment/models/Installment.js';
-import ChitCycle, { IChitCycle } from '../../chit-cycle/models/ChitCycle.js';
-import ChitGroup, { IChitGroup } from '../../chit-group/models/ChitGroup.js';
-import User, { IUser } from '../../user/models/User.js';
+import Installment, { IInstallment } from '@modules/installment/models/Installment.js';
+import ChitCycle, { IChitCycle } from '@modules/chit-cycle/models/ChitCycle.js';
+import ChitGroup, { IChitGroup } from '@modules/chit-group/models/ChitGroup.js';
+import User, { IUser } from '@modules/user/models/User.js';
 
 export interface PaginationOptions {
     page?: number;

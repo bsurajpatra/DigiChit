@@ -3,7 +3,7 @@ import { LedgerRepository, LedgerPaginatedResult } from '../repositories/LedgerR
 import { ILedgerEntry } from '../interfaces/ILedgerEntry.js';
 import { CreateLedgerEntryDTO } from '../dto/CreateLedgerEntryDTO.js';
 import { LedgerQueryDTO } from '../dto/LedgerQueryDTO.js';
-import { AppError } from '../../../shared/errors/AppError.js';
+import { AppError } from '@shared/errors/AppError.js';
 
 export class LedgerService {
     private repo: LedgerRepository;

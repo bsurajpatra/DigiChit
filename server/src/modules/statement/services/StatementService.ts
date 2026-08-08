@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { StatementRepository } from '../repositories/StatementRepository.js';
 import { StatementQueryDTO } from '../dto/StatementQueryDTO.js';
-import { AppError } from '../../../shared/errors/AppError.js';
+import { AppError } from '@shared/errors/AppError.js';
 
 export class StatementService {
     private repo: StatementRepository;

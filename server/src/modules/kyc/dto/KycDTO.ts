@@ -1,4 +1,4 @@
-import { KYCStatus } from '../../user/models/User.js';
+import { KYCStatus } from '@modules/user/models/User.js';
 
 export interface SubmitKycDto {
     aadhaar: string;

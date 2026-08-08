@@ -3,14 +3,14 @@ import mongoose from 'mongoose';
 import axios from 'axios';
 import { KYCRepository } from '../repositories/KYCRepository.js';
 import { IKYC } from '../models/KYC.js';
-import { KYCStatus, UserRole, AccountStatus } from '../../user/models/User.js';
+import { KYCStatus, UserRole, AccountStatus } from '@modules/user/models/User.js';
 import { ISubmitKYCInput, IAdminReviewKYCInput } from '../interfaces/IKYC.js';
-import { encrypt, decrypt } from '../../../shared/utils/encryption.js';
-import { AppError } from '../../../shared/errors/AppError.js';
-import { logAction } from '../../../shared/logger/auditLogger.js';
+import { encrypt, decrypt } from '@shared/utils/encryption.js';
+import { AppError } from '@shared/errors/AppError.js';
+import { logAction } from '@shared/logger/auditLogger.js';
 import { validateAadhaar } from '../utils/aadhaar.js';
-import * as cloudinaryService from '../../../shared/utils/cloudinary.service.js';
-import { sendKYCApprovedEmail, sendKYCRejectedEmail } from '../../../shared/utils/email.js';
+import * as cloudinaryService from '@shared/utils/cloudinary.service.js';
+import { sendKYCApprovedEmail, sendKYCRejectedEmail } from '@shared/utils/email.js';
 
 export class KYCService {
     private repo: KYCRepository;

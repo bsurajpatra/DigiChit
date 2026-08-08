@@ -1,8 +1,8 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from '../../auth/middlewares/auth.js';
+import { AuthRequest } from '@modules/auth/middlewares/auth.js';
 import { InstallmentService } from '../services/InstallmentService.js';
 import { PaymentStatus } from '../models/Installment.js';
-import { UserRole } from '../../user/models/User.js';
+import { UserRole } from '@modules/user/models/User.js';
 
 const installmentService = new InstallmentService();
 

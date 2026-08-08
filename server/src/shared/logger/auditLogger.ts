@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import AuditLog from './models/AuditLog.js';
-import { UserRole } from '../../modules/user/models/User.js';
+import { UserRole } from '@modules/user/models/User.js';
 
 export interface AuditLogOptions {
     actorId: string;

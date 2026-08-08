@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 import { OrganizerRepository } from '../repositories/OrganizerRepository.js';
-import { OrganizerStatus, UserRole } from '../../user/models/User.js';
+import { OrganizerStatus, UserRole } from '@modules/user/models/User.js';
 import { IApplyData, IApproveOrganizerInput, IRejectOrganizerInput } from '../interfaces/IOrganizer.js';
-import { AppError } from '../../../shared/errors/AppError.js';
-import { sendOrganizerApprovedEmail, sendOrganizerRejectedEmail } from '../../../shared/utils/email.js';
+import { AppError } from '@shared/errors/AppError.js';
+import { sendOrganizerApprovedEmail, sendOrganizerRejectedEmail } from '@shared/utils/email.js';
 
 export class OrganizerService {
     private repo: OrganizerRepository;

@@ -1,8 +1,8 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from '../../auth/middlewares/auth.js';
+import { AuthRequest } from '@modules/auth/middlewares/auth.js';
 import { AuctionService } from '../services/AuctionService.js';
 import { AuctionStatus } from '../models/Auction.js';
-import { UserRole } from '../../user/models/User.js';
+import { UserRole } from '@modules/user/models/User.js';
 
 const auctionService = new AuctionService();
 

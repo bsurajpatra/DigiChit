@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { UserRole } from '../../../modules/user/models/User.js';
+import { UserRole } from '@modules/user/models/User.js';
 
 export interface IAuditLog extends Document {
     actorId: mongoose.Types.ObjectId;

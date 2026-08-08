@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from '../../auth/middlewares/auth.js';
+import { AuthRequest } from '@modules/auth/middlewares/auth.js';
 import { KYCService } from '../services/KYCService.js';
-import { KYCStatus } from '../../user/models/User.js';
+import { KYCStatus } from '@modules/user/models/User.js';
 
 const kycService = new KYCService();
 

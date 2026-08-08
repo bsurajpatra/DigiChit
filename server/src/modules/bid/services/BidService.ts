@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 import { BidRepository } from '../repositories/BidRepository.js';
 import Bid, { IBid, BidStatus } from '../models/Bid.js';
-import { AuctionStatus } from '../../auction/models/Auction.js';
-import { MembershipStatus } from '../../membership/models/Membership.js';
-import { AccountStatus, UserRole } from '../../user/models/User.js';
-import { AppError } from '../../../shared/errors/AppError.js';
-import { logAction } from '../../../shared/logger/auditLogger.js';
+import { AuctionStatus } from '@modules/auction/models/Auction.js';
+import { MembershipStatus } from '@modules/membership/models/Membership.js';
+import { AccountStatus, UserRole } from '@modules/user/models/User.js';
+import { AppError } from '@shared/errors/AppError.js';
+import { logAction } from '@shared/logger/auditLogger.js';
 import { ISubmitBidInput, IUpdateBidInput } from '../interfaces/IBid.js';
 
 export class BidService {

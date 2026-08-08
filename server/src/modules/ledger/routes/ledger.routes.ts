@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { protect, checkAccountActive } from '../../auth/middlewares/auth.js';
+import { protect, checkAccountActive } from '@modules/auth/middlewares/auth.js';
 import { LedgerController } from '../controllers/LedgerController.js';
 import {
     getLedgerByIdValidation,

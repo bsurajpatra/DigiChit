@@ -8,7 +8,7 @@ import {
     RefundOutput,
     CancelOrderInput,
     CancelOrderOutput
-} from '../../interfaces/IPaymentGateway.js';
+} from '@modules/payment/interfaces/IPaymentGateway.js';
 
 export class MockPaymentGateway implements PaymentGateway {
     public async createOrder(input: CreateOrderInput): Promise<CreateOrderOutput> {

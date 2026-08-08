@@ -1,6 +1,6 @@
 import mongoose, { ClientSession } from 'mongoose';
-import User, { IUser, OrganizerStatus } from '../../user/models/User.js';
-import AuditLog from '../../../shared/logger/models/AuditLog.js';
+import User, { IUser, OrganizerStatus } from '@modules/user/models/User.js';
+import AuditLog from '@shared/logger/models/AuditLog.js';
 
 export class OrganizerRepository {
     /**

@@ -1,4 +1,4 @@
-import { LedgerEntryType, LedgerDirection } from '../../ledger/enums/ledger.enum.js';
+import { LedgerEntryType, LedgerDirection } from '@modules/ledger/enums/ledger.enum.js';
 
 export interface StatementQueryDTO {
     page?: number;

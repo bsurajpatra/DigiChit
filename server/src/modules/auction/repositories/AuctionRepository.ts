@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import Auction, { IAuction, AuctionStatus } from '../models/Auction.js';
-import ChitCycle, { IChitCycle } from '../../chit-cycle/models/ChitCycle.js';
-import ChitGroup, { IChitGroup } from '../../chit-group/models/ChitGroup.js';
-import Membership, { IMembership } from '../../membership/models/Membership.js';
+import ChitCycle, { IChitCycle } from '@modules/chit-cycle/models/ChitCycle.js';
+import ChitGroup, { IChitGroup } from '@modules/chit-group/models/ChitGroup.js';
+import Membership, { IMembership } from '@modules/membership/models/Membership.js';
 
 export class AuctionRepository {
     /**
