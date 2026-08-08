@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/AuthService.js';
+import { AppError } from '../../../shared/errors/AppError.js';
 
 const authService = new AuthService();
 
@@ -34,7 +35,7 @@ export class AuthController {
     public static async verifyEmail(req: Request, res: Response, next: NextFunction) {
         try {
             const { token } = req.query;
-            if (!token) throw new Error('Token is required');
+            if (!token) throw AppError.badRequest('Token is required', 'VALIDATION_ERROR');
             const { user, token: jwtToken } = await authService.verifyEmail(token as string);
             res.status(200).json({ 
                 success: true, 
@@ -50,7 +51,7 @@ export class AuthController {
     public static async resendVerification(req: Request, res: Response, next: NextFunction) {
         try {
             const { email } = req.body;
-            if (!email) throw new Error('Email is required');
+            if (!email) throw AppError.badRequest('Email is required', 'VALIDATION_ERROR');
             await authService.resendVerificationToken(email);
             res.status(200).json({ success: true, message: 'Verification email resent successfully' });
         } catch (error) {
@@ -61,7 +62,7 @@ export class AuthController {
     public static async forgotPassword(req: Request, res: Response, next: NextFunction) {
         try {
             const { email } = req.body;
-            if (!email) throw new Error('Email is required');
+            if (!email) throw AppError.badRequest('Email is required', 'VALIDATION_ERROR');
             await authService.forgotPassword(email);
             res.status(200).json({ success: true, message: 'Password reset link sent to your email.' });
         } catch (error) {
@@ -72,8 +73,8 @@ export class AuthController {
     public static async resetPassword(req: Request, res: Response, next: NextFunction) {
         try {
             const { token, newPassword } = req.body;
-            if (!token) throw new Error('Token is required');
-            if (!newPassword) throw new Error('New password is required');
+            if (!token) throw AppError.badRequest('Token is required', 'VALIDATION_ERROR');
+            if (!newPassword) throw AppError.badRequest('New password is required', 'VALIDATION_ERROR');
             await authService.resetPassword(token as string, newPassword);
             res.status(200).json({ success: true, message: 'Password reset successfully. You can now login with your new password.' });
         } catch (error) {

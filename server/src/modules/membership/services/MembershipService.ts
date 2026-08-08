@@ -9,7 +9,7 @@ import {
 } from '../interfaces/IMembership.js';
 import { IChitGroup, ChitGroupStatus } from '../../chit-group/models/ChitGroup.js';
 import { UserRole } from '../../user/models/User.js';
-import { AppError } from '../../../utils/appError.js';
+import { AppError } from '../../../shared/errors/AppError.js';
 import { logAction } from '../../../utils/auditLogger.js';
 
 export class MembershipService {

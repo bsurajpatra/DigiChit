@@ -4,7 +4,7 @@ import Bid, { IBid, BidStatus } from '../models/Bid.js';
 import { AuctionStatus } from '../../auction/models/Auction.js';
 import { MembershipStatus } from '../../membership/models/Membership.js';
 import { AccountStatus, UserRole } from '../../user/models/User.js';
-import { AppError } from '../../../utils/appError.js';
+import { AppError } from '../../../shared/errors/AppError.js';
 import { logAction } from '../../../utils/auditLogger.js';
 import { ISubmitBidInput, IUpdateBidInput } from '../interfaces/IBid.js';
 

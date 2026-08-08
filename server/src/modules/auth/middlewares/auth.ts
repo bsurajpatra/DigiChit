@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User, { UserRole, AccountStatus, KYCStatus, OrganizerStatus } from '../../user/models/User.js';
-import { AppError } from '../../../utils/appError.js';
+import { AppError } from '../../../shared/errors/AppError.js';
 
 export interface AuthRequest extends Request {
     user?: {
@@ -59,6 +59,9 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
         };
         next();
     } catch (error) {
+        if (error instanceof AppError) {
+            return next(error);
+        }
         return next(new AppError('Invalid token. Please log in again!', 401, 'AUTH_TOKEN_INVALID'));
     }
 };
@@ -87,7 +90,7 @@ export const checkKYCApproved = (req: AuthRequest, res: Response, next: NextFunc
     if (!req.user) return next(new AppError('Authentication required', 401, 'AUTH_REQUIRED'));
 
     if (req.user.kycStatus !== KYCStatus.APPROVED) {
-        throw new AppError('Identity verification required for this action. Please complete your KYC.', 403, 'KYC_REQUIRED');
+        return next(new AppError('Identity verification required for this action. Please complete your KYC.', 403, 'KYC_REQUIRED'));
     }
 
     next();

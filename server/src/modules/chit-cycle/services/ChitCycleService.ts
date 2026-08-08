@@ -3,7 +3,7 @@ import { ChitCycleRepository } from '../repositories/ChitCycleRepository.js';
 import ChitCycle, { IChitCycle, ChitCycleStatus, PaymentCollectionStatus } from '../models/ChitCycle.js';
 import { MembershipStatus } from '../../membership/models/Membership.js';
 import { UserRole } from '../../user/models/User.js';
-import { AppError } from '../../../utils/appError.js';
+import { AppError } from '../../../shared/errors/AppError.js';
 import { logAction } from '../../../utils/auditLogger.js';
 import { eventBus } from '../../payment/events/eventBus.js';
 import { PaymentDomainEventType } from '../../payment/events/domainEvents.js';

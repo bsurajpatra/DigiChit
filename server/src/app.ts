@@ -21,9 +21,9 @@ import statementRoutes from './modules/statement/routes/statement.routes.js';
 import { initLedgerEventListeners } from './modules/ledger/listeners/LedgerEventListener.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { globalErrorHandler } from './middlewares/error.middleware.js';
+import { globalErrorHandler } from './shared/errors/GlobalErrorHandler.js';
 import { apiRateLimiter } from './middlewares/rateLimit.middleware.js';
-import { AppError } from './utils/appError.js';
+import { AppError } from './shared/errors/AppError.js';
 import { initInactivityCron } from './utils/cron.js';
 import { config } from './config/env.js';
 

@@ -1,18 +1,7 @@
-import { param, query, body, validationResult } from 'express-validator';
-import { Request, Response, NextFunction } from 'express';
-import { AppError } from '../../../utils/appError.js';
+import { param, query, body } from 'express-validator';
+import { validate } from '../../../shared/validators/validate.middleware.js';
 
-export const validate = (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-    if (errors.isEmpty()) {
-        return next();
-    }
-
-    const extractedErrors: string[] = [];
-    errors.array().forEach(err => extractedErrors.push(err.msg));
-
-    return next(new AppError(extractedErrors.join(', '), 400, 'VALIDATION_ERROR'));
-};
+export { validate };
 
 export const createLedgerEntryValidation = [
     body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be greater than 0'),

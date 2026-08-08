@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { UserRepository } from '../repositories/UserRepository.js';
-import { AppError } from '../../../utils/appError.js';
+import { AppError } from '../../../shared/errors/AppError.js';
 import * as cloudinaryService from '../../../services/cloudinary.service.js';
 import { IChangePasswordInput, IUploadProfilePictureInput } from '../interfaces/IUser.js';
 

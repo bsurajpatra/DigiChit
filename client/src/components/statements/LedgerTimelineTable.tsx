@@ -1,5 +1,5 @@
 import React from 'react';
-import { ITimelineItem } from '../../types/statement';
+import type { ITimelineItem } from '../../types/statement';
 import { format } from 'date-fns';
 import { formatCurrency } from '../../utils/currency';
 import { ArrowUpRight, ArrowDownLeft, Receipt, Clock } from 'lucide-react';

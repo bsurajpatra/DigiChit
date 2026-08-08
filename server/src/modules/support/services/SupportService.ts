@@ -7,7 +7,7 @@ import {
     IRespondQueryInput,
     IUpdateStatusInput
 } from '../interfaces/ISupport.js';
-import { AppError } from '../../../utils/appError.js';
+import { AppError } from '../../../shared/errors/AppError.js';
 import { sendContactReplyEmail } from '../../../utils/email.js';
 
 export class SupportService {
@@ -81,7 +81,7 @@ export class SupportService {
         }
 
         if (!input.userName || !input.userEmail) {
-            throw new AppError('User profile incomplete for support.', 400);
+            throw new AppError('User profile incomplete for support.', 400, 'VALIDATION_ERROR');
         }
 
         const query = await this.repo.create({
@@ -123,19 +123,19 @@ export class SupportService {
      */
     public async respondToQuery(input: IRespondQueryInput) {
         if (!input.message) {
-            throw new AppError('Message is required.', 400);
+            throw new AppError('Message is required.', 400, 'VALIDATION_ERROR');
         }
 
         const query = await this.repo.findById(input.queryId);
         if (!query) {
-            throw new AppError('No inquiry found.', 404);
+            throw new AppError('No inquiry found.', 404, 'SUPPORT_NOT_FOUND');
         }
 
         const isAdmin = input.actorRole === 'ADMIN';
 
         // Security check: Only owner or admin can reply
         if (!isAdmin && query.userId?.toString() !== input.actorId) {
-            throw new AppError('Unauthorized access.', 403);
+            throw new AppError('Unauthorized access.', 403, 'FORBIDDEN');
         }
 
         // Handle possible legacy data during response: move legacy fields to messages if needed
@@ -188,7 +188,7 @@ export class SupportService {
     public async updateStatus(input: IUpdateStatusInput) {
         const query = await this.repo.updateStatus(input.queryId, input.status);
         if (!query) {
-            throw new AppError('Not found', 404);
+            throw new AppError('Not found', 404, 'SUPPORT_NOT_FOUND');
         }
 
         return { query: this.mapLegacyMessages(query) };

@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../../../middlewares/auth.js';
 import { OrganizerService } from '../services/OrganizerService.js';
-import { AppError } from '../../../utils/appError.js';
+import { AppError } from '../../../shared/errors/AppError.js';
 
 const organizerService = new OrganizerService();
 

@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { OrganizerRepository } from '../repositories/OrganizerRepository.js';
 import { OrganizerStatus, UserRole } from '../../../models/User.js';
 import { IApplyData, IApproveOrganizerInput, IRejectOrganizerInput } from '../interfaces/IOrganizer.js';
-import { AppError } from '../../../utils/appError.js';
+import { AppError } from '../../../shared/errors/AppError.js';
 import { sendOrganizerApprovedEmail, sendOrganizerRejectedEmail } from '../../../utils/email.js';
 
 export class OrganizerService {

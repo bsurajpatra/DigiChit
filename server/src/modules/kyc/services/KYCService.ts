@@ -6,7 +6,7 @@ import { IKYC } from '../models/KYC.js';
 import { KYCStatus, UserRole, AccountStatus } from '../../user/models/User.js';
 import { ISubmitKYCInput, IAdminReviewKYCInput } from '../interfaces/IKYC.js';
 import { encrypt, decrypt } from '../../../utils/encryption.js';
-import { AppError } from '../../../utils/appError.js';
+import { AppError } from '../../../shared/errors/AppError.js';
 import { logAction } from '../../../services/audit.service.js';
 import { validateAadhaar } from '../../../utils/aadhaar.js';
 import * as cloudinaryService from '../../../services/cloudinary.service.js';

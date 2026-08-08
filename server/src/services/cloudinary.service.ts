@@ -1,5 +1,5 @@
 import cloudinary from '../config/cloudinary.js';
-import { AppError } from '../utils/appError.js';
+import { AppError } from '../shared/errors/AppError.js';
 import * as streamifier from 'streamifier';
 
 export interface CloudinaryUploadResult {

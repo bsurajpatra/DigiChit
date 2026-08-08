@@ -10,7 +10,7 @@ import ChitGroup, {
 } from '../models/ChitGroup.js';
 import Membership, { IMembership, MembershipStatus } from '../../../models/Membership.js';
 import User, { UserRole } from '../../user/models/User.js';
-import { AppError } from '../../../utils/appError.js';
+import { AppError } from '../../../shared/errors/AppError.js';
 import { logAction } from '../../../utils/auditLogger.js';
 import { sendChitGroupCreatedEmail } from '../../../utils/email.js';
 import { ICreateChitGroupInput } from '../interfaces/IChitGroup.js';

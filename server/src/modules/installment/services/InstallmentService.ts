@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { InstallmentRepository } from '../repositories/InstallmentRepository.js';
 import Installment, { IInstallment, PaymentStatus } from '../models/Installment.js';
 import { UserRole } from '../../user/models/User.js';
-import { AppError } from '../../../utils/appError.js';
+import { AppError } from '../../../shared/errors/AppError.js';
 import { logAction } from '../../../utils/auditLogger.js';
 import {
     IUpdateInstallmentInput,
