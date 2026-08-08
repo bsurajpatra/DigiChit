@@ -1,5 +1,5 @@
 import rateLimit from 'express-rate-limit';
-import { AppError } from '../shared/errors/AppError.js';
+import { AppError } from '../errors/AppError.js';
 
 export const authRateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes

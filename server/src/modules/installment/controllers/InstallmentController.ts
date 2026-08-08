@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from '../../../middlewares/auth.js';
+import { AuthRequest } from '../../auth/middlewares/auth.js';
 import { InstallmentService } from '../services/InstallmentService.js';
 import { PaymentStatus } from '../models/Installment.js';
 import { UserRole } from '../../user/models/User.js';

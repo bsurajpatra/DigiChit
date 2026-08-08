@@ -19,13 +19,14 @@ import collectionRoutes from './modules/collection/routes/collection.routes.js';
 import ledgerRoutes from './modules/ledger/routes/ledger.routes.js';
 import statementRoutes from './modules/statement/routes/statement.routes.js';
 import { initLedgerEventListeners } from './modules/ledger/listeners/LedgerEventListener.js';
+import { initPaymentEventListeners } from './modules/payment/listeners/PaymentEventListener.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { globalErrorHandler } from './shared/errors/GlobalErrorHandler.js';
-import { apiRateLimiter } from './middlewares/rateLimit.middleware.js';
+import { apiRateLimiter } from './shared/middleware/rateLimit.middleware.js';
 import { AppError } from './shared/errors/AppError.js';
-import { initInactivityCron } from './utils/cron.js';
-import { config } from './config/env.js';
+import { initInactivityCron } from './modules/user/cron/inactivityCron.js';
+import { config } from './shared/config/env.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,6 +35,7 @@ const app = express();
 
 // Initialize Cron Jobs & Domain Event Listeners
 initInactivityCron();
+initPaymentEventListeners();
 initLedgerEventListeners();
 
 // Security Middlewares

@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { AuthRepository } from '../repositories/AuthRepository.js';
 import { IUser, UserRole, AccountStatus } from '../../user/models/User.js';
-import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } from '../../../utils/email.js';
+import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } from '../../../shared/utils/email.js';
 import { AppError } from '../../../shared/errors/AppError.js';
 import { IRegisterInput, ILoginResponse, IVerifyEmailResponse } from '../interfaces/IAuth.js';
 

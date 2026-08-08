@@ -805,4 +805,3 @@ export const getChitGroupCreatedTemplate = (name: string, groupName: string, con
 </body>
 </html>
 `;
-

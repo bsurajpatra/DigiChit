@@ -1,4 +1,5 @@
 import multer from 'multer';
+
 const storage = multer.memoryStorage();
 
 const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
@@ -14,6 +15,6 @@ export const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: {
-        fileSize: 5 * 1024 * 1024 // Global max 5MB, specific field limits handled in routes or controller if needed
+        fileSize: 5 * 1024 * 1024 // Global max 5MB
     }
 });

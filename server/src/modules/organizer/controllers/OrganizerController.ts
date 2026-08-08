@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from '../../../middlewares/auth.js';
+import { AuthRequest } from '../../auth/middlewares/auth.js';
 import { OrganizerService } from '../services/OrganizerService.js';
 import { AppError } from '../../../shared/errors/AppError.js';
 

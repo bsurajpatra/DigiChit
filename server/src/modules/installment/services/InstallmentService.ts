@@ -3,7 +3,7 @@ import { InstallmentRepository } from '../repositories/InstallmentRepository.js'
 import Installment, { IInstallment, PaymentStatus } from '../models/Installment.js';
 import { UserRole } from '../../user/models/User.js';
 import { AppError } from '../../../shared/errors/AppError.js';
-import { logAction } from '../../../utils/auditLogger.js';
+import { logAction } from '../../../shared/logger/auditLogger.js';
 import {
     IUpdateInstallmentInput,
     IUpdateInstallmentStatusInput

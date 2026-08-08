@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 import { AuctionRepository } from '../repositories/AuctionRepository.js';
 import Auction, { IAuction, AuctionStatus } from '../models/Auction.js';
-import { ChitCycleStatus } from '../../../models/ChitCycle.js';
+import { ChitCycleStatus } from '../../chit-cycle/models/ChitCycle.js';
 import { MembershipStatus } from '../../membership/models/Membership.js';
 import { UserRole } from '../../user/models/User.js';
 import { AppError } from '../../../shared/errors/AppError.js';
-import { logAction } from '../../../utils/auditLogger.js';
+import { logAction } from '../../../shared/logger/auditLogger.js';
 import {
     ICreateAuctionInput,
     IUpdateAuctionInput,

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { InstallmentController } from '../controllers/InstallmentController.js';
-import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '../../../middlewares/auth.js';
+import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '../../auth/middlewares/auth.js';
 import {
     generateInstallmentsValidation,
     updateInstallmentValidation,

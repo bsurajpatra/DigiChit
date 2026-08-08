@@ -6,9 +6,9 @@ import {
     IReplyThreadInput,
     IUpdateThreadStatusInput
 } from '../interfaces/IChitMessage.js';
-import ChitGroup from '../../../models/ChitGroup.js';
-import Membership, { MembershipStatus } from '../../../models/Membership.js';
-import User from '../../../models/User.js';
+import ChitGroup from '../../chit-group/models/ChitGroup.js';
+import Membership, { MembershipStatus } from '../../membership/models/Membership.js';
+import User from '../../user/models/User.js';
 
 export class ChitMessageService {
     private repo: ChitMessageRepository;

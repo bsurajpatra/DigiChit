@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import app from './app.js';
-import { config } from './config/env.js';
-import { migrateFinancialConfig } from './utils/migrateFinancialConfig.js';
+import { config } from './shared/config/env.js';
+import { migrateFinancialConfig } from './shared/database/migrateFinancialConfig.js';
 
 const { port, mongoUri } = config;
 

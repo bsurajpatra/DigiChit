@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from '../../../middlewares/auth.js';
+import { AuthRequest } from '../../auth/middlewares/auth.js';
 import { UserService } from '../services/UserService.js';
 import { AppError } from '../../../shared/errors/AppError.js';
 import { KYCService } from '../../kyc/services/KYCService.js';

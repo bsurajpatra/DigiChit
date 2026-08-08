@@ -1,7 +1,7 @@
 import { eventBus } from '../../payment/events/eventBus.js';
 import { PaymentDomainEvent, PaymentDomainEventType } from '../../payment/events/domainEvents.js';
 import { ITransaction, TransactionStatus } from '../../payment/models/Transaction.js';
-import ChitGroup from '../../../models/ChitGroup.js';
+import ChitGroup from '../../chit-group/models/ChitGroup.js';
 import { LedgerService } from '../services/LedgerService.js';
 import { LedgerRepository } from '../repositories/LedgerRepository.js';
 import {

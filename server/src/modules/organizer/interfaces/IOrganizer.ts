@@ -1,4 +1,4 @@
-import { IUser, OrganizerStatus, UserRole } from '../../../models/User.js';
+import { IUser, OrganizerStatus, UserRole } from '../../user/models/User.js';
 
 export interface IApplyData {
     organizerApplicationReason: string;

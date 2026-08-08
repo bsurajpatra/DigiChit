@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/UserController.js';
-import { protect, checkAccountActive } from '../../../middlewares/auth.js';
-import { upload } from '../../../utils/upload.js';
+import { protect, checkAccountActive } from '../../auth/middlewares/auth.js';
+import { upload } from '../../../shared/middleware/upload.middleware.js';
 
 const router = Router();
 

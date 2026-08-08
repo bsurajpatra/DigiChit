@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AuctionController } from '../controllers/AuctionController.js';
-import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '../../../middlewares/auth.js';
+import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '../../auth/middlewares/auth.js';
 import {
     createAuctionValidation,
     updateAuctionValidation,

@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 import ChitGroup, { IChitGroup, ChitGroupStatus } from '../models/ChitGroup.js';
-import Membership, { IMembership, MembershipStatus } from '../../../models/Membership.js';
-import Auction from '../../../models/Auction.js';
-import Installment from '../../../models/Installment.js';
-import ChitCycle, { ChitCycleStatus } from '../../../models/ChitCycle.js';
+import Membership, { IMembership, MembershipStatus } from '../../membership/models/Membership.js';
+import Auction from '../../auction/models/Auction.js';
+import Installment from '../../installment/models/Installment.js';
+import ChitCycle, { ChitCycleStatus } from '../../chit-cycle/models/ChitCycle.js';
 
 export class ChitGroupRepository {
     /**

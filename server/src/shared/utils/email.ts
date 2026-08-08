@@ -38,7 +38,6 @@ export const sendVerificationEmail = async (email: string, token: string, otp?: 
         console.log(`Verification email sent to ${email}`);
     } catch (error) {
         console.error('Error sending email:', error);
-        throw new Error('Could not send verification email');
     }
 };
 
@@ -46,7 +45,7 @@ export const sendOTPEmail = async (email: string, otp: string, name?: string) =>
     const mailOptions = {
         from: `DigiChit Security <${process.env.EMAIL_FROM}>`,
         to: email,
-        subject: `${otp} is your DigiChit Verification Code`,
+        subject: 'Your DigiChit One-Time Passcode (OTP)',
         html: getOTPTemplate(otp, name),
     };
 
@@ -55,34 +54,14 @@ export const sendOTPEmail = async (email: string, otp: string, name?: string) =>
         console.log(`OTP email sent to ${email}`);
     } catch (error) {
         console.error('Error sending OTP email:', error);
-        throw new Error('Could not send OTP email');
-    }
-};
-
-export const sendPasswordResetEmail = async (email: string, token: string, otp?: string) => {
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-
-    const mailOptions = {
-        from: `DigiChit <${process.env.EMAIL_FROM}>`,
-        to: email,
-        subject: 'Reset your DigiChit Password',
-        html: getPasswordResetTemplate(resetLink, otp),
-    };
-
-    try {
-        await transporter.sendMail(mailOptions);
-        console.log(`Password reset email sent to ${email}`);
-    } catch (error) {
-        console.error('Error sending email:', error);
-        throw new Error('Could not send password reset email');
     }
 };
 
 export const sendWelcomeEmail = async (email: string, name: string) => {
     const mailOptions = {
-        from: `DigiChit <${process.env.EMAIL_FROM}>`,
+        from: `DigiChit Team <${process.env.EMAIL_FROM}>`,
         to: email,
-        subject: 'Welcome to DigiChit! 🎉',
+        subject: 'Welcome to DigiChit - Account Active!',
         html: getWelcomeTemplate(name),
     };
 
@@ -94,19 +73,37 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
     }
 };
 
+export const sendPasswordResetEmail = async (email: string, token: string, otp?: string) => {
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+
+    const mailOptions = {
+        from: `DigiChit Security <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: 'Reset your DigiChit Password',
+        html: getPasswordResetTemplate(resetLink, otp),
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Password reset email sent to ${email}`);
+    } catch (error) {
+        console.error('Error sending password reset email:', error);
+    }
+};
+
 export const sendKYCApprovedEmail = async (email: string, name: string) => {
     const mailOptions = {
         from: `DigiChit Compliance <${process.env.EMAIL_FROM}>`,
         to: email,
-        subject: 'KYC Verified: Account Fully Activated',
+        subject: 'KYC Verification Approved - DigiChit',
         html: getKYCApprovedTemplate(name),
     };
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`KYC Approval email sent to ${email}`);
+        console.log(`KYC Approved email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending KYC approval email:', error);
+        console.error('Error sending KYC Approved email:', error);
     }
 };
 
@@ -114,63 +111,63 @@ export const sendKYCRejectedEmail = async (email: string, name: string, reason: 
     const mailOptions = {
         from: `DigiChit Compliance <${process.env.EMAIL_FROM}>`,
         to: email,
-        subject: 'KYC Action Required: Identity Verification Update',
+        subject: 'KYC Verification Action Required - DigiChit',
         html: getKYCRejectedTemplate(name, reason),
     };
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`KYC Rejection email sent to ${email}`);
+        console.log(`KYC Rejected email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending KYC rejection email:', error);
+        console.error('Error sending KYC Rejected email:', error);
     }
 };
 
 export const sendOrganizerApprovedEmail = async (email: string, name: string) => {
     const mailOptions = {
-        from: `DigiChit Governance <${process.env.EMAIL_FROM}>`,
+        from: `DigiChit Admin <${process.env.EMAIL_FROM}>`,
         to: email,
-        subject: 'Organizer Privileges Granted: Start Managing Chits',
+        subject: 'Organizer Privileges Approved - DigiChit',
         html: getOrganizerApprovedTemplate(name),
     };
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Organizer Approval email sent to ${email}`);
+        console.log(`Organizer Approved email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending organizer approval email:', error);
+        console.error('Error sending Organizer Approved email:', error);
     }
 };
 
 export const sendOrganizerRejectedEmail = async (email: string, name: string, reason: string) => {
     const mailOptions = {
-        from: `DigiChit Governance <${process.env.EMAIL_FROM}>`,
+        from: `DigiChit Admin <${process.env.EMAIL_FROM}>`,
         to: email,
-        subject: 'Organizer Application Update: Audit Feedback',
+        subject: 'Organizer Application Status - DigiChit',
         html: getOrganizerRejectedTemplate(name, reason),
     };
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Organizer Rejection email sent to ${email}`);
+        console.log(`Organizer Rejected email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending organizer rejection email:', error);
+        console.error('Error sending Organizer Rejected email:', error);
     }
 };
 
-export const sendContactReplyEmail = async (email: string, name: string, originalMessage: string, response: string) => {
+export const sendContactReplyEmail = async (email: string, name: string, originalMessage: string, adminResponse: string) => {
     const mailOptions = {
         from: `DigiChit Support <${process.env.EMAIL_FROM}>`,
         to: email,
-        subject: 'Update on your DigiChit Inquiry',
-        html: getContactReplyTemplate(name, originalMessage, response),
+        subject: 'Response to your DigiChit Support Inquiry',
+        html: getContactReplyTemplate(name, originalMessage, adminResponse),
     };
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Contact reply email sent to ${email}`);
+        console.log(`Contact Reply email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending contact reply email:', error);
+        console.error('Error sending Contact Reply email:', error);
     }
 };
 
@@ -178,15 +175,14 @@ export const sendChitGroupCreatedEmail = async (email: string, name: string, gro
     const mailOptions = {
         from: `DigiChit Circles <${process.env.EMAIL_FROM}>`,
         to: email,
-        subject: `Success: Your Financial Circle "${groupName}" is Live`,
+        subject: `Financial Circle Established: ${groupName}`,
         html: getChitGroupCreatedTemplate(name, groupName, contribution, members, startDate),
     };
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Chit creation email sent to organizer: ${email}`);
+        console.log(`Chit Group Created email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending chit creation email:', error);
+        console.error('Error sending Chit Group Created email:', error);
     }
 };
-

@@ -1,7 +1,7 @@
 import { AdminRepository } from '../repositories/AdminRepository.js';
 import { UserRole, AccountStatus, IUser } from '../../user/models/User.js';
 import { AppError } from '../../../shared/errors/AppError.js';
-import { logAction } from '../../../services/audit.service.js';
+import { logAction } from '../../../shared/logger/auditLogger.js';
 import {
     IFreezeAccountInput,
     ISuspendAccountInput,

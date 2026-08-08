@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from '../../../middlewares/auth.js';
+import { AuthRequest } from '../../auth/middlewares/auth.js';
 import { CollectionService } from '../services/CollectionService.js';
-import { UserRole } from '../../../models/User.js';
+import { UserRole } from '../../user/models/User.js';
 
 const collectionService = new CollectionService();
 

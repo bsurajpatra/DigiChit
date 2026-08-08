@@ -4,7 +4,7 @@ import ChitCycle, { IChitCycle, ChitCycleStatus, PaymentCollectionStatus } from 
 import { MembershipStatus } from '../../membership/models/Membership.js';
 import { UserRole } from '../../user/models/User.js';
 import { AppError } from '../../../shared/errors/AppError.js';
-import { logAction } from '../../../utils/auditLogger.js';
+import { logAction } from '../../../shared/logger/auditLogger.js';
 import { eventBus } from '../../payment/events/eventBus.js';
 import { PaymentDomainEventType } from '../../payment/events/domainEvents.js';
 import { ICreateCycleInput, IRecordWinnerInput } from '../interfaces/IChitCycle.js';

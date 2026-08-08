@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import Auction, { IAuction, AuctionStatus } from '../models/Auction.js';
-import ChitCycle, { IChitCycle } from '../../../models/ChitCycle.js';
+import ChitCycle, { IChitCycle } from '../../chit-cycle/models/ChitCycle.js';
 import ChitGroup, { IChitGroup } from '../../chit-group/models/ChitGroup.js';
 import Membership, { IMembership } from '../../membership/models/Membership.js';
 

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { SupportController } from '../controllers/SupportController.js';
-import { protect, restrictTo } from '../../../middlewares/auth.js';
-import { UserRole } from '../../../models/User.js';
+import { protect, restrictTo } from '../../auth/middlewares/auth.js';
+import { UserRole } from '../../user/models/User.js';
 
 const router = Router();
 

@@ -1,4 +1,4 @@
-import ChitGroup, { CommissionType, LateFeeType, AuctionStrategy } from '../models/ChitGroup.js';
+import ChitGroup, { CommissionType, LateFeeType, AuctionStrategy } from '../../modules/chit-group/models/ChitGroup.js';
 
 export const migrateFinancialConfig = async () => {
     try {

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { SupportService } from '../services/SupportService.js';
-import { AuthRequest } from '../../../middlewares/auth.js';
+import { AuthRequest } from '../../auth/middlewares/auth.js';
 
 const supportService = new SupportService();
 

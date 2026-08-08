@@ -27,8 +27,6 @@ const p = [
     [7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
 ];
 
-const inv = [0, 4, 3, 2, 1, 5, 6, 7, 8, 9];
-
 /**
  * Validates an Aadhaar number using the Verhoeff algorithm.
  */

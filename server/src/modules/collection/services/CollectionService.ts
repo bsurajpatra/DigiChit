@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { PaymentCollectionStatus } from '../../chit-cycle/models/ChitCycle.js';
 import { UserRole } from '../../user/models/User.js';
 import { AppError } from '../../../shared/errors/AppError.js';
-import { logAction } from '../../../utils/auditLogger.js';
+import { logAction } from '../../../shared/logger/auditLogger.js';
 import { eventBus } from '../../payment/events/eventBus.js';
 import { PaymentDomainEventType } from '../../payment/events/domainEvents.js';
 import { CollectionRepository } from '../repositories/CollectionRepository.js';
