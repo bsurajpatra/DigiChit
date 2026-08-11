@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { ChitGroupController } from '../controllers/ChitGroupController.js';
-import { protect, restrictTo, checkKYCApproved, checkAccountActive } from '@modules/auth/middlewares/auth.js';
+import { protect, restrictTo, checkKYCApproved, checkAccountActive } from '@modules/auth/index.js';
 import { UserRole } from '@modules/user/models/User.js';
 
 const router = Router();

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { MembershipController } from '../controllers/MembershipController.js';
-import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '@modules/auth/middlewares/auth.js';
+import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '@modules/auth/index.js';
 import { UserRole } from '@modules/user/models/User.js';
 
 const router = Router();

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { ChitCycleController } from '../controllers/ChitCycleController.js';
-import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '@modules/auth/middlewares/auth.js';
+import { protect, restrictTo, checkAccountActive, checkKYCApproved } from '@modules/auth/index.js';
 import { createCycleValidation, recordWinnerValidation } from '../validators/chitCycle.validator.js';
 import { UserRole } from '@modules/user/models/User.js';
 

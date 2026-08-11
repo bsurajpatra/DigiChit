@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from '@modules/auth/middlewares/auth.js';
+import { AuthRequest } from '@modules/auth/index.js';
 import { ChitGroupService } from '../services/ChitGroupService.js';
 import { ChitGroupRepository } from '../repositories/ChitGroupRepository.js';
 import { AppError } from '@shared/errors/AppError.js';

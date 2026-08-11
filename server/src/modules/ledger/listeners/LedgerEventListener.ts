@@ -1,6 +1,5 @@
 import { eventBus } from '@shared/event-bus/EventBus.js';
-import { PaymentDomainEvent, PaymentDomainEventType } from '@modules/payment/events/domainEvents.js';
-import { ITransaction, TransactionStatus } from '@modules/payment/models/Transaction.js';
+import { PaymentDomainEvent, PaymentDomainEventType, type ITransaction, TransactionStatus } from '@modules/payment/index.js';
 import ChitGroup from '@modules/chit-group/models/ChitGroup.js';
 import { LedgerService } from '../services/LedgerService.js';
 import { LedgerRepository } from '../repositories/LedgerRepository.js';

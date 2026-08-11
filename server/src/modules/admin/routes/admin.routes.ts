@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AdminController } from '../controllers/AdminController.js';
-import { protect, restrictTo } from '@modules/auth/middlewares/auth.js';
+import { protect, restrictTo } from '@modules/auth/index.js';
 import { UserRole } from '@modules/user/models/User.js';
 
 const router = Router();

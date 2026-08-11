@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { OrganizerController } from '../controllers/OrganizerController.js';
-import { protect, restrictTo, checkOrganizerEligible } from '@modules/auth/middlewares/auth.js';
+import { protect, restrictTo, checkOrganizerEligible } from '@modules/auth/index.js';
 import { UserRole } from '@modules/user/models/User.js';
 
 const router = Router();

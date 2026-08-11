@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from '@modules/auth/middlewares/auth.js';
+import { AuthRequest } from '@modules/auth/index.js';
 import { OrganizerService } from '../services/OrganizerService.js';
 import { AppError } from '@shared/errors/AppError.js';
 import { UserRole } from '@modules/user/models/User.js';

@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from '@modules/auth/middlewares/auth.js';
+import { AuthRequest } from '@modules/auth/index.js';
 import { ChitMessageService } from '../services/ChitMessageService.js';
 
 const chitMessageService = new ChitMessageService();

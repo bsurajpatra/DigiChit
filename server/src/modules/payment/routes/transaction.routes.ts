@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { protect } from '@modules/auth/middlewares/auth.js';
+import { protect } from '@modules/auth/index.js';
 import * as transactionController from '../controller/TransactionController.js';
 import * as transactionValidator from '../validators/transaction.validator.js';
 

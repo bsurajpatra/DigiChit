@@ -1,9 +1,8 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { UserRole } from '@modules/user/models/User.js';
 
 export interface IAuditLog extends Document {
     actorId: mongoose.Types.ObjectId;
-    actorRole: UserRole;
+    actorRole: string;
     action: string;
     targetUserId?: mongoose.Types.ObjectId | undefined;
     previousValue?: Record<string, unknown> | undefined;
@@ -14,7 +13,7 @@ export interface IAuditLog extends Document {
 
 const AuditLogSchema = new Schema({
     actorId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    actorRole: { type: String, enum: Object.values(UserRole), required: true },
+    actorRole: { type: String, required: true },
     action: { type: String, required: true },
     targetUserId: { type: Schema.Types.ObjectId, ref: 'User' },
     previousValue: { type: Schema.Types.Mixed },

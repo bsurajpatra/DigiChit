@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { KYCController } from '../controllers/KYCController.js';
-import { protect, restrictTo, checkAccountActive } from '@modules/auth/middlewares/auth.js';
+import { protect, restrictTo, checkAccountActive } from '@modules/auth/index.js';
 import { UserRole } from '@modules/user/models/User.js';
 import { upload } from '@shared/middleware/upload.middleware.js';
 import { kycSubmissionValidation } from '../validators/kyc.validator.js';

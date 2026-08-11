@@ -1,10 +1,9 @@
 import mongoose from 'mongoose';
 import AuditLog from './models/AuditLog.js';
-import { UserRole } from '@modules/user/models/User.js';
 
 export interface AuditLogOptions {
     actorId: string;
-    actorRole: UserRole;
+    actorRole: string;
     action: string;
     targetUserId?: string | undefined;
     previousValue?: Record<string, unknown> | undefined;
@@ -17,7 +16,7 @@ export interface AuditLogOptions {
  */
 export const logAction = async (
     actorIdOrOptions: string | AuditLogOptions,
-    actorRole?: UserRole,
+    actorRole?: string,
     action?: string,
     details?: { targetUserId?: string; previousValue?: any; newValue?: any; ipAddress?: string }
 ): Promise<void> => {

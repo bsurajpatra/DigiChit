@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/UserController.js';
-import { protect, checkAccountActive } from '@modules/auth/middlewares/auth.js';
+import { protect, checkAccountActive } from '@modules/auth/index.js';
 import { upload } from '@shared/middleware/upload.middleware.js';
 
 const router = Router();

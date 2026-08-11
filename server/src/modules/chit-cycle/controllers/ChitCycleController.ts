@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from '@modules/auth/middlewares/auth.js';
+import { AuthRequest } from '@modules/auth/index.js';
 import { ChitCycleService } from '../services/ChitCycleService.js';
 import { ChitCycleStatus } from '../models/ChitCycle.js';
 import { UserRole } from '@modules/user/models/User.js';

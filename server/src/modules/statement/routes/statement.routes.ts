@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { protect, checkAccountActive } from '@modules/auth/middlewares/auth.js';
+import { protect, checkAccountActive } from '@modules/auth/index.js';
 import { StatementController } from '../controllers/StatementController.js';
 
 const router = Router();

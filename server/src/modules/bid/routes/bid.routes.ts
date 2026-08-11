@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { BidController } from '../controllers/BidController.js';
-import { protect, checkAccountActive, checkKYCApproved } from '@modules/auth/middlewares/auth.js';
+import { protect, checkAccountActive, checkKYCApproved } from '@modules/auth/index.js';
 import { submitBidValidation, updateBidValidation } from '../validators/bid.validator.js';
 
 const router = Router();

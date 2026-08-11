@@ -1,8 +1,8 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from '@modules/auth/middlewares/auth.js';
+import { AuthRequest } from '@modules/auth/index.js';
 import { UserService } from '../services/UserService.js';
 import { AppError } from '@shared/errors/AppError.js';
-import { KYCService } from '@modules/kyc/services/KYCService.js';
+import { KYCService } from '@modules/kyc/index.js';
 
 const userService = new UserService();
 const kycService = new KYCService();

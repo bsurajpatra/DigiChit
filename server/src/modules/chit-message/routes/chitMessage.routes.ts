@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { ChitMessageController } from '../controllers/ChitMessageController.js';
-import { protect, checkAccountActive } from '@modules/auth/middlewares/auth.js';
+import { protect, checkAccountActive } from '@modules/auth/index.js';
 
 const router = Router();
 
