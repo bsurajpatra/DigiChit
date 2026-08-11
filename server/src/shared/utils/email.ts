@@ -1,3 +1,4 @@
+import { logger } from '@shared/logger/logger.js';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import { 
@@ -35,9 +36,9 @@ export const sendVerificationEmail = async (email: string, token: string, otp?: 
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Verification email sent to ${email}`);
+        logger.info(`Verification email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending email:', error);
+        logger.error('Error sending email:', error);
     }
 };
 
@@ -51,9 +52,9 @@ export const sendOTPEmail = async (email: string, otp: string, name?: string) =>
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`OTP email sent to ${email}`);
+        logger.info(`OTP email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending OTP email:', error);
+        logger.error('Error sending OTP email:', error);
     }
 };
 
@@ -67,9 +68,9 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Welcome email sent to ${email}`);
+        logger.info(`Welcome email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending welcome email:', error);
+        logger.error('Error sending welcome email:', error);
     }
 };
 
@@ -85,9 +86,9 @@ export const sendPasswordResetEmail = async (email: string, token: string, otp?:
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Password reset email sent to ${email}`);
+        logger.info(`Password reset email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending password reset email:', error);
+        logger.error('Error sending password reset email:', error);
     }
 };
 
@@ -101,9 +102,9 @@ export const sendKYCApprovedEmail = async (email: string, name: string) => {
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`KYC Approved email sent to ${email}`);
+        logger.info(`KYC Approved email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending KYC Approved email:', error);
+        logger.error('Error sending KYC Approved email:', error);
     }
 };
 
@@ -117,9 +118,9 @@ export const sendKYCRejectedEmail = async (email: string, name: string, reason: 
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`KYC Rejected email sent to ${email}`);
+        logger.info(`KYC Rejected email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending KYC Rejected email:', error);
+        logger.error('Error sending KYC Rejected email:', error);
     }
 };
 
@@ -133,9 +134,9 @@ export const sendOrganizerApprovedEmail = async (email: string, name: string) =>
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Organizer Approved email sent to ${email}`);
+        logger.info(`Organizer Approved email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending Organizer Approved email:', error);
+        logger.error('Error sending Organizer Approved email:', error);
     }
 };
 
@@ -149,9 +150,9 @@ export const sendOrganizerRejectedEmail = async (email: string, name: string, re
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Organizer Rejected email sent to ${email}`);
+        logger.info(`Organizer Rejected email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending Organizer Rejected email:', error);
+        logger.error('Error sending Organizer Rejected email:', error);
     }
 };
 
@@ -165,9 +166,9 @@ export const sendContactReplyEmail = async (email: string, name: string, origina
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Contact Reply email sent to ${email}`);
+        logger.info(`Contact Reply email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending Contact Reply email:', error);
+        logger.error('Error sending Contact Reply email:', error);
     }
 };
 
@@ -181,8 +182,8 @@ export const sendChitGroupCreatedEmail = async (email: string, name: string, gro
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Chit Group Created email sent to ${email}`);
+        logger.info(`Chit Group Created email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending Chit Group Created email:', error);
+        logger.error('Error sending Chit Group Created email:', error);
     }
 };

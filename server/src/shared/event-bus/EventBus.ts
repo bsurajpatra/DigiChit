@@ -1,3 +1,4 @@
+import { logger } from '@shared/logger/logger.js';
 import { EventEmitter } from 'events';
 
 export interface IDomainEvent<T = any> {
@@ -21,7 +22,7 @@ export class EventBus extends EventEmitter {
     }
 
     public publish<T = any>(event: IDomainEvent<T>): void {
-        console.log(`[EventBus] Publishing event: ${event.eventType}`);
+        logger.info(`[EventBus] Publishing event: ${event.eventType}`);
         this.emit(event.eventType, event);
     }
 

@@ -1,3 +1,4 @@
+import { logger } from '@shared/logger/logger.js';
 import cloudinary from '../config/cloudinary.js';
 import { AppError } from '../errors/AppError.js';
 import * as streamifier from 'streamifier';
@@ -28,11 +29,11 @@ export const uploadToCloudinary = (
             },
             (error: any, result: any) => {
                 if (error) {
-                    console.error('CLOUDINARY_UPLOAD_ERROR:', error?.message || error, { folder, resourceType });
+                    logger.error('CLOUDINARY_UPLOAD_ERROR:', { error: error?.message || error, folder, resourceType });
                     return reject(new AppError(error?.message || 'Cloudinary upload failed', 500, 'CLOUDINARY_ERROR'));
                 }
                 if (!result) {
-                    console.error('CLOUDINARY_UPLOAD_NO_RESULT:', { folder, resourceType });
+                    logger.error('CLOUDINARY_UPLOAD_NO_RESULT:', { folder, resourceType });
                     return reject(new AppError('Cloudinary upload returned no result', 500, 'CLOUDINARY_ERROR'));
                 }
                 resolve({
@@ -65,7 +66,7 @@ export const deleteFromCloudinary = async (
     try {
         await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
     } catch (error: any) {
-        console.error(`Failed to delete asset ${publicId} from Cloudinary:`, error?.message || error);
+        logger.error(`Failed to delete asset ${publicId} from Cloudinary:`, error?.message || error);
     }
 };
 

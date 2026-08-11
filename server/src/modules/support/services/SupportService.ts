@@ -1,3 +1,4 @@
+import { logger } from '@shared/logger/logger.js';
 import mongoose from 'mongoose';
 import { SupportRepository } from '../repositories/SupportRepository.js';
 import { IContactQuery, IMessage } from '../models/ContactQuery.js';
@@ -175,7 +176,7 @@ export class SupportService {
         if (isAdmin && query.source === 'EXTERNAL') {
             const originalMsg = query.messages[0]?.message || query.message || 'Legacy Inquiry';
             sendContactReplyEmail(query.email, query.name, originalMsg, input.message).catch((err) =>
-                console.error('Email failed (External Guest):', err)
+                logger.error('Email failed (External Guest):', err)
             );
         }
 

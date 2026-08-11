@@ -1,3 +1,4 @@
+import { logger } from '@shared/logger/logger.js';
 import { eventBus } from '@shared/event-bus/EventBus.js';
 import { PaymentDomainEvent, PaymentDomainEventType } from '../events/domainEvents.js';
 import Installment, { PaymentStatus } from '@modules/installment/models/Installment.js';
@@ -14,12 +15,12 @@ export const initPaymentEventListeners = (): void => {
                     paymentMethod: txn.paymentMethod,
                     transactionId: txn._id
                 });
-                console.log(`[PaymentEventListener] Updated Installment ${txn.installmentId} to PAID.`);
+                logger.info(`[PaymentEventListener] Updated Installment ${txn.installmentId} to PAID.`);
             }
         } catch (err) {
-            console.error('[PaymentEventListener Error] Failed to update installment on TRANSACTION_SUCCESS:', err);
+            logger.error('[PaymentEventListener Error] Failed to update installment on TRANSACTION_SUCCESS:', err);
         }
     });
 
-    console.log('[PaymentEventListener] Event listeners registered for TRANSACTION_SUCCESS.');
+    logger.info('[PaymentEventListener] Event listeners registered for TRANSACTION_SUCCESS.');
 };

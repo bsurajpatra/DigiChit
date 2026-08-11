@@ -6,6 +6,8 @@ import { IUser, UserRole, AccountStatus } from '@modules/user/models/User.js';
 import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } from '@shared/utils/email.js';
 import { AppError } from '@shared/errors/AppError.js';
 import { IRegisterInput, ILoginResponse, IVerifyEmailResponse } from '../interfaces/IAuth.js';
+import { logAction } from '@shared/logger/auditLogger.js';
+import { logger } from '@shared/logger/logger.js';
 
 export class AuthService {
     private repo: AuthRepository;
@@ -63,21 +65,25 @@ export class AuthService {
     public async login(email: string, password: string): Promise<ILoginResponse> {
         const user = await this.repo.findUserByEmail(email, true);
         if (!user) {
+            await logAction('anonymous', 'UNKNOWN', 'LOGIN_FAILED', { newValue: { email, reason: 'Email not found' } });
             throw new AppError('No account found with this email address. Please check your email or register.', 404, 'AUTH_EMAIL_NOT_FOUND');
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password!);
         if (!isPasswordValid) {
+            await logAction(user._id.toString(), user.role, 'LOGIN_FAILED', { newValue: { email, reason: 'Incorrect password' } });
             throw new AppError('Incorrect password. Please check your password and try again.', 401, 'AUTH_INCORRECT_PASSWORD');
         }
 
         // Require email verification unless ADMIN
         if (user.role !== UserRole.ADMIN && !user.emailVerified) {
+            await logAction(user._id.toString(), user.role, 'LOGIN_FAILED', { newValue: { email, reason: 'Email unverified' } });
             throw new AppError('Your email address is not verified yet. Please check your inbox or resend verification.', 403, 'AUTH_EMAIL_UNVERIFIED');
         }
 
         const isAccountBlocked = [AccountStatus.FROZEN, AccountStatus.SUSPENDED, AccountStatus.DELETED].includes(user.accountStatus as AccountStatus);
         if (isAccountBlocked) {
+            await logAction(user._id.toString(), user.role, 'LOGIN_FAILED', { newValue: { email, reason: `Account ${user.accountStatus}` } });
             throw new AppError(`Your account is ${user.accountStatus.toLowerCase()}. Access denied.`, 403, 'AUTH_ACCOUNT_BLOCKED');
         }
 
@@ -92,6 +98,8 @@ export class AuthService {
             process.env.JWT_SECRET!,
             { expiresIn: '1d' }
         );
+
+        await logAction(user._id.toString(), user.role, 'LOGIN_SUCCESS', { newValue: { email } });
 
         return { user, token };
     }
@@ -122,8 +130,9 @@ export class AuthService {
             try {
                 await sendWelcomeEmail(user.email, user.name);
             } catch (e) {
-                console.error('Welcome email failed:', e);
+                logger.error('Welcome email failed:', e);
             }
+            await logAction(user._id.toString(), user.role, 'EMAIL_VERIFIED', { newValue: { email: user.email } });
         }
 
         // Delete token once verified
@@ -201,5 +210,6 @@ export class AuthService {
         await this.repo.saveUser(user);
 
         await this.repo.deleteTokensByUserId(user._id);
+        await logAction(user._id.toString(), user.role, 'PASSWORD_RESET', { newValue: { email: user.email } });
     }
 }

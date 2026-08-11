@@ -1,3 +1,4 @@
+import { logger } from '@shared/logger/logger.js';
 import crypto from 'crypto';
 import mongoose from 'mongoose';
 import axios from 'axios';
@@ -120,10 +121,9 @@ export class KYCService {
                 mimeType
             };
         } catch (error: any) {
-            console.error(
+            logger.error(
                 `KYC_STREAM_ERROR [Field: ${field}, User: ${userId}, URL: ${url}]:`,
-                error.response?.status,
-                error.response?.statusText || error.message
+                { status: error.response?.status, error: error.response?.statusText || error.message }
             );
             throw new AppError(`Failed to retrieve KYC ${field} stream.`, 500, 'KYC_STREAM_ERROR');
         }

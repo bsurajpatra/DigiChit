@@ -21,6 +21,13 @@ const SENSITIVE_KEYS = [
 function sanitizeLogData(data: any): any {
     if (data === null || data === undefined) return data;
     if (typeof data === 'string') return data;
+    if (data instanceof Error) {
+        return {
+            name: data.name,
+            message: data.message,
+            stack: process.env.NODE_ENV === 'development' ? data.stack : undefined
+        };
+    }
     if (typeof data !== 'object') return data;
 
     if (Array.isArray(data)) {

@@ -1,3 +1,4 @@
+import { logger } from '@shared/logger/logger.js';
 import cron from 'node-cron';
 import User, { AccountStatus } from '../models/User.js';
 
@@ -9,7 +10,7 @@ import User, { AccountStatus } from '../models/User.js';
 export const initInactivityCron = () => {
     // Run at 00:00 every day
     cron.schedule('0 0 * * *', async () => {
-        console.log('[CRON] Starting inactivity check...');
+        logger.info('[CRON] Starting inactivity check...');
         
         const inactivityPeriod = 180 * 24 * 60 * 60 * 1000; // 180 days in ms
         const cutoffDate = new Date(Date.now() - inactivityPeriod);
@@ -25,9 +26,9 @@ export const initInactivityCron = () => {
                 }
             );
 
-            console.log(`[CRON] Inactivity check completed. ${result.modifiedCount} accounts marked INACTIVE.`);
+            logger.info(`[CRON] Inactivity check completed. ${result.modifiedCount} accounts marked INACTIVE.`);
         } catch (error) {
-            console.error('[CRON] Error during inactivity check:', error);
+            logger.error('[CRON] Error during inactivity check:', error);
         }
     });
 };

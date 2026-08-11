@@ -1,3 +1,4 @@
+import { logger } from '@shared/logger/logger.js';
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from './AppError.js';
 import { ErrorCodes } from './ErrorCodes.js';
@@ -72,7 +73,7 @@ export const globalErrorHandler = (
 
     // Logging policy: log critical/non-operational/500 errors fully; log operational as warning
     if (!error.isOperational || statusCode >= 500) {
-        console.error('GLOBAL ERROR CATCHER (CRITICAL):', {
+        logger.error('GLOBAL ERROR CATCHER (CRITICAL):', {
             method: req.method,
             url: req.originalUrl,
             message: error.message,
@@ -80,7 +81,7 @@ export const globalErrorHandler = (
             stack: error.stack
         });
     } else {
-        console.warn(`[${req.method} ${req.originalUrl}] ${statusCode} - ${error.errorCode} - ${error.message}`);
+        logger.warn(`[${req.method} ${req.originalUrl}] ${statusCode} - ${error.errorCode} - ${error.message}`);
     }
 
     // Security: Never leak stack traces to clients in production

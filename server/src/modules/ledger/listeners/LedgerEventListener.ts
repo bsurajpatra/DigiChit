@@ -1,8 +1,10 @@
+import { logger } from '@shared/logger/logger.js';
 import { eventBus } from '@shared/event-bus/EventBus.js';
 import { PaymentDomainEvent, PaymentDomainEventType, type ITransaction, TransactionStatus } from '@modules/payment/index.js';
 import ChitGroup from '@modules/chit-group/models/ChitGroup.js';
 import { LedgerService } from '../services/LedgerService.js';
 import { LedgerRepository } from '../repositories/LedgerRepository.js';
+import { logAction } from '@shared/logger/auditLogger.js';
 import {
     LedgerEntryType,
     LedgerDirection,
@@ -36,14 +38,14 @@ export const initLedgerEventListeners = (): void => {
             // Duplicate Protection (Idempotency Check)
             const existingEntry = await ledgerRepo.findByTransactionId(transactionIdStr);
             if (existingEntry) {
-                console.log(`[LedgerEventListener] Duplicate event detected. Ledger entry already exists for Transaction ID: ${transactionIdStr}. Safely ignoring.`);
+                logger.info(`[LedgerEventListener] Duplicate event detected. Ledger entry already exists for Transaction ID: ${transactionIdStr}. Safely ignoring.`);
                 return;
             }
 
             // Fetch associated ChitGroup to obtain organizerId
             const group = await ChitGroup.findById(txn.groupId);
             if (!group) {
-                console.error(`[LedgerEventListener Error] Associated ChitGroup ${txn.groupId} not found for transaction ${transactionIdStr}`);
+                logger.error(`[LedgerEventListener Error] Associated ChitGroup ${txn.groupId} not found for transaction ${transactionIdStr}`);
                 return;
             }
 
@@ -72,14 +74,24 @@ export const initLedgerEventListeners = (): void => {
             });
 
             // Structured Audit Output Log
-            console.log(
+            await logAction(txn.memberId.toString(), 'USER', 'LEDGER_ENTRY_CREATED', {
+                targetUserId: organizerIdStr,
+                newValue: {
+                    ledgerEntryNumber: ledgerEntry.entryNumber,
+                    transactionId: transactionIdStr,
+                    amount: txn.amount,
+                    groupId: txn.groupId.toString()
+                }
+            });
+
+            logger.info(
                 `[LedgerEventListener] Ledger Entry Created | Transaction ID: ${transactionIdStr} | Ledger Entry Number: ${ledgerEntry.entryNumber} | Timestamp: ${new Date(ledgerEntry.createdAt).toISOString()}`
             );
         } catch (error: any) {
             // Error Isolation: Prevent Ledger failures from corrupting Transaction status
-            console.error('[LedgerEventListener Error] Failed to create ledger entry for transaction:', error.message || error);
+            logger.error('[LedgerEventListener Error] Failed to create ledger entry for transaction:', error.message || error);
         }
     });
 
-    console.log('[LedgerEventListener] Event listeners registered for TRANSACTION_SUCCESS.');
+    logger.info('[LedgerEventListener] Event listeners registered for TRANSACTION_SUCCESS.');
 };

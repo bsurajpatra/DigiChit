@@ -1,3 +1,4 @@
+import { logger } from '@shared/logger/logger.js';
 import mongoose from 'mongoose';
 import { OrganizerRepository } from '../repositories/OrganizerRepository.js';
 import { OrganizerStatus, UserRole } from '@modules/user/models/User.js';
@@ -99,7 +100,7 @@ export class OrganizerService {
 
             // Send confirmation email (non-blocking)
             sendOrganizerApprovedEmail(user.email, user.name).catch((err) =>
-                console.error('Failed to send organizer approval email:', err)
+                logger.error('Failed to send organizer approval email:', err)
             );
 
             return user;
@@ -144,7 +145,7 @@ export class OrganizerService {
 
             // Send rejection email (non-blocking)
             sendOrganizerRejectedEmail(user.email, user.name, reason).catch((err) =>
-                console.error('Failed to send organizer rejection email:', err)
+                logger.error('Failed to send organizer rejection email:', err)
             );
 
             return user;

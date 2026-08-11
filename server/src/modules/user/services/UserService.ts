@@ -1,8 +1,10 @@
+import { logger } from '@shared/logger/logger.js';
 import bcrypt from 'bcryptjs';
 import { UserRepository } from '../repositories/UserRepository.js';
 import { AppError } from '@shared/errors/AppError.js';
 import * as cloudinaryService from '@shared/utils/cloudinary.service.js';
 import { IChangePasswordInput, IUploadProfilePictureInput } from '../interfaces/IUser.js';
+import { logAction } from '@shared/logger/auditLogger.js';
 
 export class UserService {
     private repo: UserRepository;
@@ -56,6 +58,8 @@ export class UserService {
         user.tokenVersion = (user.tokenVersion || 0) + 1;
         await this.repo.save(user);
 
+        await logAction(user._id.toString(), user.role, 'PASSWORD_CHANGED', { newValue: { email: user.email } });
+
         return { message: 'Password changed successfully. Please log in again with your new password.' };
     }
 
@@ -87,7 +91,7 @@ export class UserService {
 
         if (user.profilePicturePublicId) {
             await cloudinaryService.deleteFromCloudinary(user.profilePicturePublicId).catch((err: any) => {
-                console.error('Failed to delete old profile picture from cloudinary:', err);
+                logger.error('Failed to delete old profile picture from cloudinary:', err);
             });
         }
 
@@ -109,7 +113,7 @@ export class UserService {
 
         if (user.profilePicturePublicId) {
             await cloudinaryService.deleteFromCloudinary(user.profilePicturePublicId).catch((err: any) => {
-                console.error('Failed to delete profile picture from cloudinary:', err);
+                logger.error('Failed to delete profile picture from cloudinary:', err);
             });
         }
 

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import AuditLog from './models/AuditLog.js';
+import { logger } from './logger.js';
 
 export interface AuditLogOptions {
     actorId: string;
@@ -46,6 +47,6 @@ export const logAction = async (
             });
         }
     } catch (error) {
-        console.error('Audit Logging Failed:', error);
+        logger.error('Audit Logging Failed:', error);
     }
 };
