@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { fetchOrganizerStatement, downloadStatementCSV } from '../../api/statement.api';
-import { IOrganizerStatementData, IStatementFilterParams } from '../../types/statement';
+import type { IOrganizerStatementData, IStatementFilterParams } from '../../types/statement';
 import { StatementSummaryCard } from '../../components/statements/StatementSummaryCard';
 import { LedgerTimelineTable } from '../../components/statements/LedgerTimelineTable';
 import {
@@ -19,6 +19,7 @@ import {
 
 export const OrganizerStatementPage = () => {
     const { user } = useAuth();
+    const targetOrganizerId = user?.id || (user as any)?._id;
     const [data, setData] = useState<IOrganizerStatementData | null>(null);
     const [loading, setLoading] = useState(true);
     const [downloading, setDownloading] = useState(false);
@@ -32,7 +33,7 @@ export const OrganizerStatementPage = () => {
     const [page, setPage] = useState(1);
 
     const loadData = useCallback(async () => {
-        if (!user?._id) return;
+        if (!targetOrganizerId) return;
         setLoading(true);
         setError(null);
         try {
@@ -44,21 +45,21 @@ export const OrganizerStatementPage = () => {
                 startDate: startDate || undefined,
                 endDate: endDate || undefined
             };
-            const result = await fetchOrganizerStatement(user._id, params);
+            const result = await fetchOrganizerStatement(targetOrganizerId, params);
             setData(result);
         } catch (err: any) {
             setError(err.response?.data?.message || err.message || 'Failed to load organizer statement dashboard');
         } finally {
             setLoading(false);
         }
-    }, [user?._id, page, search, entryType, startDate, endDate]);
+    }, [targetOrganizerId, page, search, entryType, startDate, endDate]);
 
     useEffect(() => {
         loadData();
     }, [loadData]);
 
     const handleExportCSV = async () => {
-        if (!user?._id) return;
+        if (!targetOrganizerId) return;
         setDownloading(true);
         try {
             await downloadStatementCSV({

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { fetchMemberStatement, downloadStatementCSV } from '../../api/statement.api';
-import { IMemberStatementData, IStatementFilterParams } from '../../types/statement';
+import type { IMemberStatementData, IStatementFilterParams } from '../../types/statement';
 import { StatementSummaryCard } from '../../components/statements/StatementSummaryCard';
 import { LedgerTimelineTable } from '../../components/statements/LedgerTimelineTable';
 import {
@@ -17,6 +17,7 @@ import {
 
 export const MemberStatementPage = () => {
     const { user } = useAuth();
+    const targetMemberId = user?.id || (user as any)?._id;
     const [data, setData] = useState<IMemberStatementData | null>(null);
     const [loading, setLoading] = useState(true);
     const [downloading, setDownloading] = useState(false);
@@ -30,7 +31,7 @@ export const MemberStatementPage = () => {
     const [page, setPage] = useState(1);
 
     const loadData = useCallback(async () => {
-        if (!user?._id) return;
+        if (!targetMemberId) return;
         setLoading(true);
         setError(null);
         try {
@@ -42,25 +43,25 @@ export const MemberStatementPage = () => {
                 startDate: startDate || undefined,
                 endDate: endDate || undefined
             };
-            const result = await fetchMemberStatement(user._id, params);
+            const result = await fetchMemberStatement(targetMemberId, params);
             setData(result);
         } catch (err: any) {
             setError(err.response?.data?.message || err.message || 'Failed to load member statement');
         } finally {
             setLoading(false);
         }
-    }, [user?._id, page, search, entryType, startDate, endDate]);
+    }, [targetMemberId, page, search, entryType, startDate, endDate]);
 
     useEffect(() => {
         loadData();
     }, [loadData]);
 
     const handleExportCSV = async () => {
-        if (!user?._id) return;
+        if (!targetMemberId) return;
         setDownloading(true);
         try {
             await downloadStatementCSV({
-                memberId: user._id,
+                memberId: targetMemberId,
                 entryType: entryType !== 'ALL' ? entryType : undefined,
                 startDate: startDate || undefined,
                 endDate: endDate || undefined

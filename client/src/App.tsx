@@ -58,12 +58,14 @@ import Contact from './pages/legal/Contact';
 import TermsAndConditions from './pages/legal/TermsAndConditions';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 import Disclaimer from './pages/legal/Disclaimer';
+import { DocumentTitleHandler } from './components/DocumentTitleHandler';
 
 function App() {
     return (
         <AuthProvider>
             <BrowserRouter>
                 <ScrollToTop />
+                <DocumentTitleHandler />
                 <Routes>
                     {/* Public Landing Page */}
                     <Route path="/" element={<LandingPage />} />
