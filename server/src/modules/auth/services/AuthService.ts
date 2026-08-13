@@ -56,7 +56,7 @@ export class AuthService {
         try {
             await sendVerificationEmail(email, verificationToken);
         } catch (e) {
-            console.warn('Verification email dispatch warning:', e);
+            logger.warn('Verification email dispatch warning:', e);
         }
 
         return user;

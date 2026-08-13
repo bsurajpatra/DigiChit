@@ -1,7 +1,29 @@
 import mongoose from 'mongoose';
 import ChitMessage, { IChitMessage } from '../models/ChitMessage.js';
+import ChitGroup, { IChitGroup } from '@modules/chit-group/models/ChitGroup.js';
+import Membership, { IMembership, MembershipStatus } from '@modules/membership/models/Membership.js';
+import User, { IUser } from '@modules/user/models/User.js';
 
 export class ChitMessageRepository {
+    public async findGroupById(groupId: string): Promise<IChitGroup | null> {
+        if (!mongoose.Types.ObjectId.isValid(groupId)) return null;
+        return await ChitGroup.findById(groupId);
+    }
+
+    public async findMembershipByUserAndGroup(groupId: string, userId: string): Promise<IMembership | null> {
+        if (!mongoose.Types.ObjectId.isValid(groupId) || !mongoose.Types.ObjectId.isValid(userId)) return null;
+        return await Membership.findOne({
+            chitGroupId: groupId,
+            userId,
+            status: { $ne: MembershipStatus.REJECTED }
+        });
+    }
+
+    public async findUserById(userId: string): Promise<IUser | null> {
+        if (!mongoose.Types.ObjectId.isValid(userId)) return null;
+        return await User.findById(userId);
+    }
+
     /**
      * Creates a new ChitMessage thread.
      */

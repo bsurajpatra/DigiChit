@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { PaymentStatus } from '@modules/installment/models/Installment.js';
 import { PaymentCollectionStatus } from '@modules/chit-cycle/models/ChitCycle.js';
 import { UserRole } from '@modules/user/models/User.js';
+import { AppError } from '@shared/errors/AppError.js';
 import { logAction } from '@shared/logger/auditLogger.js';
 
 import { TransactionRepository, PaginatedResult } from '../repositories/TransactionRepository.js';
@@ -30,46 +31,46 @@ export class TransactionService {
     public async initiatePayment(actorId: string, dto: InitiatePaymentDTO): Promise<ITransaction> {
         const installment = await this.repo.findInstallmentById(dto.installmentId);
         if (!installment) {
-            throw new Error('Installment obligation not found');
+            throw new AppError('Installment obligation not found', 404, 'INSTALLMENT_NOT_FOUND');
         }
 
         // Business Rule: Validate ChitCycle paymentCollection.status == OPEN
         const cycle = await this.repo.findCycleById(installment.cycleId);
         if (!cycle) {
-            throw new Error('Associated Chit Cycle not found');
+            throw new AppError('Associated Chit Cycle not found', 404, 'CYCLE_NOT_FOUND');
         }
 
         const collectionStatus = cycle.paymentCollection?.status || PaymentCollectionStatus.NOT_STARTED;
 
         if (collectionStatus !== PaymentCollectionStatus.OPEN) {
             if (collectionStatus === PaymentCollectionStatus.NOT_STARTED) {
-                throw new Error('Collections have not been opened by the organizer yet.');
+                throw new AppError('Collections have not been opened by the organizer yet.', 400, 'COLLECTIONS_NOT_STARTED');
             }
             if (collectionStatus === PaymentCollectionStatus.CLOSED) {
-                throw new Error('Collections for this cycle have been closed.');
+                throw new AppError('Collections for this cycle have been closed.', 400, 'COLLECTIONS_CLOSED');
             }
-            throw new Error('Payment collections are not open for this cycle');
+            throw new AppError('Payment collections are not open for this cycle', 400, 'COLLECTIONS_NOT_OPEN');
         }
 
         // Business Rule: Prevent payments for already paid installments
         if (installment.paymentStatus === PaymentStatus.PAID) {
-            throw new Error('This installment has already been paid in full');
+            throw new AppError('This installment has already been paid in full', 400, 'ALREADY_PAID');
         }
 
         if (installment.paymentStatus === PaymentStatus.WAIVED) {
-            throw new Error('This installment obligation has been waived');
+            throw new AppError('This installment obligation has been waived', 400, 'OBLIGATION_WAIVED');
         }
 
         // Check for existing SUCCESS transaction for this installment
         const existingSuccess = await this.repo.findByInstallmentAndStatus(dto.installmentId, [TransactionStatus.SUCCESS]);
         if (existingSuccess.length > 0) {
-            throw new Error('A successful transaction already exists for this installment');
+            throw new AppError('A successful transaction already exists for this installment', 400, 'DUPLICATE_TRANSACTION');
         }
 
         // Validate monetary amount
         const amountToPay = dto.amount || (installment.amount + (installment.lateFee || 0));
         if (amountToPay <= 0) {
-            throw new Error('Transaction amount must be greater than zero');
+            throw new AppError('Transaction amount must be greater than zero', 400, 'INVALID_AMOUNT');
         }
 
         // Get group financial config for currency
@@ -141,7 +142,7 @@ export class TransactionService {
     public async verifyPayment(actorId: string, dto: VerifyPaymentDTO): Promise<ITransaction> {
         const transaction = await this.repo.findById(dto.transactionId);
         if (!transaction) {
-            throw new Error('Transaction not found');
+            throw new AppError('Transaction not found', 404, 'TRANSACTION_NOT_FOUND');
         }
 
         if (transaction.status === TransactionStatus.SUCCESS) {
@@ -149,7 +150,7 @@ export class TransactionService {
         }
 
         if (transaction.status === TransactionStatus.CANCELLED || transaction.status === TransactionStatus.EXPIRED) {
-            throw new Error(`Cannot verify transaction in ${transaction.status} state`);
+            throw new AppError(`Cannot verify transaction in ${transaction.status} state`, 400, 'INVALID_TRANSACTION_STATE');
         }
 
         const gateway = PaymentGatewayFactory.getGateway(transaction.paymentGateway);
@@ -189,7 +190,7 @@ export class TransactionService {
             const updatedTxn = await this.repo.updateStatus(transaction._id.toString(), TransactionStatus.SUCCESS, updateData);
 
             if (!updatedTxn) {
-                throw new Error('Failed to update transaction status');
+                throw new AppError('Failed to update transaction status', 500, 'UPDATE_FAILED');
             }
 
             // Audit log
@@ -219,7 +220,7 @@ export class TransactionService {
             });
 
             if (!failedTxn) {
-                throw new Error('Failed to update transaction status');
+                throw new AppError('Failed to update transaction status', 500, 'UPDATE_FAILED');
             }
 
             // Audit log
@@ -238,7 +239,7 @@ export class TransactionService {
                 data: failedTxn
             });
 
-            throw new Error(verification.failureReason || 'Payment verification failed');
+            throw new AppError(verification.failureReason || 'Payment verification failed', 400, 'VERIFICATION_FAILED');
         }
     }
 
@@ -248,16 +249,16 @@ export class TransactionService {
     public async refundPayment(actorId: string, dto: RefundPaymentDTO): Promise<ITransaction> {
         const transaction = await this.repo.findById(dto.transactionId);
         if (!transaction) {
-            throw new Error('Transaction not found');
+            throw new AppError('Transaction not found', 404, 'TRANSACTION_NOT_FOUND');
         }
 
         if (transaction.status !== TransactionStatus.SUCCESS && transaction.status !== TransactionStatus.PARTIALLY_REFUNDED) {
-            throw new Error(`Only SUCCESS or PARTIALLY_REFUNDED transactions can be refunded`);
+            throw new AppError(`Only SUCCESS or PARTIALLY_REFUNDED transactions can be refunded`, 400, 'INVALID_REFUND_STATE');
         }
 
         const refundAmount = dto.amount || transaction.amount;
         if (refundAmount <= 0 || refundAmount > transaction.amount) {
-            throw new Error(`Invalid refund amount. Must be between 0.01 and ${transaction.amount}`);
+            throw new AppError(`Invalid refund amount. Must be between 0.01 and ${transaction.amount}`, 400, 'INVALID_REFUND_AMOUNT');
         }
 
         const gateway = PaymentGatewayFactory.getGateway(transaction.paymentGateway);
@@ -283,7 +284,7 @@ export class TransactionService {
         });
 
         if (!updatedTxn) {
-            throw new Error('Failed to update transaction state for refund');
+            throw new AppError('Failed to update transaction state for refund', 500, 'REFUND_UPDATE_FAILED');
         }
 
         const actor = await this.repo.findUserById(actorId);
@@ -315,7 +316,7 @@ export class TransactionService {
     public async getTransactionById(id: string): Promise<ITransaction> {
         const transaction = await this.repo.findById(id);
         if (!transaction) {
-            throw new Error('Transaction record not found');
+            throw new AppError('Transaction record not found', 404, 'TRANSACTION_NOT_FOUND');
         }
         return transaction;
     }

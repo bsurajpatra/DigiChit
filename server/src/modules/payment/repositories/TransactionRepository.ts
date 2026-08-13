@@ -39,6 +39,26 @@ export class TransactionRepository {
         return await User.findById(userId);
     }
 
+    public async findLatestTransactionNumber(prefix: string): Promise<string | null> {
+        const latestTxn = await Transaction.findOne({
+            transactionNumber: new RegExp(`^${prefix}`)
+        })
+            .sort({ createdAt: -1 })
+            .select('transactionNumber')
+            .lean();
+        return latestTxn?.transactionNumber || null;
+    }
+
+    public async findLatestReceiptNumber(prefix: string): Promise<string | null> {
+        const latestTxn = await Transaction.findOne({
+            receiptNumber: new RegExp(`^${prefix}`)
+        })
+            .sort({ createdAt: -1 })
+            .select('receiptNumber')
+            .lean();
+        return latestTxn?.receiptNumber || null;
+    }
+
     public async create(data: Partial<ITransaction>): Promise<ITransaction> {
         return await Transaction.create(data);
     }

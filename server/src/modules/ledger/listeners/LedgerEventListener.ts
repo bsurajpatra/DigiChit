@@ -1,7 +1,6 @@
 import { logger } from '@shared/logger/logger.js';
 import { eventBus } from '@shared/event-bus/EventBus.js';
 import { PaymentDomainEvent, PaymentDomainEventType, type ITransaction, TransactionStatus } from '@modules/payment/index.js';
-import ChitGroup from '@modules/chit-group/models/ChitGroup.js';
 import { LedgerService } from '../services/LedgerService.js';
 import { LedgerRepository } from '../repositories/LedgerRepository.js';
 import { logAction } from '@shared/logger/auditLogger.js';
@@ -43,7 +42,7 @@ export const initLedgerEventListeners = (): void => {
             }
 
             // Fetch associated ChitGroup to obtain organizerId
-            const group = await ChitGroup.findById(txn.groupId);
+            const group = await ledgerRepo.findGroupById(txn.groupId);
             if (!group) {
                 logger.error(`[LedgerEventListener Error] Associated ChitGroup ${txn.groupId} not found for transaction ${transactionIdStr}`);
                 return;

@@ -1,14 +1,17 @@
 import { logger } from '@shared/logger/logger.js';
 import { eventBus } from '@shared/event-bus/EventBus.js';
 import { PaymentDomainEvent, PaymentDomainEventType } from '../events/domainEvents.js';
-import Installment, { PaymentStatus } from '@modules/installment/models/Installment.js';
+import { InstallmentRepository } from '@modules/installment/repositories/InstallmentRepository.js';
+import { PaymentStatus } from '@modules/installment/models/Installment.js';
+
+const installmentRepo = new InstallmentRepository();
 
 export const initPaymentEventListeners = (): void => {
     eventBus.on(PaymentDomainEventType.TRANSACTION_SUCCESS, async (event: PaymentDomainEvent<any>) => {
         try {
             const txn = event.data;
             if (txn && txn.installmentId) {
-                await Installment.findByIdAndUpdate(txn.installmentId, {
+                await installmentRepo.updatePaymentDetails(txn.installmentId, {
                     paymentStatus: PaymentStatus.PAID,
                     paidAmount: txn.amount,
                     paidDate: txn.completedAt || new Date(),

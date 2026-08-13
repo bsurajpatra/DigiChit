@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { AuthRequest } from '@modules/auth/index.js';
 import { KYCService } from '../services/KYCService.js';
 import { KYCStatus } from '@modules/user/models/User.js';
+import { AppError } from '@shared/errors/AppError.js';
 
 const kycService = new KYCService();
 
@@ -11,7 +12,7 @@ export class KYCController {
             const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
             if (!files || !files.document || !files.selfie) {
-                throw new Error('Both document and selfie are required');
+                throw new AppError('Both document and selfie are required', 400, 'KYC_FILES_MISSING');
             }
 
             const kyc = await kycService.submitKYC({
@@ -43,7 +44,7 @@ export class KYCController {
             const { userId, field } = req.params;
 
             if (field !== 'document' && field !== 'selfie') {
-                throw new Error('Invalid document field requested');
+                throw new AppError('Invalid document field requested', 400, 'INVALID_FIELD');
             }
 
             const { stream, mimeType } = await kycService.getKYCDocumentStream(userId as string, field as 'document' | 'selfie');

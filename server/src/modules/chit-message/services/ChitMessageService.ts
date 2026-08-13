@@ -6,9 +6,7 @@ import {
     IReplyThreadInput,
     IUpdateThreadStatusInput
 } from '../interfaces/IChitMessage.js';
-import ChitGroup from '@modules/chit-group/models/ChitGroup.js';
-import Membership, { MembershipStatus } from '@modules/membership/models/Membership.js';
-import User from '@modules/user/models/User.js';
+import { AppError } from '@shared/errors/AppError.js';
 
 export class ChitMessageService {
     private repo: ChitMessageRepository;
@@ -23,26 +21,22 @@ export class ChitMessageService {
     public async createHelpThread(input: ICreateThreadInput): Promise<IChitMessage> {
         const { actorId, groupId, subject, initialMessage } = input;
 
-        const group = await ChitGroup.findById(groupId);
+        const group = await this.repo.findGroupById(groupId);
         if (!group) {
-            throw new Error('Chit Group not found');
+            throw new AppError('Chit Group not found', 404, 'GROUP_NOT_FOUND');
         }
 
         // Verify user is organizer or a valid member of this chit group
         const isOrganizer = group.organizerId.toString() === actorId;
-        const membership = await Membership.findOne({
-            chitGroupId: groupId,
-            userId: actorId,
-            status: { $ne: MembershipStatus.REJECTED }
-        });
+        const membership = await this.repo.findMembershipByUserAndGroup(groupId, actorId);
 
         if (!isOrganizer && !membership) {
-            throw new Error('Unauthorized: You must be a member of this Chit Group to send a message');
+            throw new AppError('Unauthorized: You must be a member of this Chit Group to send a message', 403, 'UNAUTHORIZED');
         }
 
-        const actor = await User.findById(actorId);
+        const actor = await this.repo.findUserById(actorId);
         if (!actor) {
-            throw new Error('User not found');
+            throw new AppError('User not found', 404, 'USER_NOT_FOUND');
         }
 
         const thread = await this.repo.create({
@@ -69,9 +63,9 @@ export class ChitMessageService {
      * If user is Member: returns only threads created by this member.
      */
     public async getGroupHelpThreads(actorId: string, groupId: string): Promise<IChitMessage[]> {
-        const group = await ChitGroup.findById(groupId);
+        const group = await this.repo.findGroupById(groupId);
         if (!group) {
-            throw new Error('Chit Group not found');
+            throw new AppError('Chit Group not found', 404, 'GROUP_NOT_FOUND');
         }
 
         const isOrganizer = group.organizerId.toString() === actorId;
@@ -89,18 +83,18 @@ export class ChitMessageService {
 
         const thread = await this.repo.findById(threadId);
         if (!thread) {
-            throw new Error('Help thread not found');
+            throw new AppError('Help thread not found', 404, 'THREAD_NOT_FOUND');
         }
 
-        const group = await ChitGroup.findById(thread.groupId);
+        const group = await this.repo.findGroupById(thread.groupId.toString());
         const isOrganizer = group ? group.organizerId.toString() === actorId : thread.organizerId.toString() === actorId;
         const isMember = thread.memberId.toString() === actorId;
 
         if (!isOrganizer && !isMember) {
-            throw new Error('Unauthorized: You are not a participant of this conversation');
+            throw new AppError('Unauthorized: You are not a participant of this conversation', 403, 'UNAUTHORIZED');
         }
 
-        const actor = await User.findById(actorId);
+        const actor = await this.repo.findUserById(actorId);
 
         thread.messages.push({
             senderId: new mongoose.Types.ObjectId(actorId),
@@ -127,14 +121,14 @@ export class ChitMessageService {
 
         const thread = await this.repo.findById(threadId);
         if (!thread) {
-            throw new Error('Help thread not found');
+            throw new AppError('Help thread not found', 404, 'THREAD_NOT_FOUND');
         }
 
         const isOrganizer = thread.organizerId.toString() === actorId;
         const isMember = thread.memberId.toString() === actorId;
 
         if (!isOrganizer && !isMember) {
-            throw new Error('Unauthorized');
+            throw new AppError('Unauthorized', 403, 'UNAUTHORIZED');
         }
 
         thread.status = status;

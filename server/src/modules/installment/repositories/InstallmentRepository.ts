@@ -43,6 +43,20 @@ export class InstallmentRepository {
         return await Installment.create(data);
     }
 
+    public async updatePaymentDetails(
+        installmentId: string,
+        data: {
+            paymentStatus: PaymentStatus;
+            paidAmount: number;
+            paidDate: Date;
+            paymentMethod: string;
+            transactionId: any;
+        }
+    ): Promise<IInstallment | null> {
+        if (!mongoose.Types.ObjectId.isValid(installmentId)) return null;
+        return await Installment.findByIdAndUpdate(installmentId, data, { new: true });
+    }
+
     public async findPopulatedById(installmentId: string): Promise<IInstallment | null> {
         if (!mongoose.Types.ObjectId.isValid(installmentId)) return null;
         return await Installment.findById(installmentId)

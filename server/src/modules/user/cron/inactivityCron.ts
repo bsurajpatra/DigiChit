@@ -1,6 +1,8 @@
 import { logger } from '@shared/logger/logger.js';
 import cron from 'node-cron';
-import User, { AccountStatus } from '../models/User.js';
+import { UserRepository } from '../repositories/UserRepository.js';
+
+const userRepo = new UserRepository();
 
 /**
  * Scheduled job to handle account inactivity.
@@ -16,17 +18,8 @@ export const initInactivityCron = () => {
         const cutoffDate = new Date(Date.now() - inactivityPeriod);
 
         try {
-            const result = await User.updateMany(
-                {
-                    accountStatus: AccountStatus.ACTIVE,
-                    lastLoginAt: { $lt: cutoffDate }
-                },
-                {
-                    $set: { accountStatus: AccountStatus.INACTIVE }
-                }
-            );
-
-            logger.info(`[CRON] Inactivity check completed. ${result.modifiedCount} accounts marked INACTIVE.`);
+            const modifiedCount = await userRepo.markInactiveUsers(cutoffDate);
+            logger.info(`[CRON] Inactivity check completed. ${modifiedCount} accounts marked INACTIVE.`);
         } catch (error) {
             logger.error('[CRON] Error during inactivity check:', error);
         }

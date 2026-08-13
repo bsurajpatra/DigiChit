@@ -2,7 +2,7 @@ import { logger } from '@shared/logger/logger.js';
 import mongoose from 'mongoose';
 import app from './app.js';
 import { config } from '@shared/config/env.js';
-import { migrateFinancialConfig } from '@shared/database/migrateFinancialConfig.js';
+import { migrateFinancialConfig } from '@modules/chit-group/utils/migrateFinancialConfig.js';
 
 const { port, mongoUri } = config;
 

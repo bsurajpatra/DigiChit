@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import LedgerEntry from '../models/LedgerEntry.js';
 import { ILedgerEntry } from '../interfaces/ILedgerEntry.js';
+import ChitGroup, { IChitGroup } from '@modules/chit-group/models/ChitGroup.js';
 
 export interface LedgerPaginationOptions {
     page?: number;
@@ -18,6 +19,13 @@ export interface LedgerPaginatedResult<T> {
 }
 
 export class LedgerRepository {
+    /**
+     * Finds a single ChitGroup by ID.
+     */
+    public async findGroupById(groupId: any): Promise<IChitGroup | null> {
+        return await ChitGroup.findById(groupId);
+    }
+
     /**
      * Persists a new immutable LedgerEntry in MongoDB.
      */

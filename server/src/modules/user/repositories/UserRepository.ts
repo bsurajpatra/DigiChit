@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import User, { IUser } from '../models/User.js';
+import User, { IUser, AccountStatus } from '../models/User.js';
 
 export class UserRepository {
     /**
@@ -37,6 +37,22 @@ export class UserRepository {
             kycStatus: 'APPROVED',
             role: { $ne: 'ADMIN' }
         }).select('name email kycStatus profilePictureUrl');
+    }
+
+    /**
+     * Marks inactive users whose last login exceeds cutoff date.
+     */
+    public async markInactiveUsers(cutoffDate: Date): Promise<number> {
+        const result = await User.updateMany(
+            {
+                accountStatus: AccountStatus.ACTIVE,
+                lastLoginAt: { $lt: cutoffDate }
+            },
+            {
+                $set: { accountStatus: AccountStatus.INACTIVE }
+            }
+        );
+        return result.modifiedCount;
     }
 
     /**

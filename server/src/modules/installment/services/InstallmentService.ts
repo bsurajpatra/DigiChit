@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { InstallmentRepository } from '../repositories/InstallmentRepository.js';
-import Installment, { IInstallment, PaymentStatus } from '../models/Installment.js';
+import { IInstallment, PaymentStatus } from '../models/Installment.js';
 import { UserRole } from '@modules/user/models/User.js';
 import { AppError } from '@shared/errors/AppError.js';
 import { logAction } from '@shared/logger/auditLogger.js';
@@ -71,7 +71,7 @@ export class InstallmentService {
                 continue;
             }
 
-            const installment = new Installment({
+            const installment = await this.repo.create({
                 membershipId: membership._id,
                 userId: membership.userId,
                 groupId: group._id,
@@ -87,8 +87,6 @@ export class InstallmentService {
                 lateFee: 0,
                 remarks: null
             });
-
-            await this.repo.save(installment);
             createdCount++;
             installments.push(installment);
         }
