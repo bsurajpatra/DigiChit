@@ -3,3 +3,9 @@ export { initLedgerEventListeners } from './listeners/LedgerEventListener.js';
 export { LedgerEntryType, LedgerDirection } from './enums/ledger.enum.js';
 export { type ILedgerEntry } from './interfaces/ILedgerEntry.js';
 export { default as LedgerEntry } from './models/LedgerEntry.js';
+
+// Double-Entry Foundation Exports
+export { JournalPostingService } from './services/JournalPostingService.js';
+export { AccountType, AccountCategory, AccountScope, JournalDirection, DoubleEntryJournalType } from './enums/account.enum.js';
+export { default as Account, type IAccount } from './models/Account.js';
+export { default as JournalEntry, type IJournalEntry, type IJournalLine } from './models/JournalEntry.js';

@@ -147,7 +147,7 @@ export class StatementRepository {
 
         for (const item of ledgerStats) {
             if (item._id === 'LATE_FEE') totalLateFeesPaid += item.totalAmount;
-            if (item._id === 'REFUND') totalRefunds += item.totalAmount;
+            if (item._id === 'REFUND' || item._id === 'REVERSAL') totalRefunds += item.totalAmount;
         }
 
         return {

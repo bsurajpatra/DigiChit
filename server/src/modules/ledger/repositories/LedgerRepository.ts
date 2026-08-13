@@ -69,6 +69,28 @@ export class LedgerRepository {
     }
 
     /**
+     * Finds original (non-reversal) LedgerEntry by transaction ID.
+     */
+    public async findOriginalByTransactionId(transactionId: string): Promise<ILedgerEntry | null> {
+        if (!mongoose.Types.ObjectId.isValid(transactionId)) return null;
+        return await LedgerEntry.findOne({
+            transactionId: new mongoose.Types.ObjectId(transactionId),
+            entryType: { $ne: 'REVERSAL' }
+        });
+    }
+
+    /**
+     * Finds REVERSAL LedgerEntry by transaction ID for idempotency check.
+     */
+    public async findReversalByTransactionId(transactionId: string): Promise<ILedgerEntry | null> {
+        if (!mongoose.Types.ObjectId.isValid(transactionId)) return null;
+        return await LedgerEntry.findOne({
+            transactionId: new mongoose.Types.ObjectId(transactionId),
+            entryType: 'REVERSAL'
+        });
+    }
+
+    /**
      * Generic paginated filter query for ledger entries.
      */
     public async findPaginated(

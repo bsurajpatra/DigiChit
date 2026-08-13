@@ -1,0 +1,37 @@
+export enum AccountType {
+    ASSET = 'ASSET',
+    LIABILITY = 'LIABILITY',
+    EQUITY = 'EQUITY',
+    REVENUE = 'REVENUE',
+    EXPENSE = 'EXPENSE'
+}
+
+export enum AccountCategory {
+    BANK = 'BANK',
+    RECEIVABLE = 'RECEIVABLE',
+    PAYABLE = 'PAYABLE',
+    CLEARING = 'CLEARING',
+    INCOME = 'INCOME',
+    EXPENSE = 'EXPENSE'
+}
+
+export enum AccountScope {
+    SYSTEM = 'SYSTEM',
+    GROUP = 'GROUP',
+    MEMBER = 'MEMBER'
+}
+
+export enum JournalDirection {
+    DEBIT = 'DEBIT',
+    CREDIT = 'CREDIT'
+}
+
+export enum DoubleEntryJournalType {
+    INSTALLMENT_PAYMENT = 'INSTALLMENT_PAYMENT',
+    REVERSAL = 'REVERSAL',
+    LATE_FEE = 'LATE_FEE',
+    AUCTION_WINNER_DECLARED = 'AUCTION_WINNER_DECLARED',
+    PRIZE_PAYOUT = 'PRIZE_PAYOUT',
+    COMMISSION_PAYOUT = 'COMMISSION_PAYOUT',
+    MANUAL_ADJUSTMENT = 'MANUAL_ADJUSTMENT'
+}
