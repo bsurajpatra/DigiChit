@@ -192,8 +192,6 @@ const TransactionSchema: Schema = new Schema<ITransaction>(
 );
 
 // Indexes
-TransactionSchema.index({ transactionNumber: 1 }, { unique: true });
-TransactionSchema.index({ gatewayReference: 1 }, { unique: true, sparse: true });
 TransactionSchema.index({ memberId: 1, status: 1 });
 TransactionSchema.index({ installmentId: 1, status: 1 });
 TransactionSchema.index({ groupId: 1, createdAt: -1 });

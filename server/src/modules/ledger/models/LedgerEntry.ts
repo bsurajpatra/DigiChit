@@ -131,7 +131,6 @@ LedgerEntrySchema.pre('findOneAndDelete', function (this: any) {
 });
 
 // Indexes
-LedgerEntrySchema.index({ entryNumber: 1 }, { unique: true });
 LedgerEntrySchema.index({ transactionId: 1 }, { sparse: true });
 LedgerEntrySchema.index({ memberId: 1, createdAt: -1 });
 LedgerEntrySchema.index({ groupId: 1, createdAt: -1 });

@@ -3,6 +3,7 @@ import { Outlet, useMatch } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { Sidebar } from '../navigation/Sidebar';
 import { ChitDetailsSidebar } from '../navigation/ChitDetailsSidebar';
+import { ChitSidebarSkeleton } from '../navigation/ChitSidebarSkeleton';
 import { ChitSidebarProvider, useChitSidebar } from '../../context/ChitSidebarContext';
 
 // Inner layout so it can consume the ChitSidebarContext
@@ -18,24 +19,28 @@ const LayoutInner = () => {
 
     const { group, activeTab, setActiveTab, pendingCount, isOrganizer, setHelpOpen } = useChitSidebar();
 
-    const showChitDetailsSidebar = Boolean(
-        group && (isChitDetails || isChitAuctions || isAuctionDetails || isAuctionBids || isChitCycles || isCycleDetails || isChitInstallments)
+    const isGroupContextRoute = Boolean(
+        isChitDetails || isChitAuctions || isAuctionDetails || isAuctionBids || isChitCycles || isCycleDetails || isChitInstallments
     );
 
     return (
         <div className="h-screen bg-slate-50 flex flex-col md:flex-row overflow-hidden w-full">
-            {/* Show ChitDetailsSidebar when on Chit Details page, otherwise show Main Sidebar */}
-            {showChitDetailsSidebar ? (
-                <ChitDetailsSidebar
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
-                    pendingCount={pendingCount}
-                    group={group}
-                    isOrganizer={isOrganizer}
-                    onHelpOpen={() => setHelpOpen(true)}
-                    isMobileOpen={isMobileOpen}
-                    setMobileOpen={setMobileOpen}
-                />
+            {/* Show ChitDetailsSidebar if group is loaded, ChitSidebarSkeleton if group is loading on group route, otherwise main Sidebar */}
+            {isGroupContextRoute ? (
+                group ? (
+                    <ChitDetailsSidebar
+                        activeTab={activeTab}
+                        setActiveTab={setActiveTab}
+                        pendingCount={pendingCount}
+                        group={group}
+                        isOrganizer={isOrganizer}
+                        onHelpOpen={() => setHelpOpen(true)}
+                        isMobileOpen={isMobileOpen}
+                        setMobileOpen={setMobileOpen}
+                    />
+                ) : (
+                    <ChitSidebarSkeleton isMobileOpen={isMobileOpen} setMobileOpen={setMobileOpen} />
+                )
             ) : (
                 <Sidebar isMobileOpen={isMobileOpen} setMobileOpen={setMobileOpen} />
             )}

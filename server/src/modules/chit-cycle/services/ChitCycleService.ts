@@ -8,6 +8,7 @@ import { logAction } from '@shared/logger/auditLogger.js';
 import { eventBus } from '@shared/event-bus/EventBus.js';
 import { PaymentDomainEventType } from '@modules/payment/events/domainEvents.js';
 import { ICreateCycleInput, IRecordWinnerInput } from '../interfaces/IChitCycle.js';
+import Auction from '@modules/auction/models/Auction.js';
 
 export class ChitCycleService {
     private repo: ChitCycleRepository;
@@ -331,6 +332,15 @@ export class ChitCycleService {
         if (data.remarks) cycle.remarks = data.remarks;
 
         await this.repo.save(cycle);
+
+        // Also update matching Auction document if present
+        const auction = await Auction.findOne({ cycleId: cycle._id, isDeleted: false });
+        if (auction) {
+            auction.winningMembershipId = new mongoose.Types.ObjectId(data.winnerMembershipId);
+            auction.status = 'WINNER_DECLARED' as any;
+            if (data.remarks) auction.remarks = data.remarks;
+            await auction.save();
+        }
 
         membership.isWinner = true;
         membership.payoutMonth = cycle.cycleNumber;

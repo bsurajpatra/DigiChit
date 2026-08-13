@@ -188,6 +188,5 @@ ChitCycleSchema.index(
         partialFilterExpression: { status: ChitCycleStatus.ACTIVE }
     }
 );
-ChitCycleSchema.index({ groupId: 1, status: 1 });
 
 export default mongoose.model<IChitCycle>('ChitCycle', ChitCycleSchema);

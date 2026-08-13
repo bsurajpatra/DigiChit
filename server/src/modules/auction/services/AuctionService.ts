@@ -291,6 +291,36 @@ export class AuctionService {
 
         await this.repo.save(auction);
 
+        // Sync winner details to ChitCycle document
+        const cycle = await this.repo.findCycleById(auction.cycleId.toString());
+        if (cycle) {
+            cycle.winnerMembershipId = new mongoose.Types.ObjectId(data.winningMembershipId);
+            let winningBid: any = null;
+            if (data.winningBidId) {
+                winningBid = await this.repo.findBidById(data.winningBidId);
+                if (winningBid) {
+                    cycle.winningBidPercentage = winningBid.bidPercentage;
+                    cycle.winningBidAmount = winningBid.bidAmount || null;
+                }
+            }
+            if (!cycle.winningBidAmount) {
+                const group = await this.repo.findGroupById(auction.groupId);
+                const pct = cycle.winningBidPercentage || winningBid?.bidPercentage || auction.minimumBidPercentage;
+                if (group && pct) {
+                    const totalVal = group.monthlyContribution * group.totalMembers;
+                    cycle.winningBidAmount = (totalVal * pct) / 100;
+                }
+            }
+            if (data.remarks) {
+                cycle.remarks = data.remarks;
+            }
+            await this.repo.saveCycle(cycle);
+        }
+
+        membership.isWinner = true;
+        membership.payoutMonth = cycle?.cycleNumber || 1;
+        await membership.save();
+
         await logAction(actorId, actorRole, 'AUCTION_WINNER_DECLARED', {
             newValue: {
                 auctionId,

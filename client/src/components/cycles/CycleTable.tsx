@@ -50,7 +50,7 @@ export const CycleTable = ({
     };
 
     const handleExportCSV = () => {
-        const headers = ['Cycle #', 'Status', 'Collections Status', 'Scheduled Start', 'Actual Start', 'Actual End', 'Winner Name', 'Winning Bid Amount'];
+        const headers = ['Cycle #', 'Cycle Status', 'Collection Status', 'Scheduled Start', 'Actual Start', 'Actual End', 'Winner Name', 'Winning Bid Amount'];
         const rows = filteredCycles.map((c) => {
             const winMem: any = c.winnerMembershipId;
             const winnerName = typeof winMem === 'object' && winMem !== null
@@ -142,7 +142,8 @@ export const CycleTable = ({
                     <thead>
                         <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider bg-slate-50/50">
                             <th className="py-3.5 px-6">Cycle #</th>
-                            <th className="py-3.5 px-6">Status & Collections</th>
+                            <th className="py-3.5 px-6">Cycle Status</th>
+                            <th className="py-3.5 px-6">Collection Status</th>
                             <th className="py-3.5 px-6">Scheduled Start</th>
                             <th className="py-3.5 px-6">Winner Member</th>
                             <th className="py-3.5 px-6">Winning Bid</th>
@@ -152,7 +153,7 @@ export const CycleTable = ({
                     <tbody className="divide-y divide-slate-100">
                         {filteredCycles.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="py-12 text-center text-slate-400 font-medium">
+                                <td colSpan={7} className="py-12 text-center text-slate-400 font-medium">
                                     No cycles found matching criteria.
                                 </td>
                             </tr>
@@ -181,12 +182,14 @@ export const CycleTable = ({
                                             </div>
                                         </td>
 
-                                        {/* Status & Collections */}
+                                        {/* Cycle Status */}
                                         <td className="py-4 px-6">
-                                            <div className="flex flex-col gap-1.5">
-                                                <CycleStatusBadge status={c.status} size="sm" />
-                                                <PaymentCollectionBadge status={collectionStatus} size="sm" />
-                                            </div>
+                                            <CycleStatusBadge status={c.status} size="sm" />
+                                        </td>
+
+                                        {/* Collection Status */}
+                                        <td className="py-4 px-6">
+                                            <PaymentCollectionBadge status={collectionStatus} size="sm" />
                                         </td>
 
                                         {/* Scheduled Start */}

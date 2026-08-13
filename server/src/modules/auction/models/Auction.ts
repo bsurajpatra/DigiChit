@@ -133,8 +133,6 @@ const AuctionSchema: Schema = new Schema<IAuction>(
 // -----------------------------------------------------------------------------
 
 // Business Rule 1: Every ChitCycle can have only ONE Auction
-AuctionSchema.index({ cycleId: 1 }, { unique: true });
-
 // Enforce unique auction number per group
 AuctionSchema.index({ groupId: 1, auctionNumber: 1 }, { unique: true });
 

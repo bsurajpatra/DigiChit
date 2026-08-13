@@ -3,6 +3,7 @@ import Auction, { IAuction, AuctionStatus } from '../models/Auction.js';
 import ChitCycle, { IChitCycle } from '@modules/chit-cycle/models/ChitCycle.js';
 import ChitGroup, { IChitGroup } from '@modules/chit-group/models/ChitGroup.js';
 import Membership, { IMembership } from '@modules/membership/models/Membership.js';
+import Bid, { IBid } from '@modules/bid/models/Bid.js';
 
 export class AuctionRepository {
     /**
@@ -45,10 +46,25 @@ export class AuctionRepository {
     }
 
     /**
+     * Finds bid by ID.
+     */
+    public async findBidById(bidId: string): Promise<IBid | null> {
+        if (!mongoose.Types.ObjectId.isValid(bidId)) return null;
+        return await Bid.findById(bidId);
+    }
+
+    /**
      * Saves changes on an existing Mongoose Auction document.
      */
     public async save(auctionDoc: IAuction): Promise<IAuction> {
         return await auctionDoc.save();
+    }
+
+    /**
+     * Saves changes on an existing Mongoose ChitCycle document.
+     */
+    public async saveCycle(cycleDoc: IChitCycle): Promise<IChitCycle> {
+        return await cycleDoc.save();
     }
 
     /**
