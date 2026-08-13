@@ -227,7 +227,6 @@ export const Profile = () => {
             const uploadResult = await uploadImageDirectly(compressedBlob, `digichit/users/${profile?._id || 'unknown'}`);
             
             // 3. Update server with the new image info
-            // We use a new endpoint or update the existing one to handle direct upload results
             const res = await api.post('/user/profile-picture', {
                 publicId: uploadResult.public_id,
                 url: uploadResult.secure_url
@@ -305,7 +304,7 @@ export const Profile = () => {
     );
 
     return (
-        <div className="h-full flex flex-col gap-4 animate-in fade-in duration-500">
+        <div className="space-y-4 pb-2 animate-in fade-in duration-500">
 
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -323,13 +322,13 @@ export const Profile = () => {
             </div>
 
             {/* Grid */}
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
                 {/* Left: Avatar + Fast Actions */}
                 <div className="flex flex-col gap-4">
 
                     {/* Avatar Card */}
-                    <div className="bg-white rounded-2xl border-none shadow-none p-6 flex flex-col items-center text-center gap-4">
+                    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 flex flex-col items-center text-center gap-4">
                         <div className="relative group shrink-0">
                             <input
                                 type="file"
@@ -402,7 +401,7 @@ export const Profile = () => {
                     </div>
 
                     {/* Account Controls */}
-                    <div className="bg-white rounded-2xl border-none shadow-none p-4 space-y-2">
+                    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 space-y-2">
                         <button onClick={() => setShowPw(true)}
                             className="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-900 hover:bg-emerald-600 text-white transition-all cursor-pointer group">
                             <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center shrink-0">
@@ -445,10 +444,10 @@ export const Profile = () => {
                 </div>
 
                 {/* Right: Detailed Metadata */}
-                <div className="lg:col-span-2 flex flex-col gap-4 overflow-y-auto pr-1 custom-scrollbar">
+                <div className="lg:col-span-2 flex flex-col gap-4">
 
                     {/* System Identity */}
-                    <div className="bg-white rounded-2xl border-none shadow-none p-6 space-y-4">
+                    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
                         <p className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-emerald-500" /> System Identity
                         </p>
@@ -475,7 +474,7 @@ export const Profile = () => {
 
                     {/* Organizer Specification */}
                     {profile?.role === 'ORGANIZER' && (
-                        <div className="bg-white rounded-2xl border-none shadow-none p-6 space-y-4">
+                        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
                             <p className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
                                 <Shield className="w-4 h-4 text-emerald-600" /> Professional Specifications
                             </p>
@@ -529,6 +528,75 @@ export const Profile = () => {
                 </div>
             </div>
 
+            {/* FULL WIDTH: About & Legal Notices */}
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-4 w-full">
+                <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-blue-600" /> About & Legal Notices
+                    </p>
+                    <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider">
+                        v1.0.0 • DigiChit
+                    </span>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-1">
+                    <Link
+                        to="/terms-and-conditions"
+                        className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold transition-all group border border-slate-100"
+                    >
+                        <Shield className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors shrink-0" />
+                        <span className="truncate">Terms</span>
+                    </Link>
+
+                    <Link
+                        to="/privacy-policy"
+                        className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold transition-all group border border-slate-100"
+                    >
+                        <Lock className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors shrink-0" />
+                        <span className="truncate">Privacy</span>
+                    </Link>
+
+                    <Link
+                        to="/disclaimer"
+                        className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold transition-all group border border-slate-100"
+                    >
+                        <AlertTriangle className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors shrink-0" />
+                        <span className="truncate">Disclaimer</span>
+                    </Link>
+
+                    <Link
+                        to="/support"
+                        className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold transition-all group border border-slate-100"
+                    >
+                        <UserCircle className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors shrink-0" />
+                        <span className="truncate">Support</span>
+                    </Link>
+
+                    <Link
+                        to="/contact"
+                        className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold transition-all group border border-slate-100"
+                    >
+                        <Mail className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors shrink-0" />
+                        <span className="truncate">Contact</span>
+                    </Link>
+
+                    <Link
+                        to="/about-us"
+                        className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold transition-all group border border-slate-100"
+                    >
+                        <Briefcase className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors shrink-0" />
+                        <span className="truncate">About Us</span>
+                    </Link>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 text-[11px] font-medium text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2">
+                    <span>© 2026 DigiChit — Secure Chit Fund Management System. All rights reserved.</span>
+                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
+                        256-Bit SSL Encrypted
+                    </span>
+                </div>
+            </div>
+
             {/* Premium Modals */}
             {kycViewer && (
                 <KYCViewer
@@ -548,5 +616,3 @@ export const Profile = () => {
         </div>
     );
 };
-
-// MapPin helper removed as it was unused.

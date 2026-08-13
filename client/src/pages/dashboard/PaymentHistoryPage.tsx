@@ -78,7 +78,7 @@ export const PaymentHistoryPage = () => {
             {/* Top Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black">
+                    <div className="bg-transparent text-emerald-600 flex items-center justify-center font-black shrink-0">
                         <DollarSign className="w-6 h-6" />
                     </div>
                     <div>
@@ -88,7 +88,7 @@ export const PaymentHistoryPage = () => {
                 </div>
 
                 <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black">
+                    <div className="bg-transparent text-emerald-600 flex items-center justify-center font-black shrink-0">
                         <CheckCircle2 className="w-6 h-6" />
                     </div>
                     <div>
@@ -98,7 +98,7 @@ export const PaymentHistoryPage = () => {
                 </div>
 
                 <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-black">
+                    <div className="bg-transparent text-amber-600 flex items-center justify-center font-black shrink-0">
                         <Clock className="w-6 h-6" />
                     </div>
                     <div>
@@ -108,7 +108,7 @@ export const PaymentHistoryPage = () => {
                 </div>
 
                 <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center font-black">
+                    <div className="bg-transparent text-sky-600 flex items-center justify-center font-black shrink-0">
                         <RefreshCw className="w-6 h-6" />
                     </div>
                     <div>

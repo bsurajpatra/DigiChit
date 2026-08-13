@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShieldCheck } from 'lucide-react';
 import logo from '../../assets/logo.png';
 
@@ -42,28 +42,34 @@ const sections = [
 ];
 
 const PrivacyPolicy = () => {
-    return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased relative overflow-hidden">
-            {/* Glowing Ambient Orbs */}
-            <div className="absolute top-[-10%] left-[20%] w-[500px] h-[500px] rounded-full bg-emerald-600/10 blur-[130px] pointer-events-none" />
-            <div className="absolute bottom-[10%] right-[10%] w-[500px] h-[500px] rounded-full bg-teal-500/10 blur-[140px] pointer-events-none" />
+    const navigate = useNavigate();
 
+    const handleBack = () => {
+        if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            navigate('/');
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-slate-50/60 text-slate-900 font-sans antialiased relative overflow-hidden">
             {/* Navigation */}
-            <nav className="w-full z-50 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80 sticky top-0">
+            <nav className="w-full z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 sticky top-0">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative">
-                    {/* Left: Back Link */}
-                    <Link 
-                        to="/#footer" 
-                        state={{ scrollToFooter: true }}
-                        className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-emerald-400 transition-colors z-10"
+                    {/* Left: Dynamic Back Button */}
+                    <button 
+                        onClick={handleBack}
+                        className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors z-10 cursor-pointer"
                     >
-                        <ArrowLeft className="w-4 h-4 text-emerald-400" /> Back
-                    </Link>
+                        <ArrowLeft className="w-4 h-4 text-blue-600" />
+                        <span>Back</span>
+                    </button>
 
                     {/* Center: Logo & Title */}
                     <Link to="/" className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 group z-10">
                         <img src={logo} alt="DigiChit Logo" className="w-9 h-9 object-contain group-hover:scale-105 transition-transform" />
-                        <span className="text-xl font-bold tracking-tight text-white">DigiChit</span>
+                        <span className="text-xl font-black tracking-tight text-slate-900">DigiChit</span>
                     </Link>
 
                     {/* Right spacer for balance */}
@@ -71,22 +77,24 @@ const PrivacyPolicy = () => {
                 </div>
             </nav>
 
-            {/* Main Content */}
-            <main className="max-w-4xl mx-auto px-6 py-16 relative z-10">
-                <div className="text-center mb-16">
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-4 border border-emerald-500/20">
+            {/* Main Content Container */}
+            <main className="max-w-4xl mx-auto px-6 py-8 pb-8 relative z-10 space-y-6">
+                {/* Header Card */}
+                <div className="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-xs text-center space-y-3">
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-600 text-xs font-bold uppercase tracking-wider border border-emerald-100 mx-auto">
                         <ShieldCheck className="w-4 h-4" />
-                        <span>Data Protection</span>
+                        <span>Data Protection & Privacy</span>
                     </div>
-                    <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">Privacy Policy</h1>
-                    <p className="text-slate-400 text-sm">Last updated: March 2026</p>
+                    <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Privacy Policy</h1>
+                    <p className="text-slate-400 text-xs font-bold">Last updated: March 2026</p>
                 </div>
 
-                <div className="divide-y divide-slate-800/60">
+                {/* Privacy Body Card */}
+                <div className="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-xs divide-y divide-slate-100">
                     {sections.map((section, idx) => (
-                        <div key={idx} className="py-6 first:pt-0">
-                            <h2 className="text-lg font-bold text-white mb-2">{section.title}</h2>
-                            <p className="text-slate-300 text-sm leading-relaxed">{section.body}</p>
+                        <div key={idx} className="py-6 first:pt-0 last:pb-0 space-y-2">
+                            <h2 className="text-base font-black text-slate-900">{section.title}</h2>
+                            <p className="text-slate-600 text-xs font-medium leading-relaxed">{section.body}</p>
                         </div>
                     ))}
                 </div>
