@@ -26,12 +26,31 @@ export class AccountRepository {
         });
     }
 
+    public async findGroupAccounts(groupId: string): Promise<IAccount[]> {
+        if (!mongoose.Types.ObjectId.isValid(groupId)) return [];
+        return await Account.find({
+            groupId: new mongoose.Types.ObjectId(groupId),
+            scope: AccountScope.GROUP,
+            isActive: true
+        });
+    }
+
     public async findMemberAccount(groupId: string, memberId: string, category: AccountCategory): Promise<IAccount | null> {
         if (!mongoose.Types.ObjectId.isValid(groupId) || !mongoose.Types.ObjectId.isValid(memberId)) return null;
         return await Account.findOne({
             groupId: new mongoose.Types.ObjectId(groupId),
             memberId: new mongoose.Types.ObjectId(memberId),
             category,
+            scope: AccountScope.MEMBER,
+            isActive: true
+        });
+    }
+
+    public async findMemberAccounts(groupId: string, memberId: string): Promise<IAccount[]> {
+        if (!mongoose.Types.ObjectId.isValid(groupId) || !mongoose.Types.ObjectId.isValid(memberId)) return [];
+        return await Account.find({
+            groupId: new mongoose.Types.ObjectId(groupId),
+            memberId: new mongoose.Types.ObjectId(memberId),
             scope: AccountScope.MEMBER,
             isActive: true
         });

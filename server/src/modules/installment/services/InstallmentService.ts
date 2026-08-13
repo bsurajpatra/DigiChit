@@ -4,6 +4,14 @@ import { IInstallment, PaymentStatus } from '../models/Installment.js';
 import { UserRole } from '@modules/user/models/User.js';
 import { AppError } from '@shared/errors/AppError.js';
 import { logAction } from '@shared/logger/auditLogger.js';
+import { logger } from '@shared/logger/logger.js';
+import {
+    AccountProvisioningService,
+    JournalPostingService,
+    JournalEntryRepository,
+    AccountCategory,
+    JournalDirection
+} from '@modules/ledger/index.js';
 import {
     IUpdateInstallmentInput,
     IUpdateInstallmentStatusInput
@@ -11,13 +19,20 @@ import {
 
 export class InstallmentService {
     private repo: InstallmentRepository;
+    private provisioningService: AccountProvisioningService;
+    private journalPostingService: JournalPostingService;
+    private journalRepo: JournalEntryRepository;
 
     constructor() {
         this.repo = new InstallmentRepository();
+        this.provisioningService = new AccountProvisioningService();
+        this.journalPostingService = new JournalPostingService();
+        this.journalRepo = new JournalEntryRepository();
     }
 
     /**
-     * Bulk generates Installment obligation records for all active members in a ChitCycle.
+     * Bulk generates Installment obligation records for all active members in a ChitCycle
+     * and posts corresponding double-entry INSTALLMENT_OBLIGATION journal entries (P2).
      */
     public async generateInstallmentsForCycle(
         actorId: string,
@@ -89,6 +104,61 @@ export class InstallmentService {
             });
             createdCount++;
             installments.push(installment);
+
+            // -----------------------------------------------------------------
+            // Ledger P2 Integration: Post Double-Entry INSTALLMENT_OBLIGATION
+            // -----------------------------------------------------------------
+            try {
+                const groupIdStr = group._id.toString();
+                const userIdStr = membership.userId.toString();
+                const installmentIdStr = (installment._id as mongoose.Types.ObjectId).toString();
+
+                // Idempotency check: verify journal doesn't already exist for this installment
+                const existingJournal = await this.journalRepo.findByReference(installmentIdStr, 'INSTALLMENT');
+                if (!existingJournal) {
+                    const memberReceivableAcc = await this.provisioningService.getMemberAccount(
+                        groupIdStr,
+                        userIdStr,
+                        AccountCategory.RECEIVABLE
+                    );
+                    const cycleClearingAcc = await this.provisioningService.getGroupAccount(
+                        groupIdStr,
+                        AccountCategory.CLEARING
+                    );
+
+                    const amountPaise = Math.round(installment.amount * 100);
+
+                    await this.journalPostingService.postJournalEntry({
+                        entryType: 'INSTALLMENT_OBLIGATION',
+                        referenceType: 'INSTALLMENT',
+                        referenceId: installmentIdStr,
+                        groupId: groupIdStr,
+                        cycleId: (cycle._id as mongoose.Types.ObjectId).toString(),
+                        memberId: userIdStr,
+                        createdBy: actorId,
+                        lines: [
+                            {
+                                accountId: (memberReceivableAcc._id as any).toString(),
+                                direction: JournalDirection.DEBIT,
+                                amountPaise,
+                                memo: `Installment obligation for member in cycle ${cycle.cycleNumber}`
+                            },
+                            {
+                                accountId: (cycleClearingAcc._id as any).toString(),
+                                direction: JournalDirection.CREDIT,
+                                amountPaise,
+                                memo: `Pot clearing claim for installment in cycle ${cycle.cycleNumber}`
+                            }
+                        ]
+                    });
+                }
+            } catch (journalErr: any) {
+                // Failure Isolation: Log error cleanly without interrupting installment creation return
+                logger.error(
+                    `[InstallmentService Error] Failed to post obligation journal for installment ${installment._id}:`,
+                    journalErr.message || journalErr
+                );
+            }
         }
 
         // 5. Audit Log
