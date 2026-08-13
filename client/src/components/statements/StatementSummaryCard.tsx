@@ -9,7 +9,7 @@ interface StatementSummaryCardProps {
     icon: LucideIcon;
     isCurrency?: boolean;
     currency?: string;
-    variant?: 'primary' | 'success' | 'warning' | 'danger' | 'neutral';
+    variant?: 'primary' | 'success' | 'warning' | 'danger' | 'neutral' | 'info';
 }
 
 export const StatementSummaryCard: React.FC<StatementSummaryCardProps> = ({
@@ -21,18 +21,22 @@ export const StatementSummaryCard: React.FC<StatementSummaryCardProps> = ({
     currency = 'INR',
     variant = 'neutral'
 }) => {
-    const getVariantStyles = () => {
+    const isHero = variant === 'primary';
+
+    const getIconTextColor = () => {
         switch (variant) {
             case 'primary':
-                return 'bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-sm';
+                return 'text-emerald-400';
             case 'success':
-                return 'bg-white border border-slate-200/80 shadow-xs text-emerald-600';
+                return 'text-emerald-600';
             case 'warning':
-                return 'bg-white border border-slate-200/80 shadow-xs text-amber-600';
+                return 'text-amber-600';
             case 'danger':
-                return 'bg-white border border-slate-200/80 shadow-xs text-rose-600';
+                return 'text-rose-600';
+            case 'info':
+                return 'text-sky-600';
             default:
-                return 'bg-white border border-slate-200/80 shadow-xs text-slate-700';
+                return 'text-blue-600';
         }
     };
 
@@ -40,23 +44,55 @@ export const StatementSummaryCard: React.FC<StatementSummaryCardProps> = ({
         ? formatCurrency(value, currency)
         : value;
 
-    const isGradient = variant === 'primary';
+    if (isHero) {
+        return (
+            <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-md flex flex-col justify-between relative overflow-hidden group hover:shadow-lg transition-all">
+                {/* Background ambient glow effect */}
+                <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none group-hover:bg-emerald-500/20 transition-all" />
+
+                <div className="flex items-center justify-between relative z-10">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        {title}
+                    </span>
+                    <div className={`bg-transparent flex items-center justify-center font-bold shrink-0 transition-transform group-hover:scale-110 ${getIconTextColor()}`}>
+                        <Icon className="w-6 h-6" />
+                    </div>
+                </div>
+
+                <div className="mt-4 relative z-10">
+                    <span className="text-2xl sm:text-3xl font-black tracking-tight text-white block">
+                        {displayValue}
+                    </span>
+                    {subtitle && (
+                        <div className="flex items-center gap-1.5 mt-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+                            <p className="text-[11px] font-bold text-slate-400">
+                                {subtitle}
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className={`p-5 rounded-3xl flex flex-col justify-between transition-all hover:shadow-md ${getVariantStyles()}`}>
+        <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-md transition-all group">
             <div className="flex items-center justify-between">
-                <span className={`text-[10px] font-black uppercase tracking-widest ${isGradient ? 'text-blue-100' : 'text-slate-400'}`}>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                     {title}
                 </span>
-                <Icon className={`w-5 h-5 ${isGradient ? 'text-blue-200' : ''}`} />
+                <div className={`bg-transparent flex items-center justify-center font-bold shrink-0 transition-transform group-hover:scale-110 ${getIconTextColor()}`}>
+                    <Icon className="w-6 h-6" />
+                </div>
             </div>
 
-            <div className="mt-3">
-                <span className={`text-2xl font-black block tracking-tight ${isGradient ? 'text-white' : 'text-slate-900'}`}>
+            <div className="mt-4">
+                <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 block">
                     {displayValue}
                 </span>
                 {subtitle && (
-                    <p className={`text-[11px] font-medium mt-1 ${isGradient ? 'text-blue-100' : 'text-slate-400'}`}>
+                    <p className="text-[11px] font-bold text-slate-400 mt-1">
                         {subtitle}
                     </p>
                 )}

@@ -83,25 +83,25 @@ export const MemberStatementPage = () => {
 
     if (loading && !data) {
         return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-                <div className="flex items-center gap-3 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 text-slate-700 font-bold">
-                    <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
-                    <span>Loading Financial Statement...</span>
+            <div className="py-24 flex flex-col items-center justify-center space-y-4">
+                <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <Loader2 className="w-7 h-7 animate-spin" />
                 </div>
+                <span className="text-sm font-bold text-slate-700">Loading Financial Statement...</span>
             </div>
         );
     }
 
     if (error || !data) {
         return (
-            <div className="min-h-screen bg-slate-50 p-6 flex flex-col items-center justify-center space-y-4">
-                <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 font-bold text-sm flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+            <div className="py-24 flex flex-col items-center justify-center space-y-4">
+                <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 font-bold text-xs flex items-center gap-2 max-w-md">
+                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
                     <span>{error || 'Failed to load statement'}</span>
                 </div>
                 <button
                     onClick={loadData}
-                    className="px-4 py-2 bg-slate-900 text-white font-bold rounded-xl text-xs flex items-center gap-2"
+                    className="px-4 py-2 bg-slate-900 text-white font-bold rounded-xl text-xs flex items-center gap-2 hover:bg-slate-800 transition cursor-pointer"
                 >
                     <RotateCcw className="w-4 h-4" />
                     <span>Retry</span>
@@ -113,26 +113,25 @@ export const MemberStatementPage = () => {
     const { summary, pagination, timeline } = data;
 
     return (
-        <div className="min-h-screen bg-slate-50/60 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+        <div className="space-y-6 pb-12">
             {/* Header */}
-            <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-black text-slate-900">My Financial Statement</h1>
-                    <p className="text-xs font-medium text-slate-400 mt-0.5">
-                        Official ledger audit trail and contribution history for {data.member.name}
-                    </p>
+                    <div className="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
+                        <FileSpreadsheet className="w-4 h-4" />
+                        <span>Financial Ledger & Audit Engine</span>
+                    </div>
+                    <h1 className="text-xl font-black text-slate-900 tracking-tight">Member Financial Statement</h1>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={handleExportCSV}
-                        disabled={downloading}
-                        className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition flex items-center gap-2 cursor-pointer shadow-xs"
-                    >
-                        {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                        <span>Download Statement (CSV)</span>
-                    </button>
-                </div>
+                <button
+                    onClick={handleExportCSV}
+                    disabled={downloading}
+                    className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs hover:shadow-md flex items-center gap-2 cursor-pointer shrink-0"
+                >
+                    {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                    <span>Export Statement (CSV)</span>
+                </button>
             </div>
 
             {/* KPI Summary Cards Grid */}
@@ -140,15 +139,15 @@ export const MemberStatementPage = () => {
                 <StatementSummaryCard
                     title="Total Paid"
                     value={summary.totalPaid}
-                    subtitle={`${summary.paidInstallmentsCount} of ${summary.totalInstallmentsCount} Installments Paid`}
+                    subtitle={`${summary.paidInstallmentsCount} of ${summary.totalInstallmentsCount} Installments Settled`}
                     icon={CheckCircle2}
                     variant="primary"
                 />
 
                 <StatementSummaryCard
-                    title="Outstanding Amount"
+                    title="Outstanding Balance"
                     value={summary.totalOutstanding}
-                    subtitle={`${summary.pendingInstallmentsCount} Pending Obligations`}
+                    subtitle={`${summary.pendingInstallmentsCount} Obligations Remaining`}
                     icon={AlertCircle}
                     variant={summary.totalOutstanding > 0 ? 'warning' : 'success'}
                 />
@@ -156,7 +155,7 @@ export const MemberStatementPage = () => {
                 <StatementSummaryCard
                     title="Late Fees Paid"
                     value={summary.totalLateFeesPaid}
-                    subtitle="Accrued Late Penalties"
+                    subtitle="Accrued Penalties Settled"
                     icon={Wallet}
                     variant="neutral"
                 />
@@ -166,14 +165,14 @@ export const MemberStatementPage = () => {
                     value={summary.totalRefunds}
                     subtitle="Processed Adjustments"
                     icon={FileSpreadsheet}
-                    variant="neutral"
+                    variant="info"
                 />
             </div>
 
-            {/* Main Content Card: Timeline & Filters */}
-            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-6">
-                {/* Search & Filter Toolbar */}
-                <div className="flex flex-wrap items-center justify-between gap-4">
+            {/* Main Section: Search, Filters & Timeline */}
+            <div className="space-y-4">
+                {/* Search & Filter Control Bar */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
                     {/* Search Bar */}
                     <div className="relative min-w-[240px] flex-1 max-w-sm">
                         <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -185,19 +184,19 @@ export const MemberStatementPage = () => {
                                 setSearch(e.target.value);
                                 setPage(1);
                             }}
-                            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition"
+                            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                         />
                     </div>
 
-                    {/* Filters: Type & Date Range */}
-                    <div className="flex flex-wrap items-center gap-3">
+                    {/* Filter Dropdown & Date Pickers */}
+                    <div className="flex flex-wrap items-center gap-2.5">
                         <select
                             value={entryType}
                             onChange={(e) => {
                                 setEntryType(e.target.value);
                                 setPage(1);
                             }}
-                            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:bg-white cursor-pointer"
+                            className="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
                         >
                             <option value="ALL">All Entry Types</option>
                             <option value="INSTALLMENT_PAYMENT">Installment Payment</option>
@@ -206,33 +205,40 @@ export const MemberStatementPage = () => {
                             <option value="REVERSAL">Reversal</option>
                         </select>
 
-                        <input
-                            type="date"
-                            value={startDate}
-                            onChange={(e) => {
-                                setStartDate(e.target.value);
-                                setPage(1);
-                            }}
-                            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:bg-white"
-                        />
+                        <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 border border-slate-200 rounded-xl">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">From</span>
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => {
+                                    setStartDate(e.target.value);
+                                    setPage(1);
+                                }}
+                                className="bg-transparent text-xs font-bold text-slate-800 outline-none"
+                            />
+                        </div>
 
-                        <input
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => {
-                                setEndDate(e.target.value);
-                                setPage(1);
-                            }}
-                            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:bg-white"
-                        />
+                        <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 border border-slate-200 rounded-xl">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">To</span>
+                            <input
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => {
+                                    setEndDate(e.target.value);
+                                    setPage(1);
+                                }}
+                                className="bg-transparent text-xs font-bold text-slate-800 outline-none"
+                            />
+                        </div>
 
                         {(search || entryType !== 'ALL' || startDate || endDate) && (
                             <button
                                 onClick={handleResetFilters}
-                                className="p-2 text-slate-400 hover:text-slate-700 bg-slate-100 rounded-xl transition cursor-pointer"
+                                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
                                 title="Reset Filters"
                             >
-                                <RotateCcw className="w-4 h-4" />
+                                <RotateCcw className="w-3.5 h-3.5" />
+                                <span>Reset</span>
                             </button>
                         )}
                     </div>
@@ -241,9 +247,9 @@ export const MemberStatementPage = () => {
                 {/* Ledger Timeline Table */}
                 <LedgerTimelineTable timeline={timeline} />
 
-                {/* Pagination */}
+                {/* Pagination Controls */}
                 {pagination.totalPages > 1 && (
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-100 text-xs font-bold text-slate-500">
+                    <div className="bg-white px-6 py-4 rounded-2xl border border-slate-200/80 flex items-center justify-between text-xs font-bold text-slate-500">
                         <span>
                             Showing Page {pagination.page} of {pagination.totalPages} ({pagination.total} entries)
                         </span>
@@ -252,14 +258,14 @@ export const MemberStatementPage = () => {
                             <button
                                 disabled={pagination.page <= 1}
                                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 rounded-lg transition cursor-pointer"
+                                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 rounded-xl transition cursor-pointer"
                             >
                                 Previous
                             </button>
                             <button
                                 disabled={pagination.page >= pagination.totalPages}
                                 onClick={() => setPage((p) => p + 1)}
-                                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 rounded-lg transition cursor-pointer"
+                                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 rounded-xl transition cursor-pointer"
                             >
                                 Next
                             </button>
