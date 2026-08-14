@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Installment } from '../../types/installment';
 import { PaymentStatusBadge } from './PaymentStatusBadge';
-import { PayNowPlaceholderModal } from './PayNowPlaceholderModal';
+import { PayNowModal } from './PayNowModal';
 import { CreditCard, Download, AlertCircle, CheckCircle2, Coins } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatCurrency } from '../../utils/currency';
@@ -10,6 +10,7 @@ interface InstallmentCardProps {
     installment: Installment;
     currency?: string;
     onDownloadReceipt?: (installmentId: string) => void;
+    onPaymentSuccess?: () => void;
 }
 
 const formatDateSafe = (dateVal: any) => {
@@ -19,7 +20,7 @@ const formatDateSafe = (dateVal: any) => {
     return format(d, 'PP');
 };
 
-export const InstallmentCard = ({ installment, currency, onDownloadReceipt }: InstallmentCardProps) => {
+export const InstallmentCard = ({ installment, currency, onDownloadReceipt, onPaymentSuccess }: InstallmentCardProps) => {
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
     const groupObj = typeof installment.groupId === 'object' ? installment.groupId : null;
@@ -128,13 +129,14 @@ export const InstallmentCard = ({ installment, currency, onDownloadReceipt }: In
             </div>
 
             {/* Pay Now Placeholder Modal */}
-            <PayNowPlaceholderModal
+            <PayNowModal
                 isOpen={isPaymentModalOpen}
-                installmentNumber={installment.installmentNumber}
-                amount={installment.amount}
-                lateFee={installment.lateFee}
+                installment={installment}
                 currency={activeCurrency}
                 onClose={() => setIsPaymentModalOpen(false)}
+                onPaymentSuccess={() => {
+                    if (onPaymentSuccess) onPaymentSuccess();
+                }}
             />
         </>
     );

@@ -109,7 +109,7 @@ export const MyInstallmentsPage = () => {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {filteredInstallments.map((inst) => (
-                                <InstallmentCard key={inst._id} installment={inst} />
+                                <InstallmentCard key={inst._id} installment={inst} onPaymentSuccess={refetch} />
                             ))}
                         </div>
                     )}
