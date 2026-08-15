@@ -71,7 +71,7 @@ export const AdminDashboard = () => {
                         className="p-8 rounded-[2.5rem] border-none shadow-2xl shadow-blue-200/50 bg-white hover:shadow-blue-300/50 transition-all cursor-pointer group relative overflow-hidden"
                     >
                         <div className="flex items-center gap-6">
-                            <div className="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200 group-hover:scale-105 transition-transform flex-none">
+                            <div className="w-16 h-16 bg-slate-900 text-sky-400 rounded-2xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform flex-none">
                                 <UserCheck className="w-8 h-8" />
                             </div>
                             <div>
@@ -95,7 +95,7 @@ export const AdminDashboard = () => {
                         className="p-8 rounded-[2.5rem] border-none shadow-2xl shadow-emerald-200/50 bg-white hover:shadow-emerald-300/50 transition-all cursor-pointer group relative overflow-hidden"
                     >
                         <div className="flex items-center gap-6">
-                            <div className="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200 group-hover:scale-105 transition-transform flex-none">
+                            <div className="w-16 h-16 bg-slate-900 text-emerald-400 rounded-2xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform flex-none">
                                 <Users className="w-8 h-8" />
                             </div>
                             <div>

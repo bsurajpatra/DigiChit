@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { Loader } from '../../components/ui/Loader';
-import { AlertTriangle, CheckCircle, XCircle, Search, Users, MapPin, Briefcase, IndianRupee, Loader2, ArrowRight } from 'lucide-react';
+import { AlertTriangle, CheckCircle, XCircle, Search, Users, MapPin, Briefcase, IndianRupee, Loader2, ArrowRight, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Application {
@@ -117,11 +117,26 @@ export const OrganizerApplications = () => {
                     <h1 className="text-xl font-bold text-slate-900 tracking-tight uppercase leading-tight">Organizer Applications</h1>
                     <p className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest leading-none">Reviewing infrastructure capability.</p>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50/50 rounded-2xl border border-slate-100">
-                    <div className="w-6 h-6 bg-emerald-100 text-emerald-800 rounded-lg flex items-center justify-center font-black text-xs">
-                        {applications.length}
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => {
+                            setLoading(true);
+                            api.get('/admin/organizers')
+                                .then(res => setApplications(res.data.data.applications || []))
+                                .finally(() => setLoading(false));
+                        }}
+                        disabled={loading}
+                        className="p-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all active:scale-95 cursor-pointer disabled:opacity-50 shadow-xs flex items-center justify-center"
+                        title="Refresh Applications"
+                    >
+                        <RefreshCw className={`w-4 h-4 text-emerald-400 ${loading ? 'animate-spin' : ''}`} />
+                    </button>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-50/50 rounded-2xl border border-slate-100">
+                        <div className="w-6 h-6 bg-emerald-100 text-emerald-800 rounded-lg flex items-center justify-center font-black text-xs">
+                            {applications.length}
+                        </div>
+                        <span className="font-black text-slate-600 uppercase tracking-widest text-[9px]">Reviewing</span>
                     </div>
-                    <span className="font-black text-slate-600 uppercase tracking-widest text-[9px]">Reviewing</span>
                 </div>
             </div>
 
@@ -140,7 +155,7 @@ export const OrganizerApplications = () => {
                             animate={{ opacity: 1, y: 0 }}
                             className="bg-white/60 backdrop-blur-sm border border-slate-100 rounded-3xl flex flex-col items-center justify-center text-center p-12 min-h-[300px]"
                         >
-                            <div className="w-16 h-16 bg-slate-50 text-slate-200 rounded-2xl flex items-center justify-center mb-6 shadow-xl shadow-slate-100/50">
+                            <div className="w-16 h-16 bg-slate-900 text-emerald-400 rounded-2xl flex items-center justify-center mb-6 shadow-md">
                                 <Search className="w-8 h-8" />
                             </div>
                             <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Queue is Clear</h3>

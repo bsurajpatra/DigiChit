@@ -198,7 +198,7 @@ export const BidsPage = () => {
                     className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition cursor-pointer disabled:opacity-50 shrink-0"
                     title="Refresh Bids"
                 >
-                    <RefreshCw className={`w-4 h-4 ${bidsLoading ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`w-4 h-4 text-emerald-400 ${bidsLoading ? 'animate-spin' : ''}`} />
                 </button>
             </div>
 

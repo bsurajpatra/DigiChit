@@ -15,7 +15,7 @@ export const EmptyState = ({
 }: EmptyStateProps) => {
     return (
         <div className="flex flex-col items-center justify-center p-12 bg-white rounded-3xl border border-slate-200/80 shadow-xs text-center">
-            <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-4 shadow-inner">
+            <div className="w-16 h-16 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center mb-4 shrink-0 shadow-md">
                 <CalendarX className="w-8 h-8" />
             </div>
             <h3 className="text-lg font-bold text-slate-900 mb-1">{title}</h3>

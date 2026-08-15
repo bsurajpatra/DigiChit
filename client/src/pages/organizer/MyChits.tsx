@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { 
     Inbox, 
-    ArrowRight, FolderKanban, ShieldCheck
+    ArrowRight, FolderKanban, ShieldCheck, RefreshCw
 } from 'lucide-react';
 import { Loader } from '../../components/ui/Loader';
 import { useAuth } from '../../hooks/useAuth';
@@ -28,17 +28,19 @@ export const MyOrganizedChits = () => {
     const [groups, setGroups] = useState<Group[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const fetchGroups = async () => {
+        setLoading(true);
+        try {
+            const res = await api.get('/chit-groups/my-groups');
+            setGroups(res.data.data.groups);
+        } catch (err) {
+            console.error('Failed to fetch groups');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchGroups = async () => {
-            try {
-                const res = await api.get('/chit-groups/my-groups');
-                setGroups(res.data.data.groups);
-            } catch (err) {
-                console.error('Failed to fetch groups');
-            } finally {
-                setLoading(false);
-            }
-        };
         if (user?.kycStatus === 'APPROVED') {
             fetchGroups();
         } else {
@@ -63,19 +65,29 @@ export const MyOrganizedChits = () => {
                     </div>
                     <h1 className="text-xl font-black text-slate-900 tracking-tight">Your Organized Circles</h1>
                 </div>
-                <button 
-                    onClick={() => navigate('/organizer/create-chit')}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-none shrink-0"
-                >
-                    <FolderKanban className="w-4 h-4 text-emerald-400" />
-                    <span>New Circle</span>
-                </button>
+                <div className="flex items-center gap-3 shrink-0">
+                    <button
+                        onClick={fetchGroups}
+                        disabled={loading}
+                        className="p-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all active:scale-95 cursor-pointer disabled:opacity-50 shadow-xs flex items-center justify-center"
+                        title="Refresh Groups"
+                    >
+                        <RefreshCw className={`w-4 h-4 text-emerald-400 ${loading ? 'animate-spin' : ''}`} />
+                    </button>
+                    <button 
+                        onClick={() => navigate('/organizer/create-chit')}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-none shrink-0"
+                    >
+                        <FolderKanban className="w-4 h-4 text-emerald-400" />
+                        <span>New Circle</span>
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {groups.length === 0 ? (
                     <div className="col-span-full py-16 text-center bg-white rounded-2xl border-none space-y-3">
-                        <Inbox className="w-10 h-10 text-slate-300 mx-auto" />
+                        <div className="w-16 h-16 bg-slate-900 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shrink-0 shadow-md"><Inbox className="w-8 h-8" /></div>
                         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">No Circles Organized Yet</h3>
                         <button 
                             onClick={() => navigate('/organizer/create-chit')}

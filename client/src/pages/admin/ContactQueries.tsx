@@ -3,7 +3,7 @@ import api from '../../api/axios';
 import { 
     Mail, MessageSquare, 
     Send, Loader2, Search, User, Inbox,
-    AlertTriangle, Archive, RefreshCcw, Smartphone, Globe
+    AlertTriangle, Archive, RefreshCw, Smartphone, Globe
 } from 'lucide-react';
 import { Loader } from '../../components/ui/Loader';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -106,11 +106,21 @@ const ContactQueries = () => {
                     <h1 className="text-xl font-bold text-slate-900 tracking-tight uppercase">Inquiry Inbox</h1>
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Managing {queries.length} active threads.</p>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50/50 rounded-2xl border border-slate-100">
-                    <div className="w-6 h-6 bg-emerald-100 text-emerald-700 rounded-lg flex items-center justify-center font-black text-xs">
-                        {queries.filter(q => q.status === 'PENDING').length}
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={fetchQueries}
+                        disabled={loading}
+                        className="p-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all active:scale-95 cursor-pointer disabled:opacity-50 shadow-xs flex items-center justify-center"
+                        title="Refresh Queries"
+                    >
+                        <RefreshCw className={`w-4 h-4 text-emerald-400 ${loading ? 'animate-spin' : ''}`} />
+                    </button>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-50/50 rounded-2xl border border-slate-100">
+                        <div className="w-6 h-6 bg-emerald-100 text-emerald-700 rounded-lg flex items-center justify-center font-black text-xs">
+                            {queries.filter(q => q.status === 'PENDING').length}
+                        </div>
+                        <span className="font-black text-slate-600 uppercase tracking-widest text-[9px]">Open</span>
                     </div>
-                    <span className="font-black text-slate-600 uppercase tracking-widest text-[9px]">Open</span>
                 </div>
             </div>
 
@@ -249,7 +259,7 @@ const ContactQueries = () => {
                                                 disabled={statusLoading}
                                                 className="px-4 py-2 bg-emerald-50 text-emerald-700 text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-100 transition-all disabled:opacity-50 flex items-center gap-2"
                                             >
-                                                {statusLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCcw className="w-3 h-3" />}
+                                                {statusLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
                                                 Reopen
                                             </button>
                                         )}
@@ -341,8 +351,8 @@ const ContactQueries = () => {
                         </>
                     ) : (
                         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50/10">
-                            <div className="w-20 h-20 bg-white/60 backdrop-blur-sm border border-white/20 rounded-[2rem] flex items-center justify-center mb-6 shadow-xl shadow-slate-100/50 group">
-                                <MessageSquare className="w-8 h-8 text-slate-200 group-hover:text-emerald-300 transition-all" />
+                            <div className="w-20 h-20 bg-slate-900 rounded-[2rem] flex items-center justify-center mb-6 shadow-xl shadow-slate-900/10 group">
+                                <MessageSquare className="w-8 h-8 text-emerald-400 group-hover:scale-110 transition-all" />
                             </div>
                             <h2 className="text-xl font-bold text-slate-900 tracking-tight uppercase mb-2">Select Thread</h2>
                             <p className="text-[10px] font-bold text-slate-400 max-w-[200px] mx-auto uppercase tracking-widest leading-relaxed">

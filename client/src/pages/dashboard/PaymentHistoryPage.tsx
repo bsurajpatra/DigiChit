@@ -67,6 +67,14 @@ export const PaymentHistoryPage = () => {
                     </div>
                     <h1 className="text-xl font-black text-slate-900 tracking-tight">Payments History</h1>
                 </div>
+                <button
+                    onClick={() => window.location.reload()}
+                    disabled={isLoading}
+                    className="p-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all active:scale-95 cursor-pointer disabled:opacity-50 shadow-xs flex items-center justify-center shrink-0"
+                    title="Refresh Transactions"
+                >
+                    <RefreshCw className={`w-4 h-4 text-emerald-400 ${isLoading ? 'animate-spin' : ''}`} />
+                </button>
             </div>
 
             {error && (
@@ -78,7 +86,7 @@ export const PaymentHistoryPage = () => {
             {/* Top Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4">
-                    <div className="bg-transparent text-emerald-600 flex items-center justify-center font-black shrink-0">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center font-bold shrink-0 shadow-xs">
                         <DollarSign className="w-6 h-6" />
                     </div>
                     <div>
@@ -88,7 +96,7 @@ export const PaymentHistoryPage = () => {
                 </div>
 
                 <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4">
-                    <div className="bg-transparent text-emerald-600 flex items-center justify-center font-black shrink-0">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center font-bold shrink-0 shadow-xs">
                         <CheckCircle2 className="w-6 h-6" />
                     </div>
                     <div>
@@ -98,7 +106,7 @@ export const PaymentHistoryPage = () => {
                 </div>
 
                 <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4">
-                    <div className="bg-transparent text-amber-600 flex items-center justify-center font-black shrink-0">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-900 text-amber-400 flex items-center justify-center font-bold shrink-0 shadow-xs">
                         <Clock className="w-6 h-6" />
                     </div>
                     <div>
@@ -108,7 +116,7 @@ export const PaymentHistoryPage = () => {
                 </div>
 
                 <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4">
-                    <div className="bg-transparent text-sky-600 flex items-center justify-center font-black shrink-0">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-900 text-sky-400 flex items-center justify-center font-bold shrink-0 shadow-xs">
                         <RefreshCw className="w-6 h-6" />
                     </div>
                     <div>

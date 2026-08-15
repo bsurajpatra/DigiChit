@@ -42,10 +42,10 @@ export const CycleHeader = ({
                         <button
                             onClick={onRefresh}
                             disabled={isLoading}
-                            className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition active:scale-95 cursor-pointer disabled:opacity-50"
+                            className="p-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all active:scale-95 cursor-pointer disabled:opacity-50 shadow-xs flex items-center justify-center shrink-0"
                             title="Refresh Cycles"
                         >
-                            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                            <RefreshCw className={`w-4 h-4 text-emerald-400 ${isLoading ? 'animate-spin' : ''}`} />
                         </button>
                     )}
 

@@ -212,7 +212,7 @@ export const NeedHelpTab = ({ group, isOrganizer }: NeedHelpTabProps) => {
                     {/* Messaging Control Bar */}
                     <div className="p-4 md:p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/40">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black">
+                            <div className="w-10 h-10 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center font-black shadow-xs">
                                 <MessageSquare className="w-5 h-5" />
                             </div>
                             <div>
@@ -228,10 +228,11 @@ export const NeedHelpTab = ({ group, isOrganizer }: NeedHelpTabProps) => {
                         <div className="flex flex-wrap items-center gap-3">
                             <button
                                 onClick={loadThreads}
-                                className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition cursor-pointer"
+                                disabled={loading}
+                                className="p-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all active:scale-95 cursor-pointer disabled:opacity-50 shadow-xs flex items-center justify-center shrink-0"
                                 title="Refresh conversations"
                             >
-                                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                                <RefreshCw className={`w-4 h-4 text-emerald-400 ${loading ? 'animate-spin' : ''}`} />
                             </button>
 
                             {!isOrganizer && (
@@ -435,7 +436,7 @@ export const NeedHelpTab = ({ group, isOrganizer }: NeedHelpTabProps) => {
                                 </>
                             ) : (
                                 <div className="flex flex-col items-center justify-center h-full text-slate-400 text-xs space-y-3">
-                                    <Inbox className="w-12 h-12 text-slate-300" />
+                                    <div className="w-16 h-16 bg-slate-900 text-emerald-400 rounded-2xl flex items-center justify-center mb-3 shadow-md"><Inbox className="w-8 h-8" /></div>
                                     <p className="font-bold text-slate-600">Select a conversation thread on the left</p>
                                     <p className="text-[11px] text-slate-400">View message history and respond in real-time</p>
                                 </div>
@@ -449,7 +450,7 @@ export const NeedHelpTab = ({ group, isOrganizer }: NeedHelpTabProps) => {
             {subTab === 'LEADER' && (
                 <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-6">
                     <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black">
+                        <div className="w-12 h-12 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center font-black shadow-md">
                             <UserCheck className="w-6 h-6" />
                         </div>
                         <div>
@@ -510,7 +511,7 @@ export const NeedHelpTab = ({ group, isOrganizer }: NeedHelpTabProps) => {
             {subTab === 'RULES' && (
                 <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-6">
                     <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-                        <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-black">
+                        <div className="w-12 h-12 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center font-black shadow-md">
                             <BookOpen className="w-6 h-6" />
                         </div>
                         <div>
@@ -521,7 +522,7 @@ export const NeedHelpTab = ({ group, isOrganizer }: NeedHelpTabProps) => {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 text-xs">
-                            <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold mb-2">
+                            <div className="w-8 h-8 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center font-bold mb-2 shadow-2xs">
                                 1
                             </div>
                             <h4 className="font-bold text-slate-900 text-sm">Monthly Contributions</h4>
@@ -531,7 +532,7 @@ export const NeedHelpTab = ({ group, isOrganizer }: NeedHelpTabProps) => {
                         </div>
 
                         <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 text-xs">
-                            <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold mb-2">
+                            <div className="w-8 h-8 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center font-bold mb-2 shadow-2xs">
                                 2
                             </div>
                             <h4 className="font-bold text-slate-900 text-sm">Auction & Bidding</h4>
@@ -541,7 +542,7 @@ export const NeedHelpTab = ({ group, isOrganizer }: NeedHelpTabProps) => {
                         </div>
 
                         <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 text-xs">
-                            <div className="w-8 h-8 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center font-bold mb-2">
+                            <div className="w-8 h-8 rounded-xl bg-slate-900 text-sky-400 flex items-center justify-center font-bold mb-2 shadow-2xs">
                                 3
                             </div>
                             <h4 className="font-bold text-slate-900 text-sm">Prize & Dividend</h4>
@@ -573,7 +574,7 @@ export const NeedHelpTab = ({ group, isOrganizer }: NeedHelpTabProps) => {
                         >
                             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                                    <div className="w-9 h-9 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center font-bold shadow-xs">
                                         <Sparkles className="w-5 h-5" />
                                     </div>
                                     <div>

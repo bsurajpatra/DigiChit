@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { 
     Search, Users, Calendar, Coins, 
-    Loader2, Inbox, Wallet, CheckCircle2, Compass, XCircle, ArrowRight
+    Loader2, Inbox, Wallet, CheckCircle2, Compass, XCircle, ArrowRight, RefreshCw
 } from 'lucide-react';
 import { Loader } from '../../components/ui/Loader';
 import { motion } from 'framer-motion';
@@ -96,14 +96,24 @@ export const ChitDiscovery = () => {
                     </div>
                     <h1 className="text-xl font-black text-slate-900 tracking-tight">Discover Chits</h1>
                 </div>
-                <div className="relative">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input 
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search circles..."
-                        className="pl-10 pr-4 py-2 bg-white border-none rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-slate-900 transition-all w-full md:w-56"
-                    />
+                <div className="flex items-center gap-3 shrink-0">
+                    <div className="relative">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Search circles..."
+                            className="pl-10 pr-4 py-2 bg-white border-none rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-slate-900 transition-all w-full md:w-56"
+                        />
+                    </div>
+                    <button
+                        onClick={fetchGroups}
+                        disabled={loading}
+                        className="p-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all active:scale-95 cursor-pointer disabled:opacity-50 shadow-xs flex items-center justify-center shrink-0"
+                        title="Refresh Discovery"
+                    >
+                        <RefreshCw className={`w-4 h-4 text-emerald-400 ${loading ? 'animate-spin' : ''}`} />
+                    </button>
                 </div>
             </div>
 
@@ -111,7 +121,7 @@ export const ChitDiscovery = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredGroups.length === 0 ? (
                     <div className="col-span-full py-16 flex flex-col items-center text-center space-y-3 bg-white rounded-2xl border-none">
-                        <Inbox className="w-10 h-10 text-slate-300" />
+                        <div className="w-16 h-16 bg-slate-900 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shrink-0 shadow-md"><Inbox className="w-8 h-8" /></div>
                         <div>
                             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">No Active Circles Available</h3>
                             <p className="text-xs text-slate-400 mt-0.5">

@@ -104,9 +104,7 @@ export const PayNowModal = ({
                 >
                     <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
                         <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black ${
-                                step === 'SUCCESS' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-900 text-white'
-                            }`}>
+                            <div className={`w-10 h-10 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center font-black shadow-xs`}>
                                 {step === 'SUCCESS' ? <CheckCircle2 className="w-5 h-5" /> : <CreditCard className="w-5 h-5" />}
                             </div>
                             <div>
@@ -168,7 +166,7 @@ export const PayNowModal = ({
                                                     }
                                                 `}
                                             >
-                                                <div className={`p-2 rounded-xl shrink-0 ${isSelected ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                                                <div className={`p-2 rounded-xl shrink-0 ${isSelected ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-emerald-400'}`}>
                                                     <Icon className="w-4 h-4" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">

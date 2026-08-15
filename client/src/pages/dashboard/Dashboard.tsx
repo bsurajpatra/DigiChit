@@ -1,5 +1,5 @@
 import { useAuth } from '../../hooks/useAuth';
-import { Clock, Users, ArrowUpRight, LayoutDashboard } from 'lucide-react';
+import { Clock, Users, ArrowUpRight, LayoutDashboard, RefreshCw } from 'lucide-react';
 
 export const Dashboard = () => {
     const { user } = useAuth();
@@ -15,9 +15,18 @@ export const Dashboard = () => {
                     </div>
                     <h1 className="text-xl font-black text-slate-900 tracking-tight">Hello, {user?.name.split(' ')[0]} 👋</h1>
                 </div>
-                <div className="flex items-center gap-2 px-3.5 py-1.5 bg-slate-100 text-slate-800 rounded-full text-xs font-bold border-none shrink-0">
-                    <Clock className="w-3.5 h-3.5 text-slate-900" />
-                    <span>Live Data</span>
+                <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 px-3.5 py-1.5 bg-slate-100 text-slate-800 rounded-full text-xs font-bold border-none">
+                        <Clock className="w-3.5 h-3.5 text-slate-900" />
+                        <span>Live Data</span>
+                    </div>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="p-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all active:scale-95 cursor-pointer shadow-xs flex items-center justify-center"
+                        title="Refresh Workspace"
+                    >
+                        <RefreshCw className="w-4 h-4 text-emerald-400" />
+                    </button>
                 </div>
             </div>
 

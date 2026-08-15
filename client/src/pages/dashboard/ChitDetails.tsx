@@ -380,8 +380,8 @@ export const ChitDetails = () => {
                     {/* Organizer Lead Header Card — transparent icon logo, no lead green tag, no border/shadow */}
                     <div className="bg-white p-6 rounded-2xl border-none shadow-none flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-transparent text-slate-900 border-none shadow-none flex items-center justify-center font-black shrink-0">
-                                <User className="w-6 h-6 text-slate-800" />
+                            <div className="w-10 h-10 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center font-black shrink-0 shadow-xs">
+                                <User className="w-5 h-5" />
                             </div>
                             <div>
                                 <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">Lead Organizer: {group.organizerId.name}</h3>
@@ -414,28 +414,44 @@ export const ChitDetails = () => {
 
                     {/* 4 Financial Stat Cards — no borders, no shadows */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-white p-5 rounded-2xl border-none shadow-none">
-                            <Coins className="w-5 h-5 text-emerald-500 mb-2" />
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Pot Value</span>
-                            <div className="text-2xl font-black text-slate-900 tracking-tight mt-1">{formatCurrency(totalPoolAmount, (group as any).financialConfig?.currency)}</div>
+                        <div className="bg-white p-5 rounded-2xl border-none shadow-none flex flex-col justify-between">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Pot Value</span>
+                                <div className="w-10 h-10 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center font-bold shrink-0">
+                                    <Coins className="w-5 h-5" />
+                                </div>
+                            </div>
+                            <div className="text-2xl font-black text-slate-900 tracking-tight mt-2">{formatCurrency(totalPoolAmount, (group as any).financialConfig?.currency)}</div>
                         </div>
 
-                        <div className="bg-white p-5 rounded-2xl border-none shadow-none">
-                            <Wallet className="w-5 h-5 text-sky-500 mb-2" />
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Monthly Dues</span>
-                            <div className="text-2xl font-black text-slate-900 tracking-tight mt-1">{formatCurrency(group.monthlyContribution, (group as any).financialConfig?.currency)}</div>
+                        <div className="bg-white p-5 rounded-2xl border-none shadow-none flex flex-col justify-between">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Monthly Dues</span>
+                                <div className="w-10 h-10 rounded-xl bg-slate-900 text-sky-400 flex items-center justify-center font-bold shrink-0">
+                                    <Wallet className="w-5 h-5" />
+                                </div>
+                            </div>
+                            <div className="text-2xl font-black text-slate-900 tracking-tight mt-2">{formatCurrency(group.monthlyContribution, (group as any).financialConfig?.currency)}</div>
                         </div>
 
-                        <div className="bg-white p-5 rounded-2xl border-none shadow-none">
-                            <Users className="w-5 h-5 text-blue-500 mb-2" />
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Seats / Duration</span>
-                            <div className="text-2xl font-black text-slate-900 tracking-tight mt-1">{group.totalMembers} Members</div>
+                        <div className="bg-white p-5 rounded-2xl border-none shadow-none flex flex-col justify-between">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Seats / Duration</span>
+                                <div className="w-10 h-10 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center font-bold shrink-0">
+                                    <Users className="w-5 h-5" />
+                                </div>
+                            </div>
+                            <div className="text-2xl font-black text-slate-900 tracking-tight mt-2">{group.totalMembers} Members</div>
                         </div>
 
-                        <div className="bg-white p-5 rounded-2xl border-none shadow-none">
-                            <Calendar className="w-5 h-5 text-rose-500 mb-2" />
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Start Date</span>
-                            <div className="text-xl font-black text-slate-900 tracking-tight mt-1">{format(new Date(group.startDate), 'PP')}</div>
+                        <div className="bg-white p-5 rounded-2xl border-none shadow-none flex flex-col justify-between">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Start Date</span>
+                                <div className="w-10 h-10 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center font-bold shrink-0">
+                                    <Calendar className="w-5 h-5" />
+                                </div>
+                            </div>
+                            <div className="text-xl font-black text-slate-900 tracking-tight mt-2">{format(new Date(group.startDate), 'PP')}</div>
                         </div>
                     </div>
 
@@ -449,8 +465,10 @@ export const ChitDetails = () => {
                     {/* Dedicated Financial Configuration Card */}
                     <div className="bg-white p-6 rounded-2xl border-none shadow-none space-y-4">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Sliders className="w-5 h-5 text-blue-600" />
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center font-bold shrink-0">
+                                    <Sliders className="w-5 h-5" />
+                                </div>
                                 <div>
                                     <h3 className="text-base font-black text-slate-900 tracking-tight">Financial Configuration</h3>
                                     <p className="text-xs text-slate-400 font-medium">Scheme rules, fees, & operational policies</p>
@@ -620,7 +638,7 @@ export const ChitDetails = () => {
                         <div className="bg-white rounded-2xl border-none shadow-none p-4 space-y-1">
                             {approvedMembers.length === 0 ? (
                                 <div className="py-16 text-center text-slate-400">
-                                    <Users className="w-10 h-10 mx-auto mb-2 opacity-30 text-slate-400" />
+                                    <div className="w-14 h-14 bg-slate-900 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md"><Users className="w-7 h-7" /></div>
                                     <p className="text-xs font-bold">No members enrolled yet.</p>
                                 </div>
                             ) : (
@@ -1210,7 +1228,7 @@ export const ChitDetails = () => {
                             {searchResult && (
                                 <div className="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200 space-y-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-xs font-bold text-sm">
+                                        <div className="w-10 h-10 bg-slate-900 text-emerald-400 rounded-xl flex items-center justify-center shadow-xs font-bold text-sm">
                                             {searchResult.name.charAt(0).toUpperCase()}
                                         </div>
                                         <div>

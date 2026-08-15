@@ -435,7 +435,7 @@ export const CycleCollectionPage = () => {
                 <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
                     <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
                         <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white ${confirmModal.action === 'open' ? 'bg-emerald-600' : 'bg-rose-600'}`}>
+                            <div className={`w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center shadow-xs ${confirmModal.action === 'open' ? 'text-emerald-400' : 'text-rose-400'}`}>
                                 {confirmModal.action === 'open' ? <Unlock className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
                             </div>
                             <div>

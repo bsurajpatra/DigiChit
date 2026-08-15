@@ -46,7 +46,7 @@ export const InstallmentCard = ({ installment, currency, onDownloadReceipt, onPa
             `}>
                 <div className="flex items-center justify-between gap-3 mb-4">
                     <div className="flex items-center gap-2.5">
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black ${isPaid ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black ${isPaid ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-900 text-emerald-400 shadow-xs'}`}>
                             {isPaid ? <CheckCircle2 className="w-5 h-5" /> : <Coins className="w-5 h-5" />}
                         </div>
                         <div>

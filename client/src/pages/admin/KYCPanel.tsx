@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Loader } from '../../components/ui/Loader';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
-import { 
+import { RefreshCw,
     Check, X, Maximize2, 
     ArrowRight, Eye, EyeOff,
     ShieldCheck
@@ -85,11 +85,20 @@ export const KYCPanel = () => {
                     <h1 className="text-xl font-bold text-slate-900 tracking-tight uppercase leading-tight">KYC Approvals</h1>
                     <p className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest leading-none">Identity verification queue.</p>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50/50 rounded-2xl border border-slate-100">
-                    <div className="w-6 h-6 bg-blue-100 text-blue-800 rounded-lg flex items-center justify-center font-black text-xs">
-                        {pendingKycs.length}
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={fetchPending} disabled={isLoading}
+                        className="p-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all active:scale-95 cursor-pointer disabled:opacity-50 shadow-xs flex items-center justify-center"
+                        title="Refresh KYC Queue"
+                    >
+                        <RefreshCw className={`w-4 h-4 text-emerald-400 ${isLoading ? 'animate-spin' : ''}`} />
+                    </button>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-50/50 rounded-2xl border border-slate-100">
+                        <div className="w-6 h-6 bg-blue-100 text-blue-800 rounded-lg flex items-center justify-center font-black text-xs">
+                            {pendingKycs.length}
+                        </div>
+                        <span className="font-black text-slate-600 uppercase tracking-widest text-[9px]">Pending</span>
                     </div>
-                    <span className="font-black text-slate-600 uppercase tracking-widest text-[9px]">Pending</span>
                 </div>
             </div>
 
@@ -104,7 +113,7 @@ export const KYCPanel = () => {
                             animate={{ opacity: 1, y: 0 }}
                             className="bg-white/60 backdrop-blur-sm border border-slate-100 rounded-3xl flex flex-col items-center justify-center text-center p-12 min-h-[300px]"
                         >
-                            <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 shadow-xl shadow-emerald-500/10">
+                            <div className="w-16 h-16 bg-slate-900 text-emerald-400 rounded-2xl flex items-center justify-center mb-6 shadow-md">
                                 <ShieldCheck className="w-8 h-8" />
                             </div>
                             <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Queue is Clear</h3>

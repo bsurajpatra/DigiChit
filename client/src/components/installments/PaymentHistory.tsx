@@ -15,7 +15,7 @@ export const PaymentHistory = ({ installments, currency }: PaymentHistoryProps) 
     if (paidInstallments.length === 0) {
         return (
             <div className="bg-white p-6 rounded-3xl border border-slate-200/80 text-center text-slate-400 text-xs">
-                <History className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+                <div className="w-12 h-12 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center mx-auto mb-3 shadow-xs"><History className="w-6 h-6" /></div>
                 <p>No completed payment receipts found.</p>
             </div>
         );

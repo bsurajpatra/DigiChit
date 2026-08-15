@@ -28,15 +28,15 @@ export const StatementSummaryCard: React.FC<StatementSummaryCardProps> = ({
             case 'primary':
                 return 'text-emerald-400';
             case 'success':
-                return 'text-emerald-600';
+                return 'text-emerald-400';
             case 'warning':
-                return 'text-amber-600';
+                return 'text-amber-400';
             case 'danger':
-                return 'text-rose-600';
+                return 'text-rose-400';
             case 'info':
-                return 'text-sky-600';
+                return 'text-sky-400';
             default:
-                return 'text-blue-600';
+                return 'text-emerald-400';
         }
     };
 
@@ -54,8 +54,8 @@ export const StatementSummaryCard: React.FC<StatementSummaryCardProps> = ({
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                         {title}
                     </span>
-                    <div className={`bg-transparent flex items-center justify-center font-bold shrink-0 transition-transform group-hover:scale-110 ${getIconTextColor()}`}>
-                        <Icon className="w-6 h-6" />
+                    <div className={`w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center font-bold shrink-0 transition-transform group-hover:scale-105 shadow-xs ${getIconTextColor()}`}>
+                        <Icon className="w-5 h-5" />
                     </div>
                 </div>
 
@@ -82,8 +82,8 @@ export const StatementSummaryCard: React.FC<StatementSummaryCardProps> = ({
                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                     {title}
                 </span>
-                <div className={`bg-transparent flex items-center justify-center font-bold shrink-0 transition-transform group-hover:scale-110 ${getIconTextColor()}`}>
-                    <Icon className="w-6 h-6" />
+                <div className={`w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center font-bold shrink-0 transition-transform group-hover:scale-105 shadow-xs ${getIconTextColor()}`}>
+                    <Icon className="w-5 h-5" />
                 </div>
             </div>
 

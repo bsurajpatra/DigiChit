@@ -123,7 +123,7 @@ export const Support = () => {
                         <AnimatePresence mode="popLayout">
                             {queries.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-full text-slate-400 py-8 space-y-2">
-                                    <MessageSquare className="w-8 h-8 text-slate-300" />
+                                    <div className="w-12 h-12 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center mx-auto mb-2 shadow-xs"><MessageSquare className="w-6 h-6" /></div>
                                     <p className="text-xs font-bold uppercase tracking-wider">No support tickets</p>
                                 </div>
                             ) : (

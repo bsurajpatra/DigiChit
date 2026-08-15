@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { 
     Wallet, Star, ArrowRight,
-    Coins, Calendar, Users, ShieldCheck
+    Coins, Calendar, Users, ShieldCheck, RefreshCw
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Loader } from '../../components/ui/Loader';
@@ -59,9 +59,27 @@ export const UserChits = () => {
                     </div>
                     <h1 className="text-xl font-black text-slate-900 tracking-tight">My Joined Circles</h1>
                 </div>
-                <div className="flex items-center gap-2 px-3.5 py-1.5 bg-slate-900 text-white rounded-xl text-xs font-bold shrink-0">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    <span>{memberships.length} Active {memberships.length === 1 ? 'Circle' : 'Circles'}</span>
+                <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 px-3.5 py-1.5 bg-slate-900 text-white rounded-xl text-xs font-bold">
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        <span>{memberships.length} Active {memberships.length === 1 ? 'Circle' : 'Circles'}</span>
+                    </div>
+                    <button
+                        onClick={() => {
+                            setLoading(true);
+                            api.get('/chit-groups/my-memberships')
+                                .then(res => {
+                                    const data = res.data.data.memberships || [];
+                                    setMemberships(data.filter((m: any) => m.chitGroupId && ['APPROVED', 'ACTIVE_MEMBER'].includes(m.status)));
+                                })
+                                .finally(() => setLoading(false));
+                        }}
+                        disabled={loading}
+                        className="p-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all active:scale-95 cursor-pointer disabled:opacity-50 shadow-xs flex items-center justify-center"
+                        title="Refresh Circles"
+                    >
+                        <RefreshCw className={`w-4 h-4 text-emerald-400 ${loading ? 'animate-spin' : ''}`} />
+                    </button>
                 </div>
             </div>
 

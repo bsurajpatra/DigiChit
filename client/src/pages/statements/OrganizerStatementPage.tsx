@@ -15,7 +15,8 @@ import {
     AlertCircle,
     RotateCcw,
     LayoutDashboard,
-    FileSpreadsheet
+    FileSpreadsheet,
+    RefreshCw
 } from 'lucide-react';
 
 export const OrganizerStatementPage = () => {
@@ -126,14 +127,24 @@ export const OrganizerStatementPage = () => {
                     <h1 className="text-xl font-black text-slate-900 tracking-tight">Organizer Financial Statement</h1>
                 </div>
 
-                <button
-                    onClick={handleExportCSV}
-                    disabled={downloading}
-                    className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs hover:shadow-md flex items-center gap-2 cursor-pointer shrink-0"
-                >
-                    {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                    <span>Export Report (CSV)</span>
-                </button>
+                <div className="flex items-center gap-3 shrink-0">
+                    <button
+                        onClick={loadData}
+                        disabled={loading}
+                        className="p-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all active:scale-95 cursor-pointer disabled:opacity-50 shadow-xs flex items-center justify-center shrink-0"
+                        title="Refresh Statement"
+                    >
+                        <RefreshCw className={`w-4 h-4 text-emerald-400 ${loading ? 'animate-spin' : ''}`} />
+                    </button>
+                    <button
+                        onClick={handleExportCSV}
+                        disabled={downloading}
+                        className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs hover:shadow-md flex items-center gap-2 cursor-pointer shrink-0"
+                    >
+                        {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                        <span>Export Report (CSV)</span>
+                    </button>
+                </div>
             </div>
 
             {/* Summary KPI Cards Grid */}
