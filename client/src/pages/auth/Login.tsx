@@ -36,7 +36,7 @@ export const Login = () => {
         try {
             setApiError('');
             setErrorCode('');
-            const response = await api.post('/auth/login', data);
+            const response = await api.post('/auth/login', { ...data, email: data.email.trim().toLowerCase() });
 
             const { token, data: { user } } = response.data;
             login(token, user);
@@ -107,7 +107,7 @@ export const Login = () => {
                         >
                             <p>{apiError}</p>
                             {errorCode === 'AUTH_EMAIL_NOT_FOUND' && (
-                                <Link to="/register" className="inline-block text-emerald-600 hover:underline font-extrabold">
+                                <Link to="/signup" className="inline-block text-emerald-600 hover:underline font-extrabold">
                                     → No account found? Register now
                                 </Link>
                             )}

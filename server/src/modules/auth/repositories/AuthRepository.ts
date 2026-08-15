@@ -4,7 +4,9 @@ import Token, { IToken } from '../models/Token.js';
 
 export class AuthRepository {
     public async findUserByEmail(email: string, selectPassword = false): Promise<IUser | null> {
-        const query = User.findOne({ email });
+        if (!email) return null;
+        const normalizedEmail = email.trim().toLowerCase();
+        const query = User.findOne({ email: normalizedEmail });
         if (selectPassword) {
             query.select('+password');
         }
@@ -17,6 +19,9 @@ export class AuthRepository {
     }
 
     public async createUser(data: Partial<IUser>): Promise<IUser> {
+        if (data.email) {
+            data.email = data.email.trim().toLowerCase();
+        }
         return await User.create(data);
     }
 

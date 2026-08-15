@@ -3,7 +3,7 @@ import AuditLog from './models/AuditLog.js';
 import { logger } from './logger.js';
 
 export interface AuditLogOptions {
-    actorId: string;
+    actorId?: string | undefined;
     actorRole: string;
     action: string;
     targetUserId?: string | undefined;
@@ -11,6 +11,17 @@ export interface AuditLogOptions {
     newValue?: Record<string, unknown> | undefined;
     ipAddress?: string | undefined;
 }
+
+/**
+ * Helper to safely convert string to ObjectId if valid
+ */
+const toValidObjectId = (idStr?: string): mongoose.Types.ObjectId | undefined => {
+    if (!idStr || typeof idStr !== 'string') return undefined;
+    if (mongoose.Types.ObjectId.isValid(idStr) && String(new mongoose.Types.ObjectId(idStr)) === idStr) {
+        return new mongoose.Types.ObjectId(idStr);
+    }
+    return undefined;
+};
 
 /**
  * Standardized Audit Logging helper. Supports both positional and options-object calls.
@@ -25,10 +36,10 @@ export const logAction = async (
         if (typeof actorIdOrOptions === 'object') {
             const opts = actorIdOrOptions;
             await AuditLog.create({
-                actorId: new mongoose.Types.ObjectId(opts.actorId),
-                actorRole: opts.actorRole,
+                actorId: toValidObjectId(opts.actorId),
+                actorRole: opts.actorRole || 'UNKNOWN',
                 action: opts.action,
-                targetUserId: opts.targetUserId ? new mongoose.Types.ObjectId(opts.targetUserId) : undefined,
+                targetUserId: toValidObjectId(opts.targetUserId),
                 previousValue: opts.previousValue,
                 newValue: opts.newValue,
                 ipAddress: opts.ipAddress,
@@ -36,10 +47,10 @@ export const logAction = async (
             });
         } else {
             await AuditLog.create({
-                actorId: new mongoose.Types.ObjectId(actorIdOrOptions),
-                actorRole: actorRole!,
+                actorId: toValidObjectId(actorIdOrOptions),
+                actorRole: actorRole || 'UNKNOWN',
                 action: action!,
-                targetUserId: details?.targetUserId ? new mongoose.Types.ObjectId(details.targetUserId) : undefined,
+                targetUserId: toValidObjectId(details?.targetUserId),
                 previousValue: details?.previousValue,
                 newValue: details?.newValue,
                 ipAddress: details?.ipAddress,

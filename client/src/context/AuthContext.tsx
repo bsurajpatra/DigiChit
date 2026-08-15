@@ -10,7 +10,7 @@ export interface User {
     emailVerified: boolean;
     kycStatus: 'NOT_SUBMITTED' | 'PENDING' | 'APPROVED' | 'REJECTED';
     organizerStatus: 'NOT_APPLIED' | 'PENDING' | 'APPROVED' | 'REJECTED';
-    accountStatus: 'ACTIVE' | 'SUSPENDED' | 'INACTIVE';
+    accountStatus: 'REGISTERED' | 'ACTIVE' | 'FROZEN' | 'SUSPENDED' | 'INACTIVE' | 'DELETED';
     profilePictureUrl?: string;
     kycRejectedReason?: string;
 }

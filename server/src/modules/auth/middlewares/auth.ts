@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User, { UserRole, AccountStatus, KYCStatus, OrganizerStatus } from '@modules/user/models/User.js';
 import { AppError } from '@shared/errors/AppError.js';
+import { config } from '@shared/config/env.js';
 
 export interface AuthRequest extends Request {
     user?: {
@@ -29,7 +30,7 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string; role: UserRole; tokenVersion: number };
+        const decoded = jwt.verify(token, config.jwtSecret) as { id: string; role: UserRole; tokenVersion?: number };
 
         // Check if user still exists
         const currentUser = await User.findById(decoded.id);
@@ -38,7 +39,9 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
         }
 
         // Token Version Check (Force logout if version mismatch)
-        if (currentUser.tokenVersion !== decoded.tokenVersion) {
+        const userTokenVersion = currentUser.tokenVersion ?? 0;
+        const decodedTokenVersion = decoded.tokenVersion ?? 0;
+        if (userTokenVersion !== decodedTokenVersion) {
             return next(new AppError('This session is no longer valid. Please log in again.', 401, 'AUTH_SESSION_EXPIRED'));
         }
 
