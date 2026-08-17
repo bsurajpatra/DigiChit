@@ -4,10 +4,11 @@ import { runJournalPostingTests } from './journalPosting.test.js';
 import { runAccountProvisioningTests } from './accountProvisioning.test.js';
 import { runInstallmentObligationJournalTests } from '@modules/installment/__tests__/installmentObligationJournal.test.js';
 import { runPaymentJournalPostingTests } from './paymentJournalPosting.test.js';
+import { runPaymentRefundJournalPostingTests } from './paymentRefundJournalPosting.test.js';
 
 async function main() {
     console.log('\n======================================================');
-    console.log('  STARTING CONSOLIDATED LEDGER TEST RUNNER (P0 - P3)');
+    console.log('  STARTING CONSOLIDATED LEDGER TEST RUNNER (P0 - P4)');
     console.log('======================================================\n');
 
     try {
@@ -30,8 +31,12 @@ async function main() {
         console.log('\n--- 4. LEDGER P3: PAYMENT SUCCESS DOUBLE-ENTRY ACCOUNTING ---');
         await runPaymentJournalPostingTests();
 
+        // 5. Run P4 Tests
+        console.log('\n--- 5. LEDGER P4: REFUND DOUBLE-ENTRY ACCOUNTING ---');
+        await runPaymentRefundJournalPostingTests();
+
         console.log('\n======================================================');
-        console.log('  🎉 ALL LEDGER SUITES (P0, P1, P2, P3) PASSED CLEANLY');
+        console.log('  🎉 ALL LEDGER SUITES (P0, P1, P2, P3, P4) PASSED CLEANLY');
         console.log('======================================================\n');
     } catch (err: any) {
         console.error('\n❌ TEST RUNNER FAILED WITH ERROR:', err);
