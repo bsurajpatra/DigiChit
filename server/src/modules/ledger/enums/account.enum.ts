@@ -27,6 +27,7 @@ export enum JournalDirection {
 }
 
 export enum DoubleEntryJournalType {
+    INSTALLMENT_OBLIGATION = 'INSTALLMENT_OBLIGATION',
     INSTALLMENT_PAYMENT = 'INSTALLMENT_PAYMENT',
     REVERSAL = 'REVERSAL',
     LATE_FEE = 'LATE_FEE',

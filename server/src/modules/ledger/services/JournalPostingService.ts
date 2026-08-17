@@ -173,6 +173,19 @@ export class JournalPostingService {
             createdBy: createdBy || 'SYSTEM'
         };
 
-        return await this.journalRepo.create(journalEntryData);
+        try {
+            return await this.journalRepo.create(journalEntryData);
+        } catch (error: any) {
+            // Handle race condition: MongoDB duplicate key error (E11000)
+            if (error.code === 11000 || (error.message && error.message.includes('E11000'))) {
+                if (transactionId) {
+                    const retryFind = await this.journalRepo.findByTransactionId(transactionId, entryType);
+                    if (retryFind) return retryFind;
+                }
+                const retryRef = await this.journalRepo.findByReference(referenceId, referenceType);
+                if (retryRef) return retryRef;
+            }
+            throw error;
+        }
     }
 }

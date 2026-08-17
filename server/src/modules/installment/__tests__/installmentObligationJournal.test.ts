@@ -32,14 +32,14 @@ export async function runInstallmentObligationJournalTests() {
         name: 'Org Test User P2',
         email: `org.test.p2.${Date.now()}@example.com`,
         password: 'password123',
-        role: UserRole.ORGANIZER
+        role: UserRole.ORGANIZER, age: 30
     });
 
     const memberUser = await User.create({
         name: 'Member Test User P2',
         email: `mem.test.p2.${Date.now()}@example.com`,
         password: 'password123',
-        role: UserRole.USER
+        role: UserRole.USER, age: 25
     });
 
     const group = await ChitGroup.create({
@@ -49,6 +49,8 @@ export async function runInstallmentObligationJournalTests() {
         totalMembers: 10,
         currentMemberCount: 1,
         durationMonths: 10,
+        startDate: new Date(),
+        commissionPercent: 5,
         status: 'ACTIVE'
     });
 

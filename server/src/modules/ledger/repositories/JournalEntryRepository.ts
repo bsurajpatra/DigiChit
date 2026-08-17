@@ -32,9 +32,11 @@ export class JournalEntryRepository {
         return await JournalEntry.findOne(query).populate('lines.accountId');
     }
 
-    public async findByTransactionId(transactionId: string): Promise<IJournalEntry | null> {
+    public async findByTransactionId(transactionId: string, entryType?: string): Promise<IJournalEntry | null> {
         if (!mongoose.Types.ObjectId.isValid(transactionId)) return null;
-        return await JournalEntry.findOne({ transactionId: new mongoose.Types.ObjectId(transactionId) }).populate('lines.accountId');
+        const query: any = { transactionId: new mongoose.Types.ObjectId(transactionId) };
+        if (entryType) query.entryType = entryType;
+        return await JournalEntry.findOne(query).populate('lines.accountId');
     }
 
     public async findPaginated(
