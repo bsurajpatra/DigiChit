@@ -1,3 +1,4 @@
+import { eventBus } from '@shared/event-bus/EventBus.js';
 import mongoose from 'mongoose';
 import { AuctionRepository } from '../repositories/AuctionRepository.js';
 import Auction, { IAuction, AuctionStatus } from '../models/Auction.js';
@@ -329,6 +330,22 @@ export class AuctionService {
                 status: auction.status
             }
         });
+        eventBus.publish({
+            eventType: 'AUCTION_WINNER_DECLARED',
+            timestamp: new Date(),
+            data: {
+                auctionId: (auction._id as mongoose.Types.ObjectId).toString(),
+                groupId: auction.groupId.toString(),
+                cycleId: auction.cycleId.toString(),
+                winningMembershipId: data.winningMembershipId,
+                winningBidId: data.winningBidId || (auction.winningBidId ? auction.winningBidId.toString() : null),
+                winnerUserId: membership.userId.toString(),
+                winningBidPercentage: cycle?.winningBidPercentage,
+                winningBidAmount: cycle?.winningBidAmount,
+                declaredBy: actorId
+            }
+        });
+
 
         return auction;
     }

@@ -5,10 +5,11 @@ import { runAccountProvisioningTests } from './accountProvisioning.test.js';
 import { runInstallmentObligationJournalTests } from '@modules/installment/__tests__/installmentObligationJournal.test.js';
 import { runPaymentJournalPostingTests } from './paymentJournalPosting.test.js';
 import { runPaymentRefundJournalPostingTests } from './paymentRefundJournalPosting.test.js';
+import { runWinnerPotAllocationJournalTests } from './winnerPotAllocationJournal.test.js';
 
 async function main() {
     console.log('\n======================================================');
-    console.log('  STARTING CONSOLIDATED LEDGER TEST RUNNER (P0 - P4)');
+    console.log('  STARTING CONSOLIDATED LEDGER TEST RUNNER (P0 - P5)');
     console.log('======================================================\n');
 
     try {
@@ -35,8 +36,12 @@ async function main() {
         console.log('\n--- 5. LEDGER P4: REFUND DOUBLE-ENTRY ACCOUNTING ---');
         await runPaymentRefundJournalPostingTests();
 
+        // 6. Run P5 Tests
+        console.log('\n--- 6. LEDGER P5: WINNER POT ALLOCATION ACCOUNTING ---');
+        await runWinnerPotAllocationJournalTests();
+
         console.log('\n======================================================');
-        console.log('  🎉 ALL LEDGER SUITES (P0, P1, P2, P3, P4) PASSED CLEANLY');
+        console.log('  🎉 ALL LEDGER SUITES (P0, P1, P2, P3, P4, P5) PASSED CLEANLY');
         console.log('======================================================\n');
     } catch (err: any) {
         console.error('\n❌ TEST RUNNER FAILED WITH ERROR:', err);

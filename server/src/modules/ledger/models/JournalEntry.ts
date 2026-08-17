@@ -206,6 +206,7 @@ JournalEntrySchema.pre('findOneAndDelete', function (this: any) {
 // Indexes
 JournalEntrySchema.index({ groupId: 1, postedAt: -1 });
 JournalEntrySchema.index({ referenceId: 1, referenceType: 1 });
+JournalEntrySchema.index({ referenceId: 1, entryType: 1 }, { unique: true, partialFilterExpression: { referenceId: { $type: 'string' } } });
 JournalEntrySchema.index({ transactionId: 1, entryType: 1 }, { unique: true, sparse: true });
 JournalEntrySchema.index({ transactionId: 1 }, { sparse: true });
 JournalEntrySchema.index({ 'lines.accountId': 1, postedAt: -1 });

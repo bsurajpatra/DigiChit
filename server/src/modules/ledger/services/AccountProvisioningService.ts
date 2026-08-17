@@ -234,4 +234,27 @@ export class AccountProvisioningService {
         }
         return provisionedAcc;
     }
+
+    /**
+     * Retrieves an account by its deterministic account number, auto-provisioning if missing.
+     */
+    public async getAccountByNumber(accountNumber: string, groupId?: string, memberId?: string): Promise<IAccount> {
+        let acc = await this.repo.findByAccountNumber(accountNumber);
+        if (acc) return acc;
+
+        if (groupId && memberId) {
+            await this.provisionMemberAccounts(groupId, memberId);
+        } else if (groupId) {
+            await this.provisionGroupAccounts(groupId);
+        } else {
+            await this.provisionSystemAccounts();
+        }
+
+        acc = await this.repo.findByAccountNumber(accountNumber);
+        if (!acc) {
+            throw new AppError(`Failed to locate or provision Account ${accountNumber}`, 500, 'ACCOUNT_PROVISIONING_FAILED');
+        }
+        return acc;
+    }
+
 }

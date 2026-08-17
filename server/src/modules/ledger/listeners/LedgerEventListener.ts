@@ -194,6 +194,211 @@ export async function processPaymentRefundJournalPosting(txn: ITransaction): Pro
  * Initializes listeners for Ledger Domain Events.
  * Listens to TRANSACTION_SUCCESS and TRANSACTION_REFUNDED domain events to create immutable Ledger Entries.
  */
+
+import { AuctionRepository } from '@modules/auction/repositories/AuctionRepository.js';
+import { IJournalEntry } from '../models/JournalEntry.js';
+import { AppError } from '@shared/errors/AppError.js';
+
+const auctionRepo = new AuctionRepository();
+
+export interface IWinnerPotAllocationInput {
+    auctionId: string;
+    groupId?: string;
+    cycleId?: string;
+    winningMembershipId?: string;
+    winningBidId?: string | null;
+    winnerUserId?: string;
+    winningBidPercentage?: number;
+    winningBidAmount?: number;
+    declaredBy?: string;
+}
+
+/**
+ * Processes double-entry pot allocation accrual journal posting for an auction winner declaration (P5).
+ * DEBIT: CHIT_CYCLE_CLEARING (Total Pot Value)
+ * CREDIT: MEMBER_PRIZE_PAYABLE (Net Prize Amount)
+ * CREDIT: COMM_INCOME (Organizer Commission Income)
+ * CREDIT: DIV_PAYABLE (Dividend Pool Payable)
+ */
+export async function processWinnerPotAllocationJournalPosting(input: IWinnerPotAllocationInput): Promise<IJournalEntry> {
+    if (!input || !input.auctionId) {
+        throw new AppError('Auction ID is required for pot allocation journal posting', 400, 'INVALID_INPUT');
+    }
+
+    const auctionIdStr = input.auctionId.toString();
+
+    // 1. Fetch & Validate Auction
+    const auction = await auctionRepo.findById(auctionIdStr);
+    if (!auction) {
+        throw new AppError(`Auction ${auctionIdStr} not found`, 404, 'AUCTION_NOT_FOUND');
+    }
+
+    const groupIdStr = (auction.groupId || input.groupId)?.toString();
+    const cycleIdStr = (auction.cycleId || input.cycleId)?.toString();
+
+    if (!groupIdStr || !cycleIdStr) {
+        throw new AppError('Auction must have associated groupId and cycleId', 400, 'INVALID_AUCTION_HEADER');
+    }
+
+    // 2. Fetch Group & Cycle
+    const group = await auctionRepo.findGroupById(groupIdStr);
+    if (!group) {
+        throw new AppError(`Chit Group ${groupIdStr} not found`, 404, 'GROUP_NOT_FOUND');
+    }
+
+    const cycle = await auctionRepo.findCycleById(cycleIdStr);
+    if (!cycle) {
+        throw new AppError(`Chit Cycle ${cycleIdStr} not found`, 404, 'CYCLE_NOT_FOUND');
+    }
+
+    // 3. Fetch & Validate Winning Membership
+    const winningMembershipIdStr = (input.winningMembershipId || auction.winningMembershipId)?.toString();
+    if (!winningMembershipIdStr) {
+        throw new AppError('Winning membership ID is required', 400, 'WINNER_MEMBERSHIP_REQUIRED');
+    }
+
+    const membership = await auctionRepo.findMembershipById(winningMembershipIdStr);
+    if (!membership) {
+        throw new AppError(`Winning membership ${winningMembershipIdStr} not found`, 404, 'MEMBERSHIP_NOT_FOUND');
+    }
+
+    if (membership.chitGroupId.toString() !== groupIdStr) {
+        throw new AppError('Winning membership does not belong to this Chit Group', 400, 'MEMBERSHIP_GROUP_MISMATCH');
+    }
+
+    const winnerMemberIdStr = membership.userId.toString();
+
+    // 4. Idempotency Check: Verify if JournalEntry already exists for this auction
+    const existingJournal = await journalRepo.findByReference(
+        auctionIdStr,
+        DoubleEntryJournalType.WINNER_POT_ALLOCATION
+    );
+    if (existingJournal) {
+        logger.info(`[LedgerEventListener P5] Duplicate winner pot allocation event detected. Journal entry already exists: ${existingJournal.entryNumber}. Safely ignoring idempotent retry.`);
+        return existingJournal;
+    }
+
+    // 5. Authoritative Financial Calculations (Integer Paise)
+    const monthlyContribution = group.monthlyContribution;
+    const totalMembers = group.totalMembers;
+
+    if (!monthlyContribution || monthlyContribution <= 0 || !totalMembers || totalMembers <= 0) {
+        throw new AppError('Invalid group financial parameters (monthlyContribution or totalMembers)', 400, 'INVALID_FINANCIAL_CONFIG');
+    }
+
+    // Total Pot Value (V)
+    const totalPot = monthlyContribution * totalMembers;
+    const totalPotPaise = Math.round(totalPot * 100);
+
+    // Winning Bid Percentage (B)
+    let bidPct = input.winningBidPercentage ?? cycle.winningBidPercentage;
+    const winningBidId = input.winningBidId || (auction.winningBidId ? auction.winningBidId.toString() : null);
+
+    if (bidPct === undefined || bidPct === null) {
+        if (winningBidId) {
+            const bid = await auctionRepo.findBidById(winningBidId);
+            if (bid) {
+                bidPct = bid.bidPercentage;
+            }
+        }
+    }
+    if (bidPct === undefined || bidPct === null) {
+        bidPct = auction.minimumBidPercentage || 0;
+    }
+
+    if (bidPct < 0 || bidPct > 100) {
+        throw new AppError(`Invalid winning bid percentage: ${bidPct}%`, 400, 'INVALID_BID_PERCENTAGE');
+    }
+
+    // Discount Amount (D = V * B / 100)
+    const discountPaise = Math.round((totalPotPaise * bidPct) / 100);
+
+    // Organizer Commission Percentage (C%)
+    const commissionPercent = group.financialConfig?.commission?.value ?? group.commissionPercent ?? 0;
+    if (commissionPercent < 0 || commissionPercent > 100) {
+        throw new AppError(`Invalid commission percent: ${commissionPercent}%`, 400, 'INVALID_COMMISSION_PERCENT');
+    }
+
+    // Commission Amount (C = V * C% / 100)
+    const commissionPaise = Math.round((totalPotPaise * commissionPercent) / 100);
+
+    if (commissionPaise > discountPaise) {
+        throw new AppError(`Commission (${commissionPaise} paise) cannot exceed discount (${discountPaise} paise)`, 400, 'COMMISSION_EXCEEDS_DISCOUNT');
+    }
+
+    // Net Prize (P = V - D)
+    const prizePaise = totalPotPaise - discountPaise;
+
+    // Dividend Pool (Div = D - C)
+    const dividendPaise = discountPaise - commissionPaise;
+
+    // Invariant Verification: Total DEBIT (V) === Total CREDIT (P + C + Div)
+    const totalCreditPaise = prizePaise + commissionPaise + dividendPaise;
+    if (totalPotPaise !== totalCreditPaise) {
+        throw new AppError(`Unbalanced pot allocation: Total Pot (${totalPotPaise}) !== Credits (${totalCreditPaise})`, 400, 'UNBALANCED_POT_ALLOCATION');
+    }
+
+    // 6. Account Resolution via AccountProvisioningService
+    const clearingAcc = await provisioningService.getGroupAccount(groupIdStr, AccountCategory.CLEARING);
+    const prizePayableAcc = await provisioningService.getAccountByNumber(`GRP-${groupIdStr}-MEM-${winnerMemberIdStr}-PRIZE_PAYABLE`, groupIdStr, winnerMemberIdStr);
+    const commIncomeAcc = await provisioningService.getAccountByNumber(`GRP-${groupIdStr}-COMM_INCOME`, groupIdStr);
+    const divPayableAcc = await provisioningService.getAccountByNumber(`GRP-${groupIdStr}-DIV_PAYABLE`, groupIdStr);
+
+    // 7. Assemble Journal Lines
+    const lines: any[] = [
+        {
+            accountId: (clearingAcc._id as any).toString(),
+            direction: JournalDirection.DEBIT,
+            amountPaise: totalPotPaise,
+            memo: `Chit cycle pot clearing allocation for Cycle #${cycle.cycleNumber || auction.auctionNumber}`
+        },
+        {
+            accountId: (prizePayableAcc._id as any).toString(),
+            direction: JournalDirection.CREDIT,
+            amountPaise: prizePaise,
+            memo: `Net prize payable recognized for winning member (Cycle #${cycle.cycleNumber || auction.auctionNumber})`
+        }
+    ];
+
+    if (commissionPaise > 0) {
+        lines.push({
+            accountId: (commIncomeAcc._id as any).toString(),
+            direction: JournalDirection.CREDIT,
+            amountPaise: commissionPaise,
+            memo: `Organizer management commission revenue (Cycle #${cycle.cycleNumber || auction.auctionNumber})`
+        });
+    }
+
+    if (dividendPaise > 0) {
+        lines.push({
+            accountId: (divPayableAcc._id as any).toString(),
+            direction: JournalDirection.CREDIT,
+            amountPaise: dividendPaise,
+            memo: `Member dividend pool payable (Cycle #${cycle.cycleNumber || auction.auctionNumber})`
+        });
+    }
+
+    // 8. Post Double-Entry Journal Entry
+    const journalEntry = await journalPostingService.postJournalEntry({
+        entryType: DoubleEntryJournalType.WINNER_POT_ALLOCATION,
+        referenceType: 'AUCTION',
+        referenceId: auctionIdStr,
+        transactionId: null,
+        groupId: groupIdStr,
+        cycleId: cycleIdStr,
+        memberId: winnerMemberIdStr,
+        createdBy: input.declaredBy || 'SYSTEM',
+        lines
+    });
+
+    logger.info(
+        `[LedgerEventListener P5] Winner Pot Allocation Double-Entry Journal Posted | Entry Number: ${journalEntry.entryNumber} | Auction ID: ${auctionIdStr} | Total Pot: ₹${totalPot} (${totalPotPaise} paise) | Net Prize: ₹${prizePaise / 100} | Commission: ₹${commissionPaise / 100} | Dividend: ₹${dividendPaise / 100}`
+    );
+
+    return journalEntry;
+}
+
+
 export const initLedgerEventListeners = (): void => {
     // -------------------------------------------------------------------------
     // 1. TRANSACTION_SUCCESS -> Create Original Immutable Ledger Entry & Double-Entry Journal
@@ -377,5 +582,19 @@ export const initLedgerEventListeners = (): void => {
         }
     });
 
-    logger.info('[LedgerEventListener] Event listeners registered for TRANSACTION_SUCCESS and TRANSACTION_REFUNDED.');
+    
+    // -------------------------------------------------------------------------
+    // 3. AUCTION_WINNER_DECLARED -> Create Winner Pot Allocation Journal (P5)
+    // -------------------------------------------------------------------------
+    eventBus.on('AUCTION_WINNER_DECLARED', async (event: any) => {
+        try {
+            if (event && event.data) {
+                await processWinnerPotAllocationJournalPosting(event.data);
+            }
+        } catch (error: any) {
+            logger.error('[LedgerEventListener P5 Error] Failed to process winner pot allocation journal:', error.message || error);
+        }
+    });
+
+    logger.info('[LedgerEventListener] Event listeners registered for TRANSACTION_SUCCESS, TRANSACTION_REFUNDED, and AUCTION_WINNER_DECLARED.');
 };
