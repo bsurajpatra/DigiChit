@@ -1,3 +1,4 @@
+import api from '../api/axios';
 import { useState, useEffect, useCallback } from 'react';
 import type { Installment, InstallmentGroupStats } from '../types/installment';
 import * as installmentApi from '../api/installment.api';
@@ -19,8 +20,16 @@ export const useInstallments = (groupId?: string, cycleId?: string, isMyInstallm
             } else if (groupId) {
                 fetched = await installmentApi.fetchGroupInstallments(groupId);
             } else if (isMyInstallments) {
-                // For member dashboard, fetch installments for all their groups
-                fetched = [];
+                // For member dashboard, fetch all active user memberships and their installments
+                const memRes = await api.get('/chit-groups/my-memberships');
+                const memberships = memRes.data.data.memberships || [];
+                const active = memberships.filter((m: any) =>
+                    m.chitGroupId && ['APPROVED', 'ACTIVE_MEMBER'].includes(m.status)
+                );
+                const allInstResults = await Promise.all(
+                    active.map((m: any) => installmentApi.fetchMemberInstallments(m._id).catch(() => []))
+                );
+                fetched = allInstResults.flat();
             }
 
             setInstallments(fetched);

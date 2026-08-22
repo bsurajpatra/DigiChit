@@ -84,7 +84,8 @@ export class InstallmentRepository {
         if (!mongoose.Types.ObjectId.isValid(membershipId)) return [];
         return await Installment.find({ membershipId: new mongoose.Types.ObjectId(membershipId) })
             .sort({ installmentNumber: 1 })
-            .populate('cycleId', 'cycleNumber status scheduledStartDate');
+            .populate('cycleId', 'cycleNumber status scheduledStartDate paymentCollection')
+            .populate('groupId', 'name monthlyContribution financialConfig');
     }
 
     public async findByGroup(groupId: string, status?: PaymentStatus, memberUserId?: string): Promise<IInstallment[]> {
@@ -98,6 +99,7 @@ export class InstallmentRepository {
         return await Installment.find(query)
             .sort({ installmentNumber: 1, dueDate: 1 })
             .populate('userId', 'name email')
-            .populate('cycleId', 'cycleNumber status');
+            .populate('cycleId', 'cycleNumber status scheduledStartDate paymentCollection')
+            .populate('groupId', 'name monthlyContribution financialConfig');
     }
 }

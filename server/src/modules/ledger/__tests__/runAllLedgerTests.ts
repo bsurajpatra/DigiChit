@@ -6,10 +6,13 @@ import { runInstallmentObligationJournalTests } from '@modules/installment/__tes
 import { runPaymentJournalPostingTests } from './paymentJournalPosting.test.js';
 import { runPaymentRefundJournalPostingTests } from './paymentRefundJournalPosting.test.js';
 import { runWinnerPotAllocationJournalTests } from './winnerPotAllocationJournal.test.js';
+import { runPrizePayoutTests } from './prizePayoutJournal.test.js';
+import { runOrganizerCommissionPayoutTests } from './organizerCommissionPayoutJournal.test.js';
+import { runDividendAllocationTests } from './dividendAllocationJournal.test.js';
 
 async function main() {
     console.log('\n======================================================');
-    console.log('  STARTING CONSOLIDATED LEDGER TEST RUNNER (P0 - P5)');
+    console.log('  STARTING CONSOLIDATED LEDGER TEST RUNNER (P0 - P8)');
     console.log('======================================================\n');
 
     try {
@@ -40,8 +43,20 @@ async function main() {
         console.log('\n--- 6. LEDGER P5: WINNER POT ALLOCATION ACCOUNTING ---');
         await runWinnerPotAllocationJournalTests();
 
+        // 7. Run P6 Tests
+        console.log('\n--- 7. LEDGER P6: PRIZE PAYOUT ACCOUNTING ---');
+        await runPrizePayoutTests();
+
+        // 8. Run P7 Tests
+        console.log('\n--- 8. LEDGER P7: ORGANIZER COMMISSION PAYOUT ACCOUNTING ---');
+        await runOrganizerCommissionPayoutTests();
+
+        // 9. Run P8 Tests
+        console.log('\n--- 9. LEDGER P8: DIVIDEND ALLOCATION & INSTALLMENT OFFSET ---');
+        await runDividendAllocationTests();
+
         console.log('\n======================================================');
-        console.log('  🎉 ALL LEDGER SUITES (P0, P1, P2, P3, P4, P5) PASSED CLEANLY');
+        console.log('  🎉 ALL LEDGER SUITES (P0, P1, P2, P3, P4, P5, P6, P7, P8) PASSED CLEANLY');
         console.log('======================================================\n');
     } catch (err: any) {
         console.error('\n❌ TEST RUNNER FAILED WITH ERROR:', err);

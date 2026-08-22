@@ -182,8 +182,10 @@ export class JournalPostingService {
                     const retryFind = await this.journalRepo.findByTransactionId(transactionId, entryType);
                     if (retryFind) return retryFind;
                 }
-                const retryRef = await this.journalRepo.findByReference(referenceId, referenceType);
-                if (retryRef) return retryRef;
+                const retryRef = await (this.journalRepo as any).findByReference(referenceId, referenceType);
+                if (retryRef && retryRef.entryType === entryType) return retryRef;
+                const directFind = await (mongoose.model('JournalEntry') as any).findOne({ referenceId, entryType }).populate('lines.accountId');
+                if (directFind) return directFind;
             }
             throw error;
         }

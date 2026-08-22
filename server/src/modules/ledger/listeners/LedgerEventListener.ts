@@ -1,3 +1,8 @@
+import mongoose from 'mongoose';
+import { AppError } from '@shared/errors/AppError.js';
+import Membership, { MembershipStatus } from '@modules/membership/models/Membership.js';
+import Installment, { PaymentStatus } from '@modules/installment/models/Installment.js';
+import JournalEntry from '../models/JournalEntry.js';
 import { logger } from '@shared/logger/logger.js';
 import { eventBus } from '@shared/event-bus/EventBus.js';
 import { PaymentDomainEvent, PaymentDomainEventType, type ITransaction, TransactionStatus } from '@modules/payment/index.js';
@@ -197,7 +202,6 @@ export async function processPaymentRefundJournalPosting(txn: ITransaction): Pro
 
 import { AuctionRepository } from '@modules/auction/repositories/AuctionRepository.js';
 import { IJournalEntry } from '../models/JournalEntry.js';
-import { AppError } from '@shared/errors/AppError.js';
 
 const auctionRepo = new AuctionRepository();
 
@@ -399,6 +403,624 @@ export async function processWinnerPotAllocationJournalPosting(input: IWinnerPot
 }
 
 
+
+export interface IPrizePayoutJournalInput {
+    auctionId: string;
+    groupId?: string;
+    cycleId?: string;
+    winningMembershipId?: string;
+    winnerUserId?: string;
+    payoutAmountPaise?: number;
+    disbursedBy?: string;
+    remarks?: string;
+}
+
+/**
+ * Processes double-entry prize payout disbursement journal posting for an auction winner (P6).
+ * DEBIT: GRP-{groupId}-MEM-{winnerId}-PRIZE_PAYABLE (Extinguishes net prize liability)
+ * CREDIT: GRP-{groupId}-BANK (Cash leaves group escrow bank account to winner)
+ */
+export async function processPrizePayoutJournalPosting(input: IPrizePayoutJournalInput): Promise<IJournalEntry> {
+    if (!input || !input.auctionId) {
+        throw new AppError('Auction ID is required for prize payout journal posting', 400, 'INVALID_INPUT');
+    }
+
+    const auctionIdStr = input.auctionId.toString();
+
+    // 1. Fetch & Validate Auction
+    const auction = await auctionRepo.findById(auctionIdStr);
+    if (!auction) {
+        throw new AppError(`Auction ${auctionIdStr} not found`, 404, 'AUCTION_NOT_FOUND');
+    }
+
+    const groupIdStr = (auction.groupId || input.groupId)?.toString();
+    const cycleIdStr = (auction.cycleId || input.cycleId)?.toString();
+
+    if (!groupIdStr || !cycleIdStr) {
+        throw new AppError('Auction must have associated groupId and cycleId', 400, 'INVALID_AUCTION_HEADER');
+    }
+
+    // 2. Fetch Group & Cycle
+    const group = await auctionRepo.findGroupById(groupIdStr);
+    if (!group) {
+        throw new AppError(`Chit Group ${groupIdStr} not found`, 404, 'GROUP_NOT_FOUND');
+    }
+
+    const cycle = await auctionRepo.findCycleById(cycleIdStr);
+    if (!cycle) {
+        throw new AppError(`Chit Cycle ${cycleIdStr} not found`, 404, 'CYCLE_NOT_FOUND');
+    }
+
+    // 3. Resolve Winner Member User ID
+    let winnerUserIdStr = input.winnerUserId?.toString();
+    if (!winnerUserIdStr) {
+        const winningMembershipIdStr = (input.winningMembershipId || cycle.winnerMembershipId || auction.winningMembershipId)?.toString();
+        if (winningMembershipIdStr) {
+            const membership = await auctionRepo.findMembershipById(winningMembershipIdStr);
+            if (membership) {
+                winnerUserIdStr = membership.userId.toString();
+            }
+        }
+    }
+
+    if (!winnerUserIdStr) {
+        throw new AppError('Winner member user ID is required for prize payout journal posting', 400, 'WINNER_MEMBER_REQUIRED');
+    }
+
+    // 4. Idempotency Check: Verify if PRIZE_PAYOUT JournalEntry already exists
+    const existingJournal = await JournalEntry.findOne({
+        referenceId: auctionIdStr,
+        entryType: DoubleEntryJournalType.PRIZE_PAYOUT
+    }).populate('lines.accountId');
+
+    if (existingJournal) {
+        logger.info(`[LedgerEventListener P6] Duplicate prize payout event detected. Journal entry already exists: ${existingJournal.entryNumber}. Safely ignoring idempotent retry.`);
+        return existingJournal;
+    }
+
+    // 5. Authoritative Net Prize Calculation (Integer Paise)
+    let prizePaise = input.payoutAmountPaise;
+
+    if (!prizePaise) {
+        const monthlyContribution = group.monthlyContribution;
+        const totalMembers = group.totalMembers;
+        if (!monthlyContribution || !totalMembers) {
+            throw new AppError('Invalid group financial parameters', 400, 'INVALID_FINANCIAL_CONFIG');
+        }
+
+        const totalPot = monthlyContribution * totalMembers;
+        const totalPotPaise = Math.round(totalPot * 100);
+
+        let bidPct = cycle.winningBidPercentage;
+        if (bidPct === undefined || bidPct === null) {
+            if (auction.winningBidId) {
+                const bid = await auctionRepo.findBidById(auction.winningBidId.toString());
+                if (bid) bidPct = bid.bidPercentage;
+            }
+        }
+        if (bidPct === undefined || bidPct === null) {
+            bidPct = auction.minimumBidPercentage || 0;
+        }
+
+        if (bidPct < 0 || bidPct > 100) {
+            throw new AppError(`Invalid bid percentage: ${bidPct}%`, 400, 'INVALID_BID_PERCENTAGE');
+        }
+
+        const discountPaise = Math.round((totalPotPaise * bidPct) / 100);
+        prizePaise = totalPotPaise - discountPaise;
+    }
+
+    if (!prizePaise || prizePaise <= 0) {
+        throw new AppError(`Net prize amount must be a positive integer in paise. Received: ${prizePaise}`, 400, 'INVALID_PRIZE_AMOUNT');
+    }
+
+    // 6. Account Resolution via AccountProvisioningService
+    const prizePayableAcc = await provisioningService.getAccountByNumber(
+        `GRP-${groupIdStr}-MEM-${winnerUserIdStr}-PRIZE_PAYABLE`,
+        groupIdStr,
+        winnerUserIdStr
+    );
+    const bankEscrowAcc = await provisioningService.getGroupAccount(
+        groupIdStr,
+        AccountCategory.BANK
+    );
+
+    // 7. Assemble Journal Lines
+    const lines = [
+        {
+            accountId: (prizePayableAcc._id as any).toString(),
+            direction: JournalDirection.DEBIT,
+            amountPaise: prizePaise,
+            memo: `Net prize payable settlement for winning member (Cycle #${cycle.cycleNumber || (auction.auctionNumber || 1)})`
+        },
+        {
+            accountId: (bankEscrowAcc._id as any).toString(),
+            direction: JournalDirection.CREDIT,
+            amountPaise: prizePaise,
+            memo: `Escrow bank cash disbursement for winner prize (Cycle #${cycle.cycleNumber || (auction.auctionNumber || 1)})`
+        }
+    ];
+
+    // 8. Post Double-Entry Journal Entry
+    try {
+        const journalEntry = await journalPostingService.postJournalEntry({
+            entryType: DoubleEntryJournalType.PRIZE_PAYOUT,
+            referenceType: 'AUCTION',
+            referenceId: auctionIdStr,
+            transactionId: null,
+            groupId: groupIdStr,
+            cycleId: cycleIdStr,
+            memberId: winnerUserIdStr,
+            createdBy: input.disbursedBy || 'SYSTEM',
+            lines
+        });
+
+        logger.info(
+            `[LedgerEventListener P6] Prize Payout Double-Entry Journal Posted | Entry Number: ${journalEntry.entryNumber} | Auction ID: ${auctionIdStr} | Prize Disbursed: ₹${prizePaise / 100} (${prizePaise} paise) | Winner: ${winnerUserIdStr}`
+        );
+
+        return journalEntry;
+    } catch (postError: any) {
+        if (postError.message && (postError.message.includes('E11000') || postError.message.includes('duplicate key'))) {
+            const fallbackJournal = await JournalEntry.findOne({
+                referenceId: auctionIdStr,
+                entryType: DoubleEntryJournalType.PRIZE_PAYOUT
+            }).populate('lines.accountId');
+            if (fallbackJournal) return fallbackJournal;
+        }
+        throw postError;
+    }
+}
+
+
+export interface IOrganizerCommissionPayoutInput {
+    auctionId?: string;
+    cycleId?: string;
+    groupId?: string;
+    organizerId?: string;
+    payoutAmountPaise?: number;
+    disbursedBy?: string;
+    remarks?: string;
+}
+
+/**
+ * Processes double-entry organizer commission payout journal posting (P7).
+ * DEBIT: GRP-{groupId}-COMM_PAYABLE (Settles organizer commission liability)
+ * CREDIT: GRP-{groupId}-BANK (Cash leaves group escrow bank account to organizer)
+ */
+export async function processOrganizerCommissionPayoutJournalPosting(input: IOrganizerCommissionPayoutInput): Promise<IJournalEntry> {
+    if (!input || (!input.auctionId && !input.cycleId)) {
+        throw new AppError('Auction ID or Cycle ID is required for commission payout journal posting', 400, 'INVALID_INPUT');
+    }
+
+    let auction: any = null;
+    let auctionIdStr: string | null = null;
+    let cycleIdStr = input.cycleId?.toString();
+    let groupIdStr = input.groupId?.toString();
+    let organizerIdStr = input.organizerId?.toString();
+
+    if (input.auctionId) {
+        auctionIdStr = input.auctionId.toString();
+        auction = await auctionRepo.findById(auctionIdStr);
+        if (!auction) {
+            throw new AppError(`Auction ${auctionIdStr} not found`, 404, 'AUCTION_NOT_FOUND');
+        }
+        groupIdStr = groupIdStr || auction.groupId?.toString();
+        cycleIdStr = cycleIdStr || auction.cycleId?.toString();
+    }
+
+    if (!auction && cycleIdStr) {
+        auction = await auctionRepo.findById(cycleIdStr);
+        if (auction) {
+            auctionIdStr = auction._id.toString();
+            groupIdStr = groupIdStr || auction.groupId?.toString();
+        }
+    }
+
+    if (!groupIdStr || !cycleIdStr) {
+        throw new AppError('Commission payout requires valid groupId and cycleId', 400, 'INVALID_PAYOUT_HEADER');
+    }
+
+    // 1. Fetch Group & Cycle
+    const group = await auctionRepo.findGroupById(groupIdStr);
+    if (!group) {
+        throw new AppError(`Chit Group ${groupIdStr} not found`, 404, 'GROUP_NOT_FOUND');
+    }
+
+    const cycle = await auctionRepo.findCycleById(cycleIdStr);
+    if (!cycle) {
+        throw new AppError(`Chit Cycle ${cycleIdStr} not found`, 404, 'CYCLE_NOT_FOUND');
+    }
+
+    // 2. Validate Organizer Identity
+    organizerIdStr = organizerIdStr || group.organizerId?.toString();
+    if (!organizerIdStr) {
+        throw new AppError('Organizer ID is required for commission payout journal posting', 400, 'ORGANIZER_REQUIRED');
+    }
+
+    if (group.organizerId && group.organizerId.toString() !== organizerIdStr) {
+        throw new AppError('Provided organizer ID does not match group organizer', 400, 'ORGANIZER_GROUP_MISMATCH');
+    }
+
+    const referenceIdStr = auctionIdStr || cycleIdStr;
+
+    // 3. Safety Check: Verify P5 Pot Allocation journal exists before allowing P7 payout
+    const p5Journal = await JournalEntry.findOne({
+        referenceId: referenceIdStr,
+        entryType: DoubleEntryJournalType.WINNER_POT_ALLOCATION
+    });
+    if (!p5Journal) {
+        throw new AppError('Cannot payout commission before winner pot allocation (P5) has been recognized', 400, 'PREMATURE_PAYOUT');
+    }
+
+    // 4. Idempotency Check: Verify if COMMISSION_PAYOUT JournalEntry already exists
+    const existingJournal = await JournalEntry.findOne({
+        referenceId: referenceIdStr,
+        entryType: DoubleEntryJournalType.COMMISSION_PAYOUT
+    }).populate('lines.accountId');
+
+    if (existingJournal) {
+        logger.info(`[LedgerEventListener P7] Duplicate commission payout event detected. Journal entry already exists: ${existingJournal.entryNumber}. Safely ignoring idempotent retry.`);
+        return existingJournal;
+    }
+
+    // 5. Authoritative Commission Calculation (Integer Paise)
+    let commissionPaise = input.payoutAmountPaise;
+
+    if (commissionPaise === undefined || commissionPaise === null) {
+        const monthlyContribution = group.monthlyContribution;
+        const totalMembers = group.totalMembers;
+        if (!monthlyContribution || !totalMembers) {
+            throw new AppError('Invalid group financial parameters', 400, 'INVALID_FINANCIAL_CONFIG');
+        }
+
+        const totalPot = monthlyContribution * totalMembers;
+        const totalPotPaise = Math.round(totalPot * 100);
+
+        let commissionPercent = group.commissionPercent;
+        if (commissionPercent === undefined && group.financialConfig?.commission?.value !== undefined) {
+            commissionPercent = group.financialConfig.commission.value;
+        }
+        if (commissionPercent === undefined || commissionPercent === null) {
+            commissionPercent = 5;
+        }
+
+        if (commissionPercent <= 0 || commissionPercent > 100) {
+            throw new AppError(`Invalid commission percent: ${commissionPercent}%`, 400, 'INVALID_COMMISSION_PERCENT');
+        }
+
+        commissionPaise = Math.round((totalPotPaise * commissionPercent) / 100);
+    }
+
+    if (!commissionPaise || commissionPaise <= 0) {
+        throw new AppError(`Commission amount must be a positive integer in paise. Received: ${commissionPaise}`, 400, 'INVALID_COMMISSION_AMOUNT');
+    }
+
+    // Verify payout does not exceed P5 recognized commission
+    const p5CommissionLine = p5Journal.lines.find(
+        (l: any) => l.direction === JournalDirection.CREDIT && (l.accountNumber.includes('COMM_INCOME') || l.accountNumber.includes('COMM_PAYABLE'))
+    );
+    const maxPayablePaise = p5CommissionLine?.amountPaise || commissionPaise;
+    if (commissionPaise > maxPayablePaise) {
+        throw new AppError(`Commission payout (${commissionPaise} paise) exceeds recognized commission (${maxPayablePaise} paise)`, 400, 'COMMISSION_EXCEEDS_ALLOCATION');
+    }
+
+    // 6. Account Resolution via AccountProvisioningService
+    const commPayableAcc = await provisioningService.getAccountByNumber(
+        `GRP-${groupIdStr}-COMM_PAYABLE`,
+        groupIdStr
+    );
+    const bankEscrowAcc = await provisioningService.getGroupAccount(
+        groupIdStr,
+        AccountCategory.BANK
+    );
+
+    // 7. Assemble Journal Lines
+    const lines = [
+        {
+            accountId: (commPayableAcc._id as any).toString(),
+            direction: JournalDirection.DEBIT,
+            amountPaise: commissionPaise,
+            memo: `Organizer management commission settlement (Cycle #${cycle.cycleNumber || (auction?.auctionNumber || 1)})`
+        },
+        {
+            accountId: (bankEscrowAcc._id as any).toString(),
+            direction: JournalDirection.CREDIT,
+            amountPaise: commissionPaise,
+            memo: `Escrow bank cash disbursement for organizer commission (Cycle #${cycle.cycleNumber || (auction?.auctionNumber || 1)})`
+        }
+    ];
+
+    // 8. Post Double-Entry Journal Entry
+    try {
+        const journalEntry = await journalPostingService.postJournalEntry({
+            entryType: DoubleEntryJournalType.COMMISSION_PAYOUT,
+            referenceType: auctionIdStr ? 'AUCTION' : 'CYCLE',
+            referenceId: referenceIdStr,
+            transactionId: null,
+            groupId: groupIdStr,
+            cycleId: cycleIdStr,
+            memberId: organizerIdStr,
+            createdBy: input.disbursedBy || 'SYSTEM',
+            lines
+        });
+
+        logger.info(
+            `[LedgerEventListener P7] Organizer Commission Payout Double-Entry Journal Posted | Entry Number: ${journalEntry.entryNumber} | Ref ID: ${referenceIdStr} | Commission Disbursed: ₹${commissionPaise / 100} (${commissionPaise} paise) | Organizer: ${organizerIdStr}`
+        );
+
+        return journalEntry;
+    } catch (postError: any) {
+        if (postError.message && (postError.message.includes('E11000') || postError.message.includes('duplicate key'))) {
+            const fallbackJournal = await JournalEntry.findOne({
+                referenceId: referenceIdStr,
+                entryType: DoubleEntryJournalType.COMMISSION_PAYOUT
+            }).populate('lines.accountId');
+            if (fallbackJournal) return fallbackJournal;
+        }
+        throw postError;
+    }
+}
+
+
+export interface IDividendAllocationJournalInput {
+    auctionId?: string;
+    cycleId?: string;
+    groupId?: string;
+    memberId: string;
+    membershipId?: string;
+    installmentId?: string;
+    payoutMode?: 'OFFSET' | 'DIRECT_PAYOUT';
+    amountPaise?: number;
+    disbursedBy?: string;
+    remarks?: string;
+}
+
+/**
+ * Processes double-entry dividend allocation and member distribution / installment offset (P8).
+ * Mode OFFSET:
+ *   DEBIT:  GRP-{groupId}-DIV_PAYABLE (Extinguishes dividend pool liability)
+ *   CREDIT: GRP-{groupId}-MEM-{memberId}-RECEIVABLE (Offsets member installment receivable)
+ * Mode DIRECT_PAYOUT:
+ *   DEBIT:  GRP-{groupId}-DIV_PAYABLE (Extinguishes dividend pool liability)
+ *   CREDIT: GRP-{groupId}-BANK (Cash leaves escrow bank account to member)
+ */
+export async function processDividendAllocationJournalPosting(input: IDividendAllocationJournalInput): Promise<IJournalEntry> {
+    if (!input || !input.memberId) {
+        throw new AppError('Member User ID is required for dividend allocation journal posting', 400, 'INVALID_INPUT');
+    }
+    if (!input.auctionId && !input.cycleId) {
+        throw new AppError('Auction ID or Cycle ID is required for dividend allocation journal posting', 400, 'INVALID_INPUT');
+    }
+
+    const memberIdStr = input.memberId.toString();
+    let auction: any = null;
+    let auctionIdStr: string | null = null;
+    let cycleIdStr = input.cycleId?.toString();
+    let groupIdStr = input.groupId?.toString();
+
+    if (input.auctionId) {
+        auctionIdStr = input.auctionId.toString();
+        auction = await auctionRepo.findById(auctionIdStr);
+        if (!auction) {
+            throw new AppError(`Auction ${auctionIdStr} not found`, 404, 'AUCTION_NOT_FOUND');
+        }
+        groupIdStr = groupIdStr || auction.groupId?.toString();
+        cycleIdStr = cycleIdStr || auction.cycleId?.toString();
+    }
+
+    if (!auction && cycleIdStr) {
+        auction = await auctionRepo.findById(cycleIdStr);
+        if (auction) {
+            auctionIdStr = auction._id.toString();
+            groupIdStr = groupIdStr || auction.groupId?.toString();
+        }
+    }
+
+    if (!groupIdStr || !cycleIdStr) {
+        throw new AppError('Dividend allocation requires valid groupId and cycleId', 400, 'INVALID_DIVIDEND_HEADER');
+    }
+
+    // 1. Fetch Group & Cycle
+    const group = await auctionRepo.findGroupById(groupIdStr);
+    if (!group) {
+        throw new AppError(`Chit Group ${groupIdStr} not found`, 404, 'GROUP_NOT_FOUND');
+    }
+
+    const cycle = await auctionRepo.findCycleById(cycleIdStr);
+    if (!cycle) {
+        throw new AppError(`Chit Cycle ${cycleIdStr} not found`, 404, 'CYCLE_NOT_FOUND');
+    }
+
+    // 2. Validate Member & Membership
+    let membership: any = null;
+    if (input.membershipId) {
+        membership = await auctionRepo.findMembershipById(input.membershipId.toString());
+    } else {
+        membership = await Membership.findOne({
+            userId: new mongoose.Types.ObjectId(memberIdStr),
+            chitGroupId: new mongoose.Types.ObjectId(groupIdStr),
+            status: MembershipStatus.ACTIVE_MEMBER
+        });
+    }
+
+    if (!membership) {
+        throw new AppError(`Active membership not found for member ${memberIdStr} in group ${groupIdStr}`, 404, 'MEMBERSHIP_NOT_FOUND');
+    }
+
+    if (membership.chitGroupId.toString() !== groupIdStr) {
+        throw new AppError('Member does not belong to this Chit Group', 400, 'MEMBER_GROUP_MISMATCH');
+    }
+
+    const potReferenceId = auctionIdStr || cycleIdStr;
+
+    // 3. Pre-condition Safety Check: Verify P5 Pot Allocation journal exists
+    const p5Journal = await JournalEntry.findOne({
+        referenceId: potReferenceId,
+        entryType: DoubleEntryJournalType.WINNER_POT_ALLOCATION
+    });
+    if (!p5Journal) {
+        throw new AppError('Cannot allocate dividend before winner pot allocation (P5) has been recognized', 400, 'PREMATURE_DIVIDEND_ALLOCATION');
+    }
+
+    // Determine recognized total dividend pool from P5
+    const p5DivLine = p5Journal.lines.find(
+        (l: any) => l.direction === JournalDirection.CREDIT && l.accountNumber.includes('DIV_PAYABLE')
+    );
+    const totalDivPoolPaise = p5DivLine?.amountPaise || 0;
+    if (totalDivPoolPaise <= 0) {
+        throw new AppError('No dividend pool was recognized in pot allocation for this cycle', 400, 'ZERO_DIVIDEND_POOL');
+    }
+
+    // Calculate per-member entitlement
+    const totalMembers = group.totalMembers || 1;
+    const memberEntitlementPaise = Math.floor(totalDivPoolPaise / totalMembers);
+
+    // 4. Determine Dividend Amount
+    let dividendPaise = input.amountPaise;
+    if (dividendPaise === undefined || dividendPaise === null) {
+        dividendPaise = memberEntitlementPaise;
+    }
+
+    if (typeof dividendPaise !== 'number' || !Number.isInteger(dividendPaise) || dividendPaise <= 0) {
+        throw new AppError(`Dividend amount must be a positive integer in paise. Received: ${dividendPaise}`, 400, 'INVALID_DIVIDEND_AMOUNT');
+    }
+
+    if (dividendPaise > memberEntitlementPaise) {
+        throw new AppError(`Dividend amount (${dividendPaise} paise) exceeds member entitlement (${memberEntitlementPaise} paise)`, 400, 'DIVIDEND_EXCEEDS_ENTITLEMENT');
+    }
+
+    // Check existing dividend distributions for this cycle to prevent exceeding total pool
+    const existingCycleDividends = await JournalEntry.find({
+        cycleId: new mongoose.Types.ObjectId(cycleIdStr),
+        entryType: DoubleEntryJournalType.DIVIDEND_DISTRIBUTION
+    });
+    const totalDistributedSoFarPaise = existingCycleDividends.reduce((sum, j) => sum + j.totalAmountPaise, 0);
+    if (totalDistributedSoFarPaise + dividendPaise > totalDivPoolPaise) {
+        throw new AppError(`Total distributed dividends (${totalDistributedSoFarPaise + dividendPaise} paise) would exceed recognized dividend pool (${totalDivPoolPaise} paise)`, 400, 'DIVIDEND_EXCEEDS_POOL');
+    }
+
+    // Unique reference identity per distribution
+    const mode = input.payoutMode || 'OFFSET';
+    const referenceIdStr = input.installmentId
+        ? `${input.installmentId.toString()}-DIVIDEND`
+        : `${potReferenceId}-MEM-${memberIdStr}-DIVIDEND`;
+
+    // 5. Idempotency Check
+    const existingJournal = await JournalEntry.findOne({
+        referenceId: referenceIdStr,
+        entryType: DoubleEntryJournalType.DIVIDEND_DISTRIBUTION
+    }).populate('lines.accountId');
+
+    if (existingJournal) {
+        logger.info(`[LedgerEventListener P8] Duplicate dividend distribution event detected. Journal entry already exists: ${existingJournal.entryNumber}. Safely ignoring idempotent retry.`);
+        return existingJournal;
+    }
+
+    // 6. Installment Offset Validation & Processing (if applicable)
+    let installmentDoc: any = null;
+    if (input.installmentId) {
+        installmentDoc = await Installment.findById(input.installmentId.toString());
+        if (!installmentDoc) {
+            throw new AppError(`Installment ${input.installmentId} not found`, 404, 'INSTALLMENT_NOT_FOUND');
+        }
+        if (installmentDoc.userId.toString() !== memberIdStr) {
+            throw new AppError('Installment does not belong to the specified member', 400, 'INSTALLMENT_MEMBER_MISMATCH');
+        }
+        if (installmentDoc.paymentStatus === PaymentStatus.PAID || installmentDoc.paymentStatus === PaymentStatus.WAIVED) {
+            throw new AppError('Cannot offset an already fully settled installment', 400, 'INSTALLMENT_ALREADY_SETTLED');
+        }
+
+        const remainingObligationPaise = Math.round((installmentDoc.amount - installmentDoc.paidAmount) * 100);
+        if (dividendPaise > remainingObligationPaise) {
+            throw new AppError(`Dividend offset (${dividendPaise} paise) cannot exceed outstanding installment obligation (${remainingObligationPaise} paise)`, 400, 'OFFSET_EXCEEDS_OBLIGATION');
+        }
+    }
+
+    // 7. Account Resolution via AccountProvisioningService
+    const divPayableAcc = await provisioningService.getAccountByNumber(
+        `GRP-${groupIdStr}-DIV_PAYABLE`,
+        groupIdStr
+    );
+
+    let creditAccountId: string;
+    let creditMemo: string;
+
+    if (mode === 'DIRECT_PAYOUT') {
+        const bankEscrowAcc = await provisioningService.getGroupAccount(groupIdStr, AccountCategory.BANK);
+        creditAccountId = (bankEscrowAcc._id as any).toString();
+        creditMemo = `Escrow bank cash disbursement for member dividend (Cycle #${cycle.cycleNumber || (auction?.auctionNumber || 1)})`;
+    } else {
+        const memberRecAcc = await provisioningService.getAccountByNumber(
+            `GRP-${groupIdStr}-MEM-${memberIdStr}-RECEIVABLE`,
+            groupIdStr,
+            memberIdStr
+        );
+        creditAccountId = (memberRecAcc._id as any).toString();
+        creditMemo = `Dividend offset applied against member installment obligation (Cycle #${cycle.cycleNumber || (auction?.auctionNumber || 1)})`;
+    }
+
+    // 8. Assemble Journal Lines
+    const lines = [
+        {
+            accountId: (divPayableAcc._id as any).toString(),
+            direction: JournalDirection.DEBIT,
+            amountPaise: dividendPaise,
+            memo: `Member dividend pool settlement for member ${memberIdStr} (Cycle #${cycle.cycleNumber || (auction?.auctionNumber || 1)})`
+        },
+        {
+            accountId: creditAccountId,
+            direction: JournalDirection.CREDIT,
+            amountPaise: dividendPaise,
+            memo: creditMemo
+        }
+    ];
+
+    // 9. Post Double-Entry Journal Entry
+    try {
+        const journalEntry = await journalPostingService.postJournalEntry({
+            entryType: DoubleEntryJournalType.DIVIDEND_DISTRIBUTION,
+            referenceType: input.installmentId ? 'INSTALLMENT' : 'AUCTION',
+            referenceId: referenceIdStr,
+            transactionId: null,
+            groupId: groupIdStr,
+            cycleId: cycleIdStr,
+            memberId: memberIdStr,
+            createdBy: input.disbursedBy || 'SYSTEM',
+            lines
+        });
+
+        // 10. Update Installment State if offset
+        if (installmentDoc) {
+            const offsetRupees = dividendPaise / 100;
+            installmentDoc.paidAmount = Math.min(installmentDoc.amount, installmentDoc.paidAmount + offsetRupees);
+            if (installmentDoc.paidAmount >= installmentDoc.amount) {
+                installmentDoc.paymentStatus = PaymentStatus.PAID;
+                installmentDoc.paidDate = new Date();
+            } else {
+                installmentDoc.paymentStatus = PaymentStatus.PARTIALLY_PAID;
+            }
+            await installmentDoc.save();
+        }
+
+        logger.info(
+            `[LedgerEventListener P8] Dividend Allocation Double-Entry Journal Posted | Entry Number: ${journalEntry.entryNumber} | Ref ID: ${referenceIdStr} | Amount: ₹${dividendPaise / 100} (${dividendPaise} paise) | Member: ${memberIdStr} | Mode: ${mode}`
+        );
+
+        return journalEntry;
+    } catch (postError: any) {
+        if (postError.message && (postError.message.includes('E11000') || postError.message.includes('duplicate key'))) {
+            const fallbackJournal = await JournalEntry.findOne({
+                referenceId: referenceIdStr,
+                entryType: DoubleEntryJournalType.DIVIDEND_DISTRIBUTION
+            }).populate('lines.accountId');
+            if (fallbackJournal) return fallbackJournal;
+        }
+        throw postError;
+    }
+}
+
+
 export const initLedgerEventListeners = (): void => {
     // -------------------------------------------------------------------------
     // 1. TRANSACTION_SUCCESS -> Create Original Immutable Ledger Entry & Double-Entry Journal
@@ -596,5 +1218,54 @@ export const initLedgerEventListeners = (): void => {
         }
     });
 
-    logger.info('[LedgerEventListener] Event listeners registered for TRANSACTION_SUCCESS, TRANSACTION_REFUNDED, and AUCTION_WINNER_DECLARED.');
+        // -------------------------------------------------------------------------
+    // 4. PRIZE_DISBURSED / PRIZE_PAYOUT_INITIATED -> Create Prize Payout Journal (P6)
+    // -------------------------------------------------------------------------
+    eventBus.on('PRIZE_DISBURSED', async (event: any) => {
+        try {
+            if (event && event.data) {
+                await processPrizePayoutJournalPosting(event.data);
+            }
+        } catch (error: any) {
+            logger.error('[LedgerEventListener P6 Error] Failed to process prize payout journal:', error.message || error);
+        }
+    });
+
+        // -------------------------------------------------------------------------
+    // 5. ORGANIZER_COMMISSION_DISBURSED -> Create Organizer Commission Payout Journal (P7)
+    // -------------------------------------------------------------------------
+    eventBus.on('ORGANIZER_COMMISSION_DISBURSED', async (event: any) => {
+        try {
+            if (event && event.data) {
+                await processOrganizerCommissionPayoutJournalPosting(event.data);
+            }
+        } catch (error: any) {
+            logger.error('[LedgerEventListener P7 Error] Failed to process organizer commission payout journal:', error.message || error);
+        }
+    });
+
+        // -------------------------------------------------------------------------
+    // 6. DIVIDEND_DISTRIBUTED / DIVIDEND_ALLOCATED -> Create Dividend Distribution Journal (P8)
+    // -------------------------------------------------------------------------
+    eventBus.on('DIVIDEND_DISTRIBUTED', async (event: any) => {
+        try {
+            if (event && event.data) {
+                await processDividendAllocationJournalPosting(event.data);
+            }
+        } catch (error: any) {
+            logger.error('[LedgerEventListener P8 Error] Failed to process dividend distribution journal:', error.message || error);
+        }
+    });
+
+    eventBus.on('DIVIDEND_ALLOCATED', async (event: any) => {
+        try {
+            if (event && event.data) {
+                await processDividendAllocationJournalPosting(event.data);
+            }
+        } catch (error: any) {
+            logger.error('[LedgerEventListener P8 Error] Failed to process dividend allocation journal:', error.message || error);
+        }
+    });
+
+    logger.info('[LedgerEventListener] Event listeners registered for TRANSACTION_SUCCESS, TRANSACTION_REFUNDED, AUCTION_WINNER_DECLARED, PRIZE_DISBURSED, ORGANIZER_COMMISSION_DISBURSED, and DIVIDEND_DISTRIBUTED.');
 };
