@@ -1,209 +1,300 @@
-# DigiChit — Secure Chit Fund Management System
+# DigiChit — Enterprise Chit Fund Management & Double-Entry Ledger Platform
 
-DigiChit is a full-stack web platform for running chit funds digitally — covering member onboarding and KYC, chit group and cycle management, auction-based bidding, installment collection, payments, and ledger/statement reporting, with distinct experiences for **Users**, **Organizers**, and **Admins**.
+**DigiChit** is a full-stack financial platform designed to digitize and automate chit funds (Rotating Savings and Credit Associations / ROSCAs). It features complete lifecycle management for chit groups, auctions, installment collections, member payments, and an **event-driven, immutable double-entry general ledger**.
 
-> A chit fund is a rotating savings-and-credit scheme where a group of members contribute a fixed installment each cycle, and one member "wins" the pooled amount each round through an auction (lowest bid / highest discount wins), until every member has won once.
+---
 
-## Tech Stack
+## 📑 Table of Contents
+- [System Architecture](#system-architecture)
+- [Tech Stack](#tech-stack)
+- [Double-Entry Ledger Engine (P0 – P5)](#double-entry-ledger-engine-p0--p5)
+- [Key Features](#key-features)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Backend Setup](#backend-setup)
+  - [Frontend Setup](#frontend-setup)
+- [Running Tests](#running-tests)
+- [API Reference](#api-reference)
+- [Security & Compliance](#security--compliance)
+- [Current Roadmap & State](#current-roadmap--state)
 
-**Frontend (`/client`)**
-- React 19 + TypeScript, built with Vite
-- React Router v7 for routing
-- Tailwind CSS v4 for styling
-- React Hook Form + Zod for form handling and validation
-- Axios for API calls
-- Framer Motion for animation, Lucide for icons
-- Cloudinary (direct client-side signed uploads) for images/documents
+---
 
-**Backend (`/server`)**
-- Node.js + Express 5, written in TypeScript
-- MongoDB with Mongoose
-- JWT-based authentication, bcrypt password hashing
-- AES-256-CBC field-level encryption for sensitive data (e.g. KYC fields)
-- Helmet, CORS, and rate limiting (`express-rate-limit`) for baseline API hardening
-- Cloudinary for file/document storage
-- Nodemailer for transactional email, `node-cron` for scheduled jobs
-- Mock payment gateway module (payments are simulated, not connected to a real processor)
+## 🏛️ System Architecture
 
-The backend follows a **modular, layered architecture** — each domain module (`auth`, `kyc`, `chit-group`, `payment`, `ledger`, etc.) has its own `controllers`, `services`, `repositories`, `models`, `dto`, `validators`, and `routes`, kept independent behind an `index.ts` barrel file.
+DigiChit follows a **modular, event-driven domain architecture**. Each backend domain module (`auth`, `kyc`, `chit-group`, `chit-cycle`, `auction`, `bid`, `installment`, `payment`, `ledger`, `statement`, etc.) is fully encapsulated with its own controllers, services, repositories, models, validators, and event listeners.
 
-## Current Feature Set
+Financial transactions are coordinated asynchronously via an internal **EventBus** that triggers immutable double-entry journal postings across isolated accounts.
 
-### Authentication & Accounts
-- Register / login with JWT auth
-- Email verification (with resend) and forgot/reset password flows
-- Role-based access control: `USER`, `ORGANIZER`, `ADMIN`
-- Profile management, including profile picture uploads via Cloudinary
-- Auto-flagging of inactive accounts via a scheduled cron job
+```
+Frontend (React 19 + Tailwind v4)
+         │
+         ▼  (REST API / JWT Auth)
+Express API Gateway & Controllers
+         │
+         ▼
+Domain Services (Auction, Payment, Cycle, Installment)
+         │
+         ▼  (Domain Events: TRANSACTION_SUCCESS, AUCTION_WINNER_DECLARED, etc.)
+     EventBus
+         │
+         ▼
+LedgerEventListener ──► JournalPostingService ──► Immutable Double-Entry Journal
+                                                          (MongoDB)
+```
 
-### KYC (Know Your Customer)
-- KYC document submission and status tracking (`NOT_SUBMITTED`, `PENDING`, `APPROVED`, `REJECTED`)
-- Sensitive KYC fields are encrypted at rest and viewable only through authorized endpoints
-- Admin review queue to approve/reject submissions
-- KYC approval is a prerequisite gate for joining chit groups and bidding
+---
 
-### Organizer Onboarding
-- Users can apply to become chit-fund Organizers (subject to eligibility checks)
-- Admin queue to review, approve, or reject organizer applications
+## 💻 Tech Stack
 
-### Admin Controls
-- Freeze / suspend / restore / soft-delete user accounts
-- Change user roles
-- Review KYC submissions, organizer applications, and support queries from a dedicated admin dashboard
+### Frontend (`/client`)
+- **Framework**: React 19 + TypeScript, powered by Vite
+- **Routing**: React Router v7
+- **Styling**: Tailwind CSS v4 + Vanilla CSS Design System (Sleek Dark Theme)
+- **State & Forms**: React Hook Form + Zod validation
+- **Animations & Icons**: Framer Motion, Lucide React
+- **HTTP Client**: Axios with interceptors
+- **Media**: Cloudinary (client-side signed uploads)
 
-### Chit Groups & Membership
-- Organizers can create, update, and list chit groups
-- Users can discover groups that are open ("forming"), view details, and request to join
-- Invite-link based joining (`/join/:id`)
-- Organizers can approve/reject join requests or manually add a member by email
-- Members can view their own membership/enrollment history across groups
+### Backend (`/server`)
+- **Runtime**: Node.js + Express 5 in TypeScript
+- **Database**: MongoDB with Mongoose ODM
+- **Security & Hardening**: JWT, Bcrypt, AES-256-CBC field encryption for KYC, Helmet, CORS, Express Rate Limit
+- **Accounting Engine**: Event-driven Double-Entry Journal Posting with integer paise precision
+- **Communication & Jobs**: Nodemailer (Transactional email), `node-cron` (Scheduled tasks)
+- **Payment Processing**: Integrated Mock Payment Gateway (simulated banking & webhook verification)
 
-### Chit Cycles
-- Organizers create and progress cycles through a lifecycle: create → start → open collections → close collections → record winner → complete / cancel
-- Per-cycle payment status and details tracking
+---
 
-### Auctions & Bidding
-- Auctions are created per cycle, with status transitions and a winner-declaration step
-- Members submit, update, or withdraw bids on an active auction (gated behind KYC approval)
-- Bid history viewable by auction or by member
+## ⚖️ Double-Entry Ledger Engine (P0 – P5)
 
-### Installments
-- Installments are generated per cycle (based on group configuration)
-- Installment status can be updated, and installments queried by cycle, member, or group
+DigiChit features an enterprise-grade, GAAP/Chit-Fund-compliant double-entry accounting core. All monetary entries are strictly calculated and stored in **integer paise** with immutable database protections.
 
-### Payments & Collections
-- Mock payment gateway flow: initiate → verify → refund
-- Transaction history queryable by member, group, or installment
-- Per-cycle collection status, summaries, and pending-member tracking
-- Organizers can open/close the collection window for a cycle
+| Sprint | Phase | Description | Accounting Invariant |
+|---|---|---|---|
+| **P0** | **Double-Entry Core Foundation** | Multi-line `JournalEntry` schema, immutability pre-hooks, line-level debit/credit balance validator. | $\sum \text{DEBITS} \equiv \sum \text{CREDITS} > 0$ |
+| **P1** | **Automatic Account Provisioning** | Deterministic generation of SYSTEM, GROUP, and MEMBER accounts (`GRP-{id}-BANK`, `GRP-{id}-CLEARING`, `GRP-{id}-MEM-{id}-RECEIVABLE`, `PRIZE_PAYABLE`, `COMM_INCOME`, etc.). | Zero Manual Account Setup |
+| **P2** | **Installment Obligation Accounting** | Accrual journal created upon monthly cycle creation & installment generation. | **DEBIT**: `MEMBER_RECEIVABLE`<br>**CREDIT**: `CHIT_CYCLE_CLEARING` |
+| **P3** | **Payment Success Accounting** | Cash collection journal created upon verified member installment payment. | **DEBIT**: `GROUP_BANK_ESCROW`<br>**CREDIT**: `MEMBER_RECEIVABLE` |
+| **P4** | **Refund & Reversal Accounting** | Append-only reversal journal created upon transaction refund (leaving original payment journal immutable). | **DEBIT**: `MEMBER_RECEIVABLE`<br>**CREDIT**: `GROUP_BANK_ESCROW` |
+| **P5** | **Winner Declaration & Pot Allocation** | Pot clearing liability cleared into winner prize payable, organizer commission, and member dividend pool. | **DEBIT**: `CHIT_CYCLE_CLEARING` ($V$)<br>**CREDIT**: `PRIZE_PAYABLE` ($P$)<br>**CREDIT**: `COMM_INCOME` ($C$)<br>**CREDIT**: `DIV_PAYABLE` ($Div$) |
 
-### Ledger & Statements
-- An event-driven ledger records financial activity (payments and cycle events feed into it via an internal event bus)
-- Ledger entries searchable/filterable by member or group
-- Downloadable/exportable statements for members, organizers, and groups
+---
 
-### Messaging & Support
-- In-group discussion threads (create thread, reply, update status) between members and organizers
-- A public contact form for guests
-- Authenticated in-app support ticketing (submit query, view history, respond) with an admin-side queue and response flow
+## ✨ Key Features
 
-### Informational / Legal Pages
-- Landing page, About Us, Contact, Terms & Conditions, Privacy Policy, Disclaimer
+### 1. Authentication & Role-Based Access Control
+- JWT-based authentication with secure cookie/header storage.
+- Email verification (with resend cooldowns) and forgot/reset password workflows.
+- Granular permissions for **User / Member**, **Organizer**, and **Admin**.
+- Automated detection and flagging of inactive accounts via scheduled cron tasks.
 
-## Project Structure
+### 2. KYC Compliance & Document Verification
+- Multi-document upload (Govt ID, Address Proof, PAN) stored securely on Cloudinary.
+- **AES-256-CBC field-level encryption** for sensitive PII at rest.
+- Dedicated Admin KYC Review Queue with instant approve/reject capability.
+- KYC verification required before joining groups or placing auction bids.
+
+### 3. Chit Group & Membership Management
+- Customizable financial configuration (commission %, monthly installment, member count, auction rules).
+- Public group discovery ("Forming" state) and private direct invite links (`/join/:id`).
+- Organizer membership review dashboard (approve, reject, or manually add members).
+
+### 4. Chit Cycles & Collections
+- Step-by-step cycle progression: Start Cycle $\rightarrow$ Open Collections $\rightarrow$ Conduct Auction $\rightarrow$ Declare Winner $\rightarrow$ Close Cycle.
+- Real-time collection tracking with member-by-member payment status.
+
+### 5. Auctions & Real-Time Bidding
+- Dynamic percentage-based reverse auction bidding with minimum/maximum bid limits.
+- Automated discount, organizer commission, and dividend pool calculations.
+- Winner selection with tie-breaking and immediate double-entry pot allocation journal posting.
+
+### 6. Payments & Mock Payment Gateway
+- Complete frontend payment flow: Member clicks "Pay Now" $\rightarrow$ initiates payment $\rightarrow$ simulated mock gateway modal $\rightarrow$ backend verification.
+- Inbound payment reconciliation and refund handling with dual single-entry and double-entry bookkeeping.
+
+### 7. Financial Reporting & Statements
+- Member personal statements, Organizer revenue summaries, and Group-level statements.
+- Real-time balance queries aggregating debits and credits across provisioned accounts.
+
+---
+
+## 📁 Project Structure
 
 ```
 DigiChit/
-├── client/                 # React + TypeScript frontend (Vite)
-│   └── src/
-│       ├── api/             # Axios API clients per domain
-│       ├── components/      # Shared & feature-specific UI components
-│       ├── context/         # Auth & UI context providers
-│       ├── hooks/           # Data-fetching hooks per domain
-│       ├── pages/            # Route-level pages (auth, dashboard, organizer, admin, kyc, statements, legal)
-│       └── types/           # Shared TypeScript types
-└── server/                 # Express + TypeScript backend
+├── client/                     # React 19 + TypeScript Frontend (Vite)
+│   ├── src/
+│   │   ├── api/                # Typed Axios API clients
+│   │   ├── components/         # Modern UI components & Modals
+│   │   ├── context/            # AuthContext, ToastContext
+│   │   ├── hooks/              # Custom hooks (useChitGroup, useBids, useInstallments)
+│   │   ├── pages/              # App Pages (Dashboard, Auctions, Payments, KYC, Admin)
+│   │   └── types/              # Frontend TypeScript models & DTOs
+│   └── vite.config.ts
+│
+└── server/                     # Node.js + Express 5 Backend (TypeScript)
     └── src/
-        ├── modules/          # One folder per domain (auth, kyc, admin, user, organizer,
-        │                     #   chit-group, chit-cycle, auction, bid, installment,
-        │                     #   chit-message, membership, payment, collection,
-        │                     #   ledger, statement, support)
-        └── shared/           # Config, DB connection, error handling, logging,
-                              #   middleware, response helpers, validators, utils
+        ├── modules/            # Encapsulated Domain Modules
+        │   ├── admin/          # Account moderation & role controls
+        │   ├── auction/        # Auction scheduling & winner declaration
+        │   ├── auth/           # Login, registration, password recovery
+        │   ├── bid/            # Bidding logic & validation
+        │   ├── chit-cycle/     # Cycle state machine
+        │   ├── chit-group/     # Group schemas & financial config
+        │   ├── collection/     # Per-cycle collection windows
+        │   ├── installment/    # Installment generation & obligations
+        │   ├── kyc/            # KYC document uploads & AES encryption
+        │   ├── ledger/         # Double-Entry Core, Provisioning & Journals
+        │   │   ├── enums/      # AccountType, AccountCategory, JournalDirection
+        │   │   ├── models/     # Account, JournalEntry, LedgerEntry
+        │   │   ├── services/   # JournalPostingService, AccountProvisioningService
+        │   │   ├── listeners/  # LedgerEventListener (Domain event hooks)
+        │   │   └── __tests__/  # P0 - P5 Consolidated Double-Entry Test Suites
+        │   ├── membership/     # Chit group enrollments
+        │   ├── payment/        # Transactions & Mock Gateway
+        │   ├── statement/      # Statement aggregation & export
+        │   ├── support/        # In-app ticketing & contact forms
+        │   └── user/           # Profiles & user settings
+        ├── shared/             # EventBus, Logger, Errors, DB, Middleware
+        └── index.ts            # Server entry point & route mounting
 ```
 
-## Getting Started
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v18+ recommended)
-- A MongoDB instance (local or Atlas)
-- A Cloudinary account (for file uploads)
-- An SMTP-capable email account (for verification/reset emails, e.g. via Nodemailer)
+- **Node.js**: v18.0.0 or higher
+- **npm**: v9.0.0 or higher
+- **MongoDB**: v6.0+ (Local MongoDB or Atlas cluster)
+- **Cloudinary Account** (for KYC & avatar document hosting)
+- **SMTP Credentials** (for transactional email delivery)
+
+---
 
 ### Backend Setup
 
-```bash
-cd server
-npm install
-```
+1. Navigate to the server folder:
+   ```bash
+   cd server
+   npm install
+   ```
 
-Create a `.env` file in `server/` with the following variables:
+2. Create a `.env` file in `server/`:
+   ```env
+   PORT=5000
+   NODE_ENV=development
+   MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/digichit
+   JWT_SECRET=your_super_secret_jwt_key_here
+   ENCRYPTION_KEY=32_byte_hex_string_for_kyc_aes_encryption
+   FRONTEND_URL=http://localhost:5173
 
-```env
-PORT=5000
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-ENCRYPTION_KEY=your_32_byte_encryption_key
-FRONTEND_URL=http://localhost:5173
-CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-EMAIL_USER=your_email_address
-EMAIL_PASS=your_email_app_password
-EMAIL_FROM=your_from_address
-```
+   # Cloudinary (Media & KYC)
+   CLOUDINARY_CLOUD_NAME=your_cloudinary_name
+   CLOUDINARY_API_KEY=your_cloudinary_api_key
+   CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
-Run the API:
+   # SMTP / Email
+   EMAIL_USER=your_smtp_user
+   EMAIL_PASS=your_smtp_app_password
+   EMAIL_FROM=DigiChit <no-reply@digichit.com>
+   ```
 
-```bash
-npm run dev     # start in watch mode (tsx)
-npm run build   # compile TypeScript
-npm start       # run compiled build
-```
+3. Start the backend development server:
+   ```bash
+   npm run dev
+   ```
+
+---
 
 ### Frontend Setup
 
+1. Navigate to the client folder:
+   ```bash
+   cd client
+   npm install
+   ```
+
+2. Create a `.env` file in `client/`:
+   ```env
+   VITE_API_URL=http://localhost:5000/api
+   VITE_CLOUDINARY_CLOUD_NAME=your_cloudinary_name
+   ```
+
+3. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Open your browser at `http://localhost:5173`.
+
+---
+
+## 🧪 Running Tests
+
+The project includes a **consolidated double-entry accounting test suite** verifying all invariants, scope protections, concurrency safety, and balance equations:
+
 ```bash
-cd client
-npm install
+cd server
+npx tsx src/modules/ledger/__tests__/runAllLedgerTests.ts
 ```
 
-Create a `.env` file in `client/` with:
+### Test Coverage Summary:
+- **P0**: Core Double-Entry Foundation (12 / 12 tests)
+- **P1**: Automatic Account Provisioning (9 / 9 tests)
+- **P2**: Installment Obligation Accounting (6 / 6 tests)
+- **P3**: Payment Success Accounting (19 / 19 tests)
+- **P4**: Refund Reversal Accounting (19 / 19 tests)
+- **P5**: Winner Pot Allocation Accounting (30 / 30 tests)
+- **Total Ledger Suite**: **95 / 95 Tests Passing (100% Pass Rate)**
 
-```env
-VITE_API_URL=http://localhost:5000/api
-VITE_CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-```
+---
 
-Run the app:
+## 📡 API Reference
 
-```bash
-npm run dev       # start Vite dev server
-npm run build     # production build
-npm run preview   # preview the production build
-```
+All backend routes are mounted under `/api` (or `/api/v1` for payment transactions):
 
-## API Overview
+| Base Route | Domain Area | Key Capabilities |
+|---|---|---|
+| `/api/auth` | Authentication | Registration, Login, Email Verification, Password Reset |
+| `/api/kyc` | KYC Verification | Submit KYC, Admin Review Queue, Status Check |
+| `/api/admin` | Administration | Account Suspension, Role Updates, System Audit |
+| `/api/user` | User Profile | Update Profile, Avatar Upload, Password Change |
+| `/api/organizer` | Organizer Onboarding | Applications, Approvals, Profile Management |
+| `/api/chit-groups` | Chit Groups | Create Group, Join via Link, Discovery |
+| `/api/chit-cycles` | Cycles | Start Cycle, Open/Close Collections, Record Winner |
+| `/api/auctions` | Auctions | Schedule Auction, Live Status, Declare Winner |
+| `/api/bids` | Bidding | Place Bid, Withdraw Bid, Bid History |
+| `/api/installments`| Installments | Query Dues, Update Installment Status |
+| `/api/v1/transactions`| Payments | Initiate Payment, Verify Webhook, Issue Refunds |
+| `/api/collections` | Collections | Collection Window Status & Aggregates |
+| `/api/ledger` | General Ledger | Account Balance Aggregations, Journal Inquiries |
+| `/api/statements` | Statements | Member, Organizer & Group Statement Exports |
+| `/api/contact` | Support | In-App Tickets & Public Contact Form |
 
-All backend routes are mounted under `/api`, grouped by domain:
+A health check endpoint is accessible at `GET /health`.
 
-| Base Path | Domain |
-|---|---|
-| `/api/auth` | Registration, login, email verification, password reset |
-| `/api/kyc` | KYC submission and review |
-| `/api/admin` | Account moderation (freeze/suspend/restore/delete/role change) |
-| `/api/user` | Profile, password change, profile picture, user search |
-| `/api/organizer` | Organizer applications and approvals |
-| `/api/contact` | Public contact & in-app support queries |
-| `/api/chit-groups` | Chit group creation, discovery, membership requests |
-| `/api/chit-cycles` | Cycle lifecycle management |
-| `/api/auctions` | Auction creation and winner declaration |
-| `/api/bids` | Bid submission, update, withdrawal |
-| `/api/installments` | Installment generation and status tracking |
-| `/api/chit-messages` | In-group discussion threads |
-| `/api/memberships` | Membership approvals within a group |
-| `/api/transactions` | Payment initiation, verification, refunds, history |
-| `/api/collections` | Collection window status/summary per cycle |
-| `/api/ledger` | Ledger entry search and retrieval |
-| `/api/statements` | Member/organizer/group statement export |
+---
 
-A `GET /health` endpoint is available for basic uptime checks.
+## 🔒 Security & Compliance
 
-## Notes on Current State
+- **Immutable Accounting**: MongoDB pre-hooks block `updateOne`, `findOneAndUpdate`, `deleteOne`, and `findOneAndDelete` on all posted `JournalEntry` documents.
+- **Zero Floating Point Math**: All ledger operations use integer paise (₹1 = 100 paise) to prevent precision loss.
+- **PII Encryption**: AES-256-CBC field encryption protects KYC Aadhaar/PAN fields in the database.
+- **Dual Bookkeeping**: Supports seamless backward compatibility with legacy single-entry records during the ledger migration period.
 
-- The payment gateway integration is currently a **mock provider** — no live payment processor is connected yet.
-- This README reflects the codebase as currently implemented and will evolve as new modules and features are added.
+---
 
-## License
+## 🗺️ Current State & Roadmap
 
-No license file is currently included in this repository.
+- ✅ **P0 – P5 Double-Entry Accounting Core**: Complete & verified (95/95 tests passing).
+- ✅ **Frontend Payment Integration**: Complete with simulated gateway and real-time status sync.
+- 🔄 **P6 Outbound Payout Engine**: Next phase (automated prize disbursement & commission withdrawal).
+- 🔄 **P7 Member Dividend Distribution**: Sub-ledger dividend credits to offset future installment dues.
+
+---
+
+## 📄 License
+This project is proprietary and confidential. All rights reserved.
