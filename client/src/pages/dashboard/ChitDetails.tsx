@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../../api/axios';
 import {
-    Users, Calendar, Coins, Wallet,
+    Users, Calendar, Coins, Wallet, CreditCard, Unlock, Lock, Info,
     Loader2, User, ShieldCheck,
     MessageSquare, Clock, XCircle,
     UserPlus, Share2, Check, Hammer, PlusCircle, RefreshCw, Grid, HelpCircle,
@@ -22,6 +22,8 @@ import { CycleCard } from '../../components/cycles/CycleCard';
 import { CycleTable } from '../../components/cycles/CycleTable';
 import { CycleTimeline } from '../../components/cycles/CycleTimeline';
 import { CycleStatusBadge } from '../../components/cycles/CycleStatusBadge';
+import { PaymentCollectionBadge } from '../../components/cycles/PaymentCollectionBadge';
+import { PaymentStatusBadge } from '../../components/installments/PaymentStatusBadge';
 import { ConfirmationDialog } from '../../components/cycles/ConfirmationDialog';
 import { CreateCycleModal } from '../../components/cycles/CreateCycleModal';
 import { RecordWinnerModal, type RecordWinnerFormData } from '../../components/cycles/RecordWinnerModal';
@@ -43,6 +45,7 @@ import { useInstallments } from '../../hooks/useInstallments';
 import { StatisticsCards } from '../../components/installments/StatisticsCards';
 import { CollectionProgress } from '../../components/installments/CollectionProgress';
 import { InstallmentTable } from '../../components/installments/InstallmentTable';
+import { PayNowModal } from '../../components/installments/PayNowModal';
 import { NeedHelpTab } from '../../components/help/NeedHelpTab';
 
 interface Member {
@@ -121,7 +124,7 @@ export const ChitDetails = () => {
     const [cycleViewMode, setCycleViewMode] = useState<'LIST' | 'TIMELINE'>('LIST');
     const [cycleConfirmModal, setCycleConfirmModal] = useState<{
         isOpen: boolean;
-        type: 'start' | 'complete' | 'cancel' | null;
+        type: 'start' | 'complete' | 'cancel' | 'openCollections' | 'closeCollections' | null;
         cycleId: string | null;
         cycleNumber?: number;
     }>({ isOpen: false, type: null, cycleId: null });
@@ -131,6 +134,9 @@ export const ChitDetails = () => {
         cycleId: null,
         cycleNumber: 0
     });
+
+    // Installment Payment Modal state
+    const [selectedPaymentInstallment, setSelectedPaymentInstallment] = useState<any>(null);
 
     // Auctions Tab state
     const [selectedAuctionDetailId, setSelectedAuctionDetailId] = useState<string | null>(null);
@@ -164,18 +170,29 @@ export const ChitDetails = () => {
         installmentId: null
     });
 
-    const isOrganizer = user?.id === group?.organizerId._id;
+    // Robust Organizer and Admin Role Detection
+    const organizerIdStr = group ? (typeof group.organizerId === 'object' ? (group.organizerId?._id || (group.organizerId as any)?.id) : group.organizerId) : null;
+    const currentUserIdStr = user?.id || (user as any)?._id;
+    const isOrganizer = !!group && (
+        (!!organizerIdStr && !!currentUserIdStr && organizerIdStr === currentUserIdStr) ||
+        user?.role === 'ORGANIZER' ||
+        user?.role === 'ADMIN'
+    );
+    const isAdmin = user?.role === 'ADMIN';
 
     // Feature module hooks
     const {
         cycles,
         loading: cyclesLoading,
         actionLoading: cycleActionLoading,
+        refetch: refetchCycles,
         createCycle,
         startCycle,
         completeCycle,
         cancelCycle,
-        recordWinner: recordCycleWinner
+        recordWinner: recordCycleWinner,
+        openCollections,
+        closeCollections
     } = useChitCycles(id);
 
     const {
@@ -194,7 +211,8 @@ export const ChitDetails = () => {
         loading: installmentsLoading,
         actionLoading: installmentActionLoading,
         generateCycleInstallments,
-        waiveLateFee
+        waiveLateFee,
+        refetch: refetchInstallments
     } = useInstallments(id, selectedCycleId);
 
     const fetchDetails = async () => {
@@ -301,6 +319,10 @@ export const ChitDetails = () => {
                 await completeCycle(cycleConfirmModal.cycleId);
             } else if (cycleConfirmModal.type === 'cancel') {
                 await cancelCycle(cycleConfirmModal.cycleId);
+            } else if (cycleConfirmModal.type === 'openCollections') {
+                await openCollections(cycleConfirmModal.cycleId);
+            } else if (cycleConfirmModal.type === 'closeCollections') {
+                await closeCollections(cycleConfirmModal.cycleId);
             }
             setCycleConfirmModal({ isOpen: false, type: null, cycleId: null });
         } catch (err) {
@@ -747,16 +769,17 @@ export const ChitDetails = () => {
                                                     #{selectedCycle.cycleNumber}
                                                 </div>
                                                 <div>
-                                                    <div className="flex items-center gap-3">
+                                                    <div className="flex flex-wrap items-center gap-3">
                                                         <h2 className="text-xl font-black text-slate-900">Cycle #{selectedCycle.cycleNumber} Details</h2>
                                                         <CycleStatusBadge status={selectedCycle.status} size="md" />
+                                                        <PaymentCollectionBadge status={selectedCycle.paymentCollection?.status || selectedCycle.paymentCollectionStatus || 'NOT_STARTED'} size="md" />
                                                     </div>
                                                     <p className="text-xs text-slate-400 mt-0.5">Financial Cycle Details & Schedule Overview</p>
                                                 </div>
                                             </div>
 
                                             {isOrganizer && (
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex flex-wrap items-center gap-2">
                                                     {selectedCycle.status === 'UPCOMING' && (
                                                         <button
                                                             onClick={() => setCycleConfirmModal({ isOpen: true, type: 'start', cycleId: selectedCycle._id, cycleNumber: selectedCycle.cycleNumber })}
@@ -768,20 +791,51 @@ export const ChitDetails = () => {
 
                                                     {selectedCycle.status === 'ACTIVE' && (
                                                         <>
-                                                            <button
-                                                                onClick={() => setCycleWinnerModal({ isOpen: true, cycleId: selectedCycle._id, cycleNumber: selectedCycle.cycleNumber })}
-                                                                className="px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition cursor-pointer"
-                                                            >
-                                                                Record Winner
-                                                            </button>
+                                                            {!selectedCycle.winnerMembershipId && (
+                                                                <button
+                                                                    onClick={() => setCycleWinnerModal({ isOpen: true, cycleId: selectedCycle._id, cycleNumber: selectedCycle.cycleNumber })}
+                                                                    className="px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                                                                >
+                                                                    Record Winner
+                                                                </button>
+                                                            )}
+
+                                                            {selectedCycle.winnerMembershipId && (selectedCycle.paymentCollection?.status || selectedCycle.paymentCollectionStatus || 'NOT_STARTED') === 'NOT_STARTED' && (
+                                                                <button
+                                                                    onClick={() => setCycleConfirmModal({ isOpen: true, type: 'openCollections', cycleId: selectedCycle._id, cycleNumber: selectedCycle.cycleNumber })}
+                                                                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                                                                >
+                                                                    <Unlock className="w-3.5 h-3.5" />
+                                                                    <span>Open Collections</span>
+                                                                </button>
+                                                            )}
+
+                                                            {(selectedCycle.paymentCollection?.status || selectedCycle.paymentCollectionStatus) === 'OPEN' && (
+                                                                <button
+                                                                    onClick={() => setCycleConfirmModal({ isOpen: true, type: 'closeCollections', cycleId: selectedCycle._id, cycleNumber: selectedCycle.cycleNumber })}
+                                                                    className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                                                                >
+                                                                    <Lock className="w-3.5 h-3.5" />
+                                                                    <span>Close Collections</span>
+                                                                </button>
+                                                            )}
+
                                                             <button
                                                                 onClick={() => setCycleConfirmModal({ isOpen: true, type: 'complete', cycleId: selectedCycle._id, cycleNumber: selectedCycle.cycleNumber })}
-                                                                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                                                                className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition cursor-pointer"
                                                             >
                                                                 Complete Cycle
                                                             </button>
                                                         </>
                                                     )}
+
+                                                    <button
+                                                        onClick={() => navigate(`/cycles/${selectedCycle._id}/collections`)}
+                                                        className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                                                    >
+                                                        <LayoutDashboard className="w-3.5 h-3.5 text-emerald-600" />
+                                                        <span>Collection Dashboard</span>
+                                                    </button>
                                                 </div>
                                             )}
                                         </div>
@@ -1111,67 +1165,311 @@ export const ChitDetails = () => {
             )}
 
             {/* ─── 5. INSTALLMENTS TAB ─── */}
-            {activeTab === 'INSTALLMENTS' && (
-                <div className="bg-transparent p-0 border-none shadow-none space-y-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                            <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
-                                <Coins className="w-4 h-4" />
-                                <span>Financial Collections</span>
+            {activeTab === 'INSTALLMENTS' && (() => {
+                const currentCycle = cycles.find(c => c._id === selectedCycleId) || cycles[0];
+                const currentCollectionStatus = currentCycle?.paymentCollection?.status || currentCycle?.paymentCollectionStatus || 'NOT_STARTED';
+                
+                // Filter current member's personal installments in this group
+                const myGroupInstallments = installments.filter(inst => {
+                    const uId = typeof inst.userId === 'object' ? (inst.userId?._id || (inst.userId as any)?.id) : inst.userId;
+                    return uId === currentUserIdStr;
+                });
+                const myPendingInstallments = myGroupInstallments.filter(i => (i.paymentStatus || i.status) !== 'PAID');
+                const myTotalPendingAmount = myPendingInstallments.reduce((sum, item) => sum + (item.amount || 0) + (item.lateFee || 0) - (item.paidAmount || 0), 0);
+
+                return (
+                    <div className="bg-transparent p-0 border-none shadow-none space-y-6">
+                        {/* Header Banner & Cycle Selector */}
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
+                                    <Coins className="w-4 h-4" />
+                                    <span>Financial Collections & Dues</span>
+                                </div>
+                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Installments & Member Dues</h2>
+                                <p className="text-xs text-slate-500 mt-0.5">
+                                    {isOrganizer
+                                        ? 'Manage payment collections, generate monthly dues, and track member payments.'
+                                        : 'View your monthly installment dues, payment status, and make online payments.'
+                                    }
+                                </p>
                             </div>
-                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Installments & Member Dues</h2>
-                        </div>
 
-                        {/* Cycle selector & bulk generate button */}
-                        <div className="flex flex-wrap items-center gap-3">
-                            <select
-                                value={selectedCycleId}
-                                onChange={(e) => setSelectedCycleId(e.target.value)}
-                                className="bg-white border border-slate-200 text-slate-800 text-xs font-bold py-2.5 px-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer shadow-none"
-                            >
-                                <option value="">Select Cycle...</option>
-                                {cycles.map((c) => (
-                                    <option key={c._id} value={c._id}>
-                                        Cycle #{c.cycleNumber} ({c.status})
-                                    </option>
-                                ))}
-                            </select>
-
-                            {isOrganizer && selectedCycleId && (
-                                <button
-                                    onClick={() => generateCycleInstallments(selectedCycleId)}
-                                    disabled={installmentActionLoading === 'generate'}
-                                    className="px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition cursor-pointer disabled:opacity-50"
+                            {/* Cycle Selector & Actions */}
+                            <div className="flex flex-wrap items-center gap-3">
+                                <select
+                                    value={selectedCycleId}
+                                    onChange={(e) => setSelectedCycleId(e.target.value)}
+                                    className="bg-white border-none text-slate-800 text-xs font-bold py-2.5 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer shadow-none"
                                 >
-                                    {installmentActionLoading === 'generate' ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4 text-emerald-400" />}
-                                    <span>Generate Cycle Dues</span>
-                                </button>
-                            )}
+                                    <option value="">All Cycles / Select Cycle...</option>
+                                    {cycles.map((c) => (
+                                        <option key={c._id} value={c._id}>
+                                            Cycle #{c.cycleNumber} ({c.status})
+                                        </option>
+                                    ))}
+                                </select>
+
+                                {isOrganizer && selectedCycleId && (
+                                    <button
+                                        onClick={() => generateCycleInstallments(selectedCycleId)}
+                                        disabled={installmentActionLoading === 'generate'}
+                                        className="px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition cursor-pointer disabled:opacity-50 shadow-none"
+                                    >
+                                        {installmentActionLoading === 'generate' ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4 text-emerald-400" />}
+                                        <span>Generate Cycle Dues</span>
+                                    </button>
+                                )}
+                            </div>
                         </div>
+
+                        {/* ─── 1. ORGANIZER PAYMENT COLLECTION CONTROL PANEL ─── */}
+                        {isOrganizer && currentCycle && (
+                            <div className="bg-white p-6 md:p-8 rounded-2xl border-none shadow-none space-y-6">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center font-black shrink-0">
+                                            <Unlock className="w-5 h-5 md:w-6 md:h-6" />
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2.5">
+                                                <h3 className="text-base md:text-lg font-black text-slate-900">
+                                                    Cycle #{currentCycle.cycleNumber} Collection Management
+                                                </h3>
+                                                <PaymentCollectionBadge status={currentCollectionStatus} size="sm" />
+                                            </div>
+                                            <p className="text-xs text-slate-500 mt-0.5">
+                                                {currentCollectionStatus === 'OPEN'
+                                                    ? 'Collections are currently open. Members are permitted to make installment payments online.'
+                                                    : currentCollectionStatus === 'CLOSED'
+                                                        ? 'Collections are closed for this cycle. Member payments are locked.'
+                                                        : 'Collections have not been started. Members are blocked from submitting payments.'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Buttons for Organizer */}
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        {/* If NOT_STARTED and winner declared: Open Collections Button */}
+                                        {currentCollectionStatus === 'NOT_STARTED' && (
+                                            currentCycle.winnerMembershipId ? (
+                                                <button
+                                                    onClick={() => setCycleConfirmModal({ isOpen: true, type: 'openCollections', cycleId: currentCycle._id, cycleNumber: currentCycle.cycleNumber })}
+                                                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition cursor-pointer shadow-none active:scale-95 flex items-center gap-2"
+                                                >
+                                                    <Unlock className="w-4 h-4" />
+                                                    <span>Open Collections</span>
+                                                </button>
+                                            ) : (
+                                                <div className="px-4 py-2.5 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold flex items-center gap-2 border-none">
+                                                    <Info className="w-4 h-4 text-amber-500 shrink-0" />
+                                                    <span>Declare Auction Winner to Open Collections</span>
+                                                </div>
+                                            )
+                                        )}
+
+                                        {/* If OPEN: Close Collections Button */}
+                                        {currentCollectionStatus === 'OPEN' && (
+                                            <button
+                                                onClick={() => setCycleConfirmModal({ isOpen: true, type: 'closeCollections', cycleId: currentCycle._id, cycleNumber: currentCycle.cycleNumber })}
+                                                className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition cursor-pointer shadow-none active:scale-95 flex items-center gap-2"
+                                            >
+                                                <Lock className="w-4 h-4" />
+                                                <span>Close Collections</span>
+                                            </button>
+                                        )}
+
+                                        {/* If CLOSED: Closed Badge */}
+                                        {currentCollectionStatus === 'CLOSED' && (
+                                            <span className="px-4 py-2 bg-slate-50 text-slate-500 text-xs font-bold rounded-xl border-none">
+                                                Collections Finalized
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Cycle Context Summary Grid */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border-none text-xs">
+                                    <div>
+                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Active Cycle</span>
+                                        <span className="text-sm font-black text-slate-900 mt-0.5 block">Cycle #{currentCycle.cycleNumber}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Cycle Status</span>
+                                        <span className="text-sm font-black text-emerald-600 mt-0.5 block">{currentCycle.status}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Auction Winner</span>
+                                        <span className="text-sm font-black text-slate-900 mt-0.5 block">
+                                            {typeof currentCycle.winnerMembershipId === 'object' && currentCycle.winnerMembershipId?.userId?.name
+                                                ? currentCycle.winnerMembershipId.userId.name
+                                                : currentCycle.winnerMembershipId ? 'Recorded' : 'Not Declared'}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Net Prize Amount</span>
+                                        <span className="text-sm font-black text-slate-900 mt-0.5 block">
+                                            {currentCycle.prizeAmount ? formatCurrency(currentCycle.prizeAmount, (group as any)?.financialConfig?.currency) : 'N/A'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ─── 2. MEMBER PERSONAL DUES & PAY NOW SECTION (EXTENDED FULL WIDTH) ─── */}
+                        {myGroupInstallments.length > 0 && (
+                            <div className="space-y-4">
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                        <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
+                                            <Wallet className="w-4 h-4" />
+                                            <span>Member Contribution</span>
+                                        </div>
+                                        <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                                            My Installment Dues ({myGroupInstallments.length})
+                                        </h3>
+                                    </div>
+                                    {myPendingInstallments.length > 0 && (
+                                        <span className="px-3 py-1 bg-amber-50 text-amber-800 text-xs font-bold rounded-xl border-none">
+                                            {myPendingInstallments.length} Due Pending ({formatCurrency(myTotalPendingAmount, (group as any)?.financialConfig?.currency)})
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Full-Width Stack of Installment Cards */}
+                                <div className="space-y-4">
+                                    {myGroupInstallments.map((inst) => {
+                                        const cycleObj = typeof inst.cycleId === 'object' ? inst.cycleId : cycles.find(c => c._id === inst.cycleId);
+                                        const colStatus = (cycleObj as any)?.paymentCollection?.status || (cycleObj as any)?.paymentCollectionStatus || 'NOT_STARTED';
+                                        const isPaid = (inst.paymentStatus || inst.status) === 'PAID';
+                                        const netPayable = (inst.amount || 0) + (inst.lateFee || 0) - (inst.paidAmount || 0);
+
+                                        return (
+                                            <div
+                                                key={inst._id}
+                                                className="w-full bg-white p-6 md:p-8 rounded-2xl border-none shadow-none space-y-6 transition-all"
+                                            >
+                                                {/* Header Row */}
+                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center font-black text-sm shrink-0">
+                                                            #{inst.installmentNumber}
+                                                        </div>
+                                                        <div>
+                                                            <div className="flex items-center gap-2">
+                                                                <h4 className="text-base font-black text-slate-900">Installment #{inst.installmentNumber}</h4>
+                                                                <span className="text-xs font-bold text-slate-400">
+                                                                    (Cycle #{typeof inst.cycleId === 'object' ? (inst.cycleId as any).cycleNumber : (cycles.find(c => c._id === inst.cycleId)?.cycleNumber || inst.installmentNumber)})
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-xs text-slate-400 mt-0.5">
+                                                                Due Date: <strong className="text-slate-700 font-bold">{inst.dueDate ? format(new Date(inst.dueDate), 'MMMM dd, yyyy') : 'N/A'}</strong>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2">
+                                                        <PaymentStatusBadge status={inst.paymentStatus || inst.status || 'PENDING'} size="md" />
+                                                        <PaymentCollectionBadge status={colStatus} size="md" />
+                                                    </div>
+                                                </div>
+
+                                                {/* Full-Width Metrics Grid */}
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 md:p-5 rounded-xl border-none text-xs">
+                                                    <div>
+                                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Base Contribution</span>
+                                                        <span className="text-base font-black text-slate-900 mt-1 block">
+                                                            {formatCurrency(inst.amount, (group as any)?.financialConfig?.currency)}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Accrued Late Fee</span>
+                                                        <span className={`text-base font-black mt-1 block ${inst.lateFee > 0 ? 'text-rose-600' : 'text-slate-400'}`}>
+                                                            {formatCurrency(inst.lateFee || 0, (group as any)?.financialConfig?.currency)}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Paid Amount</span>
+                                                        <span className="text-base font-black text-emerald-600 mt-1 block">
+                                                            {formatCurrency(inst.paidAmount || 0, (group as any)?.financialConfig?.currency)}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Net Remaining</span>
+                                                        <span className={`text-base font-black mt-1 block ${netPayable > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                                                            {formatCurrency(netPayable, (group as any)?.financialConfig?.currency)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Full-Width Action Banner */}
+                                                <div>
+                                                    {isPaid ? (
+                                                        <div className="w-full p-4 bg-emerald-50 text-emerald-800 rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs font-bold border-none">
+                                                            <div className="flex items-center gap-2">
+                                                                <Check className="w-4 h-4 text-emerald-600" />
+                                                                <span>Installment Paid Successfully</span>
+                                                            </div>
+                                                            {inst.paidDate && (
+                                                                <span className="text-emerald-600 font-medium">
+                                                                    Paid On: {format(new Date(inst.paidDate), 'MMMM dd, yyyy')}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    ) : colStatus === 'OPEN' ? (
+                                                        <button
+                                                            onClick={() => setSelectedPaymentInstallment(inst)}
+                                                            className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer shadow-none active:scale-95"
+                                                        >
+                                                            <CreditCard className="w-4 h-4" />
+                                                            <span>Pay Now ({formatCurrency(netPayable, (group as any)?.financialConfig?.currency)})</span>
+                                                        </button>
+                                                    ) : colStatus === 'CLOSED' ? (
+                                                        <div className="w-full py-3 px-4 bg-slate-50 text-slate-500 rounded-xl text-xs font-bold text-center border-none">
+                                                            Collections for this cycle have been closed.
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-full py-3 px-4 bg-slate-50 text-slate-500 rounded-xl text-xs font-bold text-center border-none">
+                                                            Collections have not been opened by the organizer yet.
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Financial Analytics */}
+                        {stats && <StatisticsCards stats={stats} />}
+
+                        {stats && (
+                            <CollectionProgress
+                                collectedAmount={stats.totalCollectedAmount}
+                                expectedAmount={stats.totalExpectedAmount}
+                                percentage={stats.collectionPercentage}
+                            />
+                        )}
+
+                        {/* Full Installments Table */}
+                        {installmentsLoading ? (
+                            <div className="py-12 flex justify-center"><Loader size="md" /></div>
+                        ) : (
+                            <InstallmentTable
+                                installments={installments}
+                                isOrganizer={isOrganizer}
+                                isAdmin={isAdmin}
+                                currentUserId={currentUserIdStr}
+                                actionLoading={installmentActionLoading}
+                                currency={(group as any)?.financialConfig?.currency}
+                                onWaiveLateFee={(id) => setConfirmWaive({ isOpen: true, installmentId: id })}
+                                onPayNow={(inst) => setSelectedPaymentInstallment(inst)}
+                            />
+                        )}
                     </div>
-
-                    {stats && <StatisticsCards stats={stats} />}
-
-                    {stats && (
-                        <CollectionProgress
-                            collectedAmount={stats.totalCollectedAmount}
-                            expectedAmount={stats.totalExpectedAmount}
-                            percentage={stats.collectionPercentage}
-                        />
-                    )}
-
-                    {installmentsLoading ? (
-                        <div className="py-12 flex justify-center"><Loader size="md" /></div>
-                    ) : (
-                        <InstallmentTable
-                            installments={installments}
-                            isOrganizer={isOrganizer}
-                            actionLoading={installmentActionLoading}
-                            onWaiveLateFee={(id) => setConfirmWaive({ isOpen: true, installmentId: id })}
-                        />
-                    )}
-                </div>
-            )}
+                );
+            })()}
 
             {/* ─── 6. NEED HELP TAB ─── */}
             {activeTab === 'HELP' && (
@@ -1298,10 +1596,28 @@ export const ChitDetails = () => {
             {/* Cycle Confirmation Dialog */}
             <ConfirmationDialog
                 isOpen={cycleConfirmModal.isOpen}
-                title={`${cycleConfirmModal.type?.toUpperCase()} Cycle #${cycleConfirmModal.cycleNumber}?`}
-                description={`Are you sure you want to ${cycleConfirmModal.type} cycle #${cycleConfirmModal.cycleNumber}?`}
-                confirmLabel={cycleConfirmModal.type || 'Confirm'}
-                confirmVariant={cycleConfirmModal.type === 'cancel' ? 'rose' : 'emerald'}
+                title={
+                    cycleConfirmModal.type === 'openCollections'
+                        ? `Open Collections for Cycle #${cycleConfirmModal.cycleNumber}?`
+                        : cycleConfirmModal.type === 'closeCollections'
+                            ? `Close Collections for Cycle #${cycleConfirmModal.cycleNumber}?`
+                            : `${cycleConfirmModal.type?.toUpperCase()} Cycle #${cycleConfirmModal.cycleNumber}?`
+                }
+                description={
+                    cycleConfirmModal.type === 'openCollections'
+                        ? 'Opening payment collections will allow members to initiate installment payments for this cycle.'
+                        : cycleConfirmModal.type === 'closeCollections'
+                            ? 'Closing payment collections will prevent members from making further payments for this cycle.'
+                            : `Are you sure you want to ${cycleConfirmModal.type} cycle #${cycleConfirmModal.cycleNumber}?`
+                }
+                confirmLabel={
+                    cycleConfirmModal.type === 'openCollections'
+                        ? 'Open Collections'
+                        : cycleConfirmModal.type === 'closeCollections'
+                            ? 'Close Collections'
+                            : cycleConfirmModal.type || 'Confirm'
+                }
+                confirmVariant={cycleConfirmModal.type === 'cancel' || cycleConfirmModal.type === 'closeCollections' ? 'rose' : 'emerald'}
                 onCancel={() => setCycleConfirmModal({ isOpen: false, type: null, cycleId: null })}
                 onConfirm={handleConfirmCycleAction}
             />
@@ -1345,6 +1661,22 @@ export const ChitDetails = () => {
                 onCancel={() => setAuctionConfirmModal({ isOpen: false, type: null, auctionId: null })}
                 onConfirm={handleConfirmAuctionAction}
             />
+
+            {/* Active PayNowModal for Member Payments */}
+            {selectedPaymentInstallment && (
+                <PayNowModal
+                    isOpen={!!selectedPaymentInstallment}
+                    installment={selectedPaymentInstallment}
+                    currency={(group as any)?.financialConfig?.currency}
+                    onClose={() => setSelectedPaymentInstallment(null)}
+                    onPaymentSuccess={() => {
+                        setSelectedPaymentInstallment(null);
+                        fetchDetails();
+                        refetchInstallments();
+                        refetchCycles();
+                    }}
+                />
+            )}
 
             {/* Waive Fee Confirmation Dialog */}
             <ConfirmationDialog

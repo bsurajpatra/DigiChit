@@ -34,6 +34,13 @@ export class TransactionService {
             throw new AppError('Installment obligation not found', 404, 'INSTALLMENT_NOT_FOUND');
         }
 
+        // Security & Ownership Rule: Non-admins can only pay for their own installment
+        const actor = await this.repo.findUserById(actorId);
+        const instUserId = ((installment.userId as any)?._id || installment.userId)?.toString();
+        if (actor?.role !== UserRole.ADMIN && instUserId && instUserId !== actorId) {
+            throw new AppError('Unauthorized: You can only pay for your own installments', 403, 'UNAUTHORIZED_INSTALLMENT_PAYMENT');
+        }
+
         // Business Rule: Validate ChitCycle paymentCollection.status == OPEN
         const cycle = await this.repo.findCycleById(installment.cycleId);
         if (!cycle) {
@@ -67,8 +74,9 @@ export class TransactionService {
             throw new AppError('A successful transaction already exists for this installment', 400, 'DUPLICATE_TRANSACTION');
         }
 
-        // Validate monetary amount
-        const amountToPay = dto.amount || (installment.amount + (installment.lateFee || 0));
+        // Server-authoritative monetary amount (client cannot manipulate dues)
+        const authoritativeAmount = installment.amount + (installment.lateFee || 0);
+        const amountToPay = authoritativeAmount;
         if (amountToPay <= 0) {
             throw new AppError('Transaction amount must be greater than zero', 400, 'INVALID_AMOUNT');
         }
@@ -145,6 +153,14 @@ export class TransactionService {
             throw new AppError('Transaction not found', 404, 'TRANSACTION_NOT_FOUND');
         }
 
+        const actor = await this.repo.findUserById(actorId);
+
+        // Security Rule: Non-admins can only verify their own transactions
+        const txnMemberId = ((transaction.memberId as any)?._id || transaction.memberId)?.toString();
+        if (actor?.role !== UserRole.ADMIN && txnMemberId && txnMemberId !== actorId) {
+            throw new AppError('Unauthorized: You can only verify your own transactions', 403, 'UNAUTHORIZED_TRANSACTION_VERIFICATION');
+        }
+
         if (transaction.status === TransactionStatus.SUCCESS) {
             return transaction; // Idempotent return for already verified successful transaction
         }
@@ -165,8 +181,6 @@ export class TransactionService {
         }
 
         const verification = await gateway.verifyPayment(verifyPayload);
-
-        const actor = await this.repo.findUserById(actorId);
 
         if (verification.isVerified) {
             // Build Receipt Metadata
@@ -250,6 +264,12 @@ export class TransactionService {
         const transaction = await this.repo.findById(dto.transactionId);
         if (!transaction) {
             throw new AppError('Transaction not found', 404, 'TRANSACTION_NOT_FOUND');
+        }
+
+        // Security Rule: Only Admin or Organizer can process refunds
+        const refundActor = await this.repo.findUserById(actorId);
+        if (refundActor?.role !== UserRole.ADMIN && refundActor?.role !== UserRole.ORGANIZER) {
+            throw new AppError('Unauthorized: Only Organizers or Admins can process payment refunds', 403, 'UNAUTHORIZED_REFUND');
         }
 
         if (transaction.status !== TransactionStatus.SUCCESS && transaction.status !== TransactionStatus.PARTIALLY_REFUNDED) {

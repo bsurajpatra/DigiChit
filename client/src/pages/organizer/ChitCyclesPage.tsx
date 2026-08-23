@@ -29,7 +29,7 @@ export const ChitCyclesPage = () => {
     // Dialog state
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
-        type: 'start' | 'complete' | 'cancel' | null;
+        type: 'start' | 'complete' | 'cancel' | 'openCollections' | 'closeCollections' | null;
         cycleId: string | null;
         cycleNumber?: number;
     }>({ isOpen: false, type: null, cycleId: null });
@@ -51,7 +51,9 @@ export const ChitCyclesPage = () => {
         startCycle,
         completeCycle,
         cancelCycle,
-        recordWinner
+        recordWinner,
+        openCollections,
+        closeCollections
     } = useChitCycles(groupId);
 
     // Fetch Group details
@@ -112,6 +114,26 @@ export const ChitCyclesPage = () => {
         if (!confirmModal.cycleId) return;
         try {
             await cancelCycle(confirmModal.cycleId);
+            setConfirmModal({ isOpen: false, type: null, cycleId: null });
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleOpenCollectionsConfirm = async () => {
+        if (!confirmModal.cycleId) return;
+        try {
+            await openCollections(confirmModal.cycleId);
+            setConfirmModal({ isOpen: false, type: null, cycleId: null });
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleCloseCollectionsConfirm = async () => {
+        if (!confirmModal.cycleId) return;
+        try {
+            await closeCollections(confirmModal.cycleId);
             setConfirmModal({ isOpen: false, type: null, cycleId: null });
         } catch (err) {
             console.error(err);
@@ -292,6 +314,28 @@ export const ChitCyclesPage = () => {
                 confirmVariant="rose"
                 isLoading={!!actionLoading}
                 onConfirm={handleCancelConfirm}
+                onCancel={() => setConfirmModal({ isOpen: false, type: null, cycleId: null })}
+            />
+
+            <ConfirmationDialog
+                isOpen={confirmModal.isOpen && confirmModal.type === 'openCollections'}
+                title={`Open Payment Collections for Cycle #${confirmModal.cycleNumber}?`}
+                description="Opening payment collections will allow members to initiate installment payments for this cycle."
+                confirmLabel="Open Collections"
+                confirmVariant="emerald"
+                isLoading={!!actionLoading}
+                onConfirm={handleOpenCollectionsConfirm}
+                onCancel={() => setConfirmModal({ isOpen: false, type: null, cycleId: null })}
+            />
+
+            <ConfirmationDialog
+                isOpen={confirmModal.isOpen && confirmModal.type === 'closeCollections'}
+                title={`Close Payment Collections for Cycle #${confirmModal.cycleNumber}?`}
+                description="Closing payment collections will prevent members from making further installment payments for this cycle."
+                confirmLabel="Close Collections"
+                confirmVariant="rose"
+                isLoading={!!actionLoading}
+                onConfirm={handleCloseCollectionsConfirm}
                 onCancel={() => setConfirmModal({ isOpen: false, type: null, cycleId: null })}
             />
         </div>

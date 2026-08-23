@@ -1,3 +1,4 @@
+import { AppError } from '@shared/errors/AppError.js';
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '@modules/auth/index.js';
 import { TransactionService } from '../services/TransactionService.js';
@@ -66,6 +67,13 @@ export const getTransactionById = async (req: AuthRequest, res: Response, next: 
 export const getMemberTransactions = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { memberId } = req.params;
+        const actorId = req.user!.id;
+        const actorRole = req.user!.role;
+
+        if (actorRole !== 'ADMIN' && actorId !== memberId) {
+            throw new AppError('Unauthorized: You can only access your own financial transactions.', 403, 'UNAUTHORIZED');
+        }
+
         const result = await transactionService.getMemberTransactions(memberId as string, req.query as any);
 
         res.status(200).json({

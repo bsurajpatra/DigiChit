@@ -117,18 +117,20 @@ export const CycleCard = ({
 
             {/* Action Bar */}
             <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-                {onViewDetails && (
-                    <button
-                        onClick={() => onViewDetails(cycle._id)}
-                        className="px-3 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 inline-flex items-center gap-1 transition cursor-pointer"
-                    >
-                        <span>View Details</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                )}
+                <div className="flex items-center gap-2">
+                    {onViewDetails && (
+                        <button
+                            onClick={() => onViewDetails(cycle._id)}
+                            className="px-3 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 inline-flex items-center gap-1 transition cursor-pointer"
+                        >
+                            <span>View Details</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                    )}
+                </div>
 
                 {(isOrganizer || isAdmin) && (
-                    <div className="flex items-center gap-2 ml-auto">
+                    <div className="flex flex-wrap items-center gap-2 ml-auto">
                         {cycle.status === 'UPCOMING' && onStart && (
                             <button
                                 disabled={!!actionLoading}
@@ -142,7 +144,7 @@ export const CycleCard = ({
 
                         {cycle.status === 'ACTIVE' && (
                             <>
-                                {onRecordWinner && (
+                                {onRecordWinner && !cycle.winnerMembershipId && (
                                     <button
                                         onClick={() => onRecordWinner(cycle._id)}
                                         className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition cursor-pointer"
@@ -156,7 +158,7 @@ export const CycleCard = ({
                                     <button
                                         disabled={!!actionLoading}
                                         onClick={() => onComplete(cycle._id)}
-                                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition cursor-pointer disabled:opacity-50"
+                                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition cursor-pointer disabled:opacity-50"
                                     >
                                         {isCompleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
                                         <span>Complete</span>

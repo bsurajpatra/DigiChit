@@ -17,8 +17,9 @@ export class LedgerService {
      */
     private generateEntryNumber(): string {
         const year = new Date().getFullYear();
-        const randomDigits = Math.floor(100000 + Math.random() * 900000);
-        return `LEDGER-${year}-${randomDigits}`;
+        const ts = Date.now().toString().slice(-6);
+        const randomDigits = Math.floor(1000 + Math.random() * 9000);
+        return `LEDGER-${year}-${ts}${randomDigits}`;
     }
 
     /**

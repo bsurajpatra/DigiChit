@@ -9,10 +9,12 @@ import { runWinnerPotAllocationJournalTests } from './winnerPotAllocationJournal
 import { runPrizePayoutTests } from './prizePayoutJournal.test.js';
 import { runOrganizerCommissionPayoutTests } from './organizerCommissionPayoutJournal.test.js';
 import { runDividendAllocationTests } from './dividendAllocationJournal.test.js';
+import { runE2EPaymentFlowTests } from '@modules/payment/__tests__/e2ePaymentFlow.test.js';
+import { runCollectionManagementTests } from '@modules/collection/__tests__/collectionManagementFlow.test.js';
 
 async function main() {
     console.log('\n======================================================');
-    console.log('  STARTING CONSOLIDATED LEDGER TEST RUNNER (P0 - P8)');
+    console.log('  STARTING CONSOLIDATED FINANCIAL & COLLECTION SUITE (P0 - P9 + COLLECTION MANAGEMENT)');
     console.log('======================================================\n');
 
     try {
@@ -55,8 +57,16 @@ async function main() {
         console.log('\n--- 9. LEDGER P8: DIVIDEND ALLOCATION & INSTALLMENT OFFSET ---');
         await runDividendAllocationTests();
 
+        // 10. Run P9 Tests
+        console.log('\n--- 10. PHASE 9: FULL END-TO-END PAYMENT & FINANCIAL FLOW ---');
+        await runE2EPaymentFlowTests();
+
+        // 11. Run Collection Management Tests
+        console.log('\n--- 11. COLLECTION MANAGEMENT: ORGANIZER & MEMBER FLOW ---');
+        await runCollectionManagementTests();
+
         console.log('\n======================================================');
-        console.log('  🎉 ALL LEDGER SUITES (P0, P1, P2, P3, P4, P5, P6, P7, P8) PASSED CLEANLY');
+        console.log('  🎉 ALL FINANCIAL & COLLECTION SUITES (P0-P9 + COLLECTION MGMT) PASSED CLEANLY');
         console.log('======================================================\n');
     } catch (err: any) {
         console.error('\n❌ TEST RUNNER FAILED WITH ERROR:', err);

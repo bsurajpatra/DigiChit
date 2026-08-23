@@ -109,6 +109,38 @@ export const useChitCycles = (groupId?: string) => {
         }
     };
 
+    const handleOpenCollections = async (cycleId: string) => {
+        setActionLoading(`open-collections-${cycleId}`);
+        setError(null);
+        try {
+            const updated = await cycleApi.openCollections(cycleId);
+            await loadCycles();
+            return updated;
+        } catch (err: any) {
+            const msg = err.response?.data?.message || 'Failed to open collections';
+            setError(msg);
+            throw new Error(msg);
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleCloseCollections = async (cycleId: string) => {
+        setActionLoading(`close-collections-${cycleId}`);
+        setError(null);
+        try {
+            const updated = await cycleApi.closeCollections(cycleId);
+            await loadCycles();
+            return updated;
+        } catch (err: any) {
+            const msg = err.response?.data?.message || 'Failed to close collections';
+            setError(msg);
+            throw new Error(msg);
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     return {
         cycles,
         activeCycle,
@@ -120,6 +152,8 @@ export const useChitCycles = (groupId?: string) => {
         startCycle: handleStartCycle,
         completeCycle: handleCompleteCycle,
         cancelCycle: handleCancelCycle,
-        recordWinner: handleRecordWinner
+        recordWinner: handleRecordWinner,
+        openCollections: handleOpenCollections,
+        closeCollections: handleCloseCollections
     };
 };

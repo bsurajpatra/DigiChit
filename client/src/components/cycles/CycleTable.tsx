@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { ChitCycle, ChitCycleStatus } from '../../types/chitCycle';
 import { CycleStatusBadge } from './CycleStatusBadge';
 import { PaymentCollectionBadge } from './PaymentCollectionBadge';
-import { Search, Download, Calendar, Trophy, Eye, Unlock, Lock } from 'lucide-react';
+import { Search, Download, Calendar, Trophy, Eye, Unlock, Lock, LayoutDashboard } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatCurrency } from '../../utils/currency';
 
@@ -18,6 +18,7 @@ interface CycleTableProps {
     onCloseCollections?: (cycleId: string) => void;
     onCancel?: (cycleId: string) => void;
     onViewDetails?: (cycleId: string) => void;
+    onViewCollections?: (cycleId: string) => void;
 }
 
 export const CycleTable = ({
@@ -31,7 +32,8 @@ export const CycleTable = ({
     onOpenCollections,
     onCloseCollections,
     onCancel,
-    onViewDetails
+    onViewDetails,
+    onViewCollections
 }: CycleTableProps) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<'ALL' | ChitCycleStatus>('ALL');
@@ -227,6 +229,18 @@ export const CycleTable = ({
                                                     </button>
                                                 )}
 
+                                                {/* Collection Dashboard Action */}
+                                                {onViewCollections && (
+                                                    <button
+                                                        onClick={() => onViewCollections(c._id)}
+                                                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1"
+                                                        title="View Collection Dashboard"
+                                                    >
+                                                        <LayoutDashboard className="w-3.5 h-3.5 text-emerald-600" />
+                                                        <span>Dashboard</span>
+                                                    </button>
+                                                )}
+
                                                 {isOrganizer && c.status === 'UPCOMING' && onStart && (
                                                     <button
                                                         disabled={!!actionLoading}
@@ -254,7 +268,7 @@ export const CycleTable = ({
                                                             <button
                                                                 disabled={!!actionLoading}
                                                                 onClick={() => onOpenCollections(c._id)}
-                                                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                                                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition cursor-pointer disabled:opacity-50 flex items-center gap-1 shadow-xs"
                                                             >
                                                                 <Unlock className="w-3.5 h-3.5" />
                                                                 <span>Open Collections</span>
@@ -266,7 +280,7 @@ export const CycleTable = ({
                                                             <button
                                                                 disabled={!!actionLoading}
                                                                 onClick={() => onCloseCollections(c._id)}
-                                                                className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                                                                className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition cursor-pointer disabled:opacity-50 flex items-center gap-1 shadow-xs"
                                                             >
                                                                 <Lock className="w-3.5 h-3.5" />
                                                                 <span>Close Collections</span>

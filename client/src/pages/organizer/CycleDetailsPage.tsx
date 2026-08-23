@@ -216,37 +216,13 @@ export const CycleDetailsPage = () => {
                         )}
 
                         {cycle.status === 'ACTIVE' && (
-                            <>
-                                {/* Open Collections: winner must be declared & NOT_STARTED */}
-                                {cycle.winnerMembershipId && collectionStatus === 'NOT_STARTED' && (
-                                    <button
-                                        onClick={() => setConfirmModal({ isOpen: true, type: 'openCollections' })}
-                                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
-                                    >
-                                        <Unlock className="w-4 h-4" />
-                                        <span>Open Collections</span>
-                                    </button>
-                                )}
-
-                                {/* Close Collections: status == OPEN */}
-                                {collectionStatus === 'OPEN' && (
-                                    <button
-                                        onClick={() => setConfirmModal({ isOpen: true, type: 'closeCollections' })}
-                                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
-                                    >
-                                        <Lock className="w-4 h-4" />
-                                        <span>Close Collections</span>
-                                    </button>
-                                )}
-
-                                <button
-                                    onClick={() => setConfirmModal({ isOpen: true, type: 'complete' })}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
-                                >
-                                    <CheckCircle className="w-4 h-4" />
-                                    <span>Complete Cycle</span>
-                                </button>
-                            </>
+                            <button
+                                onClick={() => setConfirmModal({ isOpen: true, type: 'complete' })}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
+                            >
+                                <CheckCircle className="w-4 h-4" />
+                                <span>Complete Cycle</span>
+                            </button>
                         )}
 
                         {cycle.status !== 'COMPLETED' && cycle.status !== 'CANCELLED' && (
@@ -358,39 +334,7 @@ export const CycleDetailsPage = () => {
 
                 {/* Right Column: Collection Management & Group Overview */}
                 <div className="space-y-6">
-                    {/* Collection Management Section */}
-                    <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Collection Management</h3>
-                            <PaymentCollectionBadge status={collectionStatus} size="sm" />
-                        </div>
 
-                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 text-xs">
-                            <div className="flex justify-between items-center">
-                                <span className="text-slate-500 font-medium">Winner:</span>
-                                <span className="font-bold text-slate-900">{winnerUser ? winnerUser.name : 'Not Declared'}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-slate-500 font-medium">Prize Amount:</span>
-                                <span className="font-bold text-emerald-600">
-                                    {cycle.prizeAmount ? `₹${cycle.prizeAmount.toLocaleString('en-IN')}` : 'N/A'}
-                                </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-slate-500 font-medium">Collection Status:</span>
-                                <span className="font-bold text-slate-900">{collectionStatus}</span>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={() => navigate(`/cycles/${cycle._id}/collections`)}
-                            className="w-full py-2.5 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
-                        >
-                            <LayoutDashboard className="w-4 h-4 text-emerald-400" />
-                            <span>View Collection Dashboard</span>
-                            <ArrowUpRight className="w-4 h-4 text-emerald-400" />
-                        </button>
-                    </div>
 
                     <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Group Context</h3>

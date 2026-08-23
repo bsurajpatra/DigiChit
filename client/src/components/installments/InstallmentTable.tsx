@@ -1,17 +1,22 @@
 import { useState } from 'react';
 import type { Installment, InstallmentPaymentStatus } from '../../types/installment';
+import type { ChitCycle } from '../../types/chitCycle';
 import { PaymentStatusBadge } from './PaymentStatusBadge';
-import { Search, Download, ShieldCheck, Coins, Loader2 } from 'lucide-react';
+import { Search, Download, ShieldCheck, Coins, Loader2, CreditCard, CheckCircle2, Clock, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatCurrency } from '../../utils/currency';
 
 interface InstallmentTableProps {
     installments: Installment[];
+    cycles?: ChitCycle[];
+    defaultCollectionStatus?: string;
     isOrganizer?: boolean;
     isAdmin?: boolean;
+    currentUserId?: string;
     actionLoading?: string | null;
     currency?: string;
     onWaiveLateFee?: (installmentId: string) => void;
+    onPayNow?: (installment: Installment) => void;
 }
 
 const formatDateSafe = (dateVal: any, formatPattern: string = 'PP') => {
@@ -23,11 +28,15 @@ const formatDateSafe = (dateVal: any, formatPattern: string = 'PP') => {
 
 export const InstallmentTable = ({
     installments,
+    cycles,
+    defaultCollectionStatus,
     isOrganizer = false,
     isAdmin = false,
+    currentUserId,
     actionLoading,
     currency,
-    onWaiveLateFee
+    onWaiveLateFee,
+    onPayNow
 }: InstallmentTableProps) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<'ALL' | InstallmentPaymentStatus>('ALL');
@@ -82,7 +91,7 @@ export const InstallmentTable = ({
                         <span>Cycle Installments Log ({installments.length})</span>
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
-                        Track individual member payment obligations and late fees
+                        Track individual member payment obligations, direct payments, and late fees
                     </p>
                 </div>
 
@@ -153,16 +162,31 @@ export const InstallmentTable = ({
                                 const uName = typeof inst.userId === 'object' && inst.userId?.name ? inst.userId.name : 'Member';
                                 const uEmail = typeof inst.userId === 'object' && inst.userId?.email ? inst.userId.email : '';
                                 const isWaiving = actionLoading === `waive-${inst._id}`;
+                                const isPaid = (inst.paymentStatus || inst.status) === 'PAID';
+                                const isMyInstallment = Boolean(currentUserId && (
+                                    typeof inst.userId === 'object' ? inst.userId?._id === currentUserId : inst.userId === currentUserId
+                                ));
+                                
+                                // Resolve cycle collection status
+                                const cycleObj = typeof inst.cycleId === 'object' ? inst.cycleId : cycles?.find(c => c._id === inst.cycleId);
+                                const collectionStatus = (cycleObj as any)?.paymentCollection?.status || 
+                                    (cycleObj as any)?.paymentCollectionStatus || 
+                                    defaultCollectionStatus || 
+                                    'OPEN';
+
+                                const payableAmount = (inst.amount || 0) + (inst.lateFee || 0) - (inst.paidAmount || 0);
 
                                 return (
-                                    <tr key={inst._id} className="hover:bg-slate-50/80 transition">
+                                    <tr key={inst._id} className={`hover:bg-slate-50/80 transition ${isMyInstallment ? 'bg-emerald-50/20' : ''}`}>
                                         <td className="py-4 px-6">
                                             <div className="flex items-center gap-2.5">
-                                                <div className="w-7 h-7 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs shrink-0">
+                                                <div className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${isMyInstallment ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
                                                     {uName.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <span className="font-bold text-slate-900 block leading-tight">{uName}</span>
+                                                    <span className="font-bold text-slate-900 block leading-tight">
+                                                        {uName} {isMyInstallment && <span className="text-[10px] text-emerald-600 font-black ml-1">(You)</span>}
+                                                    </span>
                                                     {uEmail && <span className="text-[10px] text-slate-400 block">{uEmail}</span>}
                                                 </div>
                                             </div>
@@ -184,16 +208,63 @@ export const InstallmentTable = ({
                                             <PaymentStatusBadge status={inst.paymentStatus || inst.status || 'PENDING'} size="sm" />
                                         </td>
                                         <td className="py-4 px-6">
-                                            {(isOrganizer || isAdmin) && inst.lateFee > 0 && !inst.isLateFeeWaived && onWaiveLateFee && (
-                                                <button
-                                                    disabled={!!actionLoading}
-                                                    onClick={() => onWaiveLateFee(inst._id)}
-                                                    className="inline-flex items-center gap-1 px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-xl text-[11px] font-bold transition cursor-pointer disabled:opacity-50"
-                                                >
-                                                    {isWaiving ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3" />}
-                                                    <span>Waive Fee</span>
-                                                </button>
-                                            )}
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                {/* ─── 1. CURRENT USER (MEMBER) ACTIONS ─── */}
+                                                {isMyInstallment ? (
+                                                    isPaid ? (
+                                                        <div className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-xl text-xs font-bold shadow-2xs">
+                                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                                            <span>Paid</span>
+                                                        </div>
+                                                    ) : collectionStatus === 'OPEN' && onPayNow ? (
+                                                        <button
+                                                            onClick={() => onPayNow(inst)}
+                                                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-md hover:shadow-emerald-500/20 active:scale-95"
+                                                        >
+                                                            <CreditCard className="w-4 h-4 text-emerald-100" />
+                                                            <span>Pay Now ({formatCurrency(payableAmount, currency)})</span>
+                                                        </button>
+                                                    ) : collectionStatus === 'CLOSED' ? (
+                                                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-xl text-[11px] font-bold">
+                                                            <Lock className="w-3.5 h-3.5 text-slate-400" />
+                                                            <span>Collections Closed</span>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-800 border border-amber-200/80 rounded-xl text-[11px] font-bold">
+                                                            <Clock className="w-3.5 h-3.5 text-amber-600" />
+                                                            <span>Collections Not Open</span>
+                                                        </div>
+                                                    )
+                                                ) : (
+                                                    /* ─── 2. ORGANIZER / OTHER MEMBERS ACTIONS ─── */
+                                                    <>
+                                                        {/* Organizer Waive Late Fee */}
+                                                        {(isOrganizer || isAdmin) && inst.lateFee > 0 && !inst.isLateFeeWaived && onWaiveLateFee && (
+                                                            <button
+                                                                disabled={!!actionLoading}
+                                                                onClick={() => onWaiveLateFee(inst._id)}
+                                                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-xl text-xs font-bold transition cursor-pointer disabled:opacity-50"
+                                                            >
+                                                                {isWaiving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />}
+                                                                <span>Waive Fee</span>
+                                                            </button>
+                                                        )}
+
+                                                        {/* Status Pills */}
+                                                        {isPaid ? (
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold">
+                                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                                                                <span>Paid</span>
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-50 text-slate-400 rounded-lg text-xs font-medium">
+                                                                <Clock className="w-3 h-3" />
+                                                                <span>Unpaid</span>
+                                                            </span>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 );
