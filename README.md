@@ -1,6 +1,6 @@
 # DigiChit — Enterprise Chit Fund Management & Double-Entry Ledger Platform
 
-**DigiChit** is a full-stack financial platform designed to digitize and automate chit funds (Rotating Savings and Credit Associations / ROSCAs). It features complete lifecycle management for chit groups, auctions, installment collections, member payments, and an **event-driven, immutable double-entry general ledger**.
+**DigiChit** is a full-stack financial platform designed to digitize and automate chit funds (Rotating Savings and Credit Associations / ROSCAs). It features complete lifecycle management for chit [...]
 
 ---
 
@@ -23,7 +23,7 @@
 
 ## 🏛️ System Architecture
 
-DigiChit follows a **modular, event-driven domain architecture**. Each backend domain module (`auth`, `kyc`, `chit-group`, `chit-cycle`, `auction`, `bid`, `installment`, `payment`, `ledger`, `collection`, `statement`, etc.) is fully encapsulated with its own controllers, services, repositories, models, validators, and event listeners.
+DigiChit follows a **modular, event-driven domain architecture**. Each backend domain module (`auth`, `kyc`, `chit-group`, `chit-cycle`, `auction`, `bid`, `installment`, `payment`, `ledger`, `coll[...]
 
 Financial transactions are coordinated asynchronously via an internal **EventBus** that triggers immutable double-entry journal postings across isolated accounts.
 
@@ -69,21 +69,21 @@ LedgerEventListener ──► JournalPostingService ──► Immutable Double-E
 
 ## ⚖️ Double-Entry Ledger & Financial Engine (P0 – P9)
 
-DigiChit features an enterprise-grade, GAAP/Chit-Fund-compliant double-entry accounting core. All monetary entries are strictly calculated and stored in **integer paise** (₹1 = 100 paise) with immutable database protections.
+DigiChit features an enterprise-grade, GAAP/Chit-Fund-compliant double-entry accounting core. All monetary entries are strictly calculated and stored in **integer paise** (₹1 = 100 paise) with i[...]
 
 | Sprint / Phase | Scope | Description | Accounting Invariant |
 |---|---|---|---|
-| **P0** | **Double-Entry Foundation** | Multi-line `JournalEntry` schema, immutability pre-hooks, line-level debit/credit balance validator. | $\sum \text{DEBITS} \equiv \sum \text{CREDITS} > 0$ |
-| **P1** | **Automatic Account Provisioning** | Deterministic generation of SYSTEM, GROUP, and MEMBER accounts (`GRP-{id}-BANK`, `GRP-{id}-CLEARING`, `GRP-{id}-MEM-{id}-RECEIVABLE`, `PRIZE_PAYABLE`, `COMM_INCOME`, `DIV_PAYABLE`, etc.). | Zero Manual Account Setup |
-| **P2** | **Installment Obligation Accounting** | Accrual journal created upon monthly cycle creation & installment generation. | **DEBIT**: `MEMBER_RECEIVABLE`<br>**CREDIT**: `CHIT_CYCLE_CLEARING` |
+| **P0** | **Double-Entry Foundation** | Multi-line `JournalEntry` schema, immutability pre-hooks, line-level debit/credit balance validator. | $\sum \text{DEBITS} \equiv \sum \text{CREDITS} > 0$ [...]
+| **P1** | **Automatic Account Provisioning** | Deterministic generation of SYSTEM, GROUP, and MEMBER accounts (`GRP-{id}-BANK`, `GRP-{id}-CLEARING`, `GRP-{id}-MEM-{id}-RECEIVABLE`, `PRIZE_PAYABLE[...]
+| **P2** | **Installment Obligation Accounting** | Accrual journal created upon monthly cycle creation & installment generation. | **DEBIT**: `MEMBER_RECEIVABLE`<br>**CREDIT**: `CHIT_CYCLE_CLEARIN[...]
 | **P3** | **Payment Success Accounting** | Cash collection journal created upon verified member installment payment. | **DEBIT**: `GROUP_BANK_ESCROW`<br>**CREDIT**: `MEMBER_RECEIVABLE` |
-| **P4** | **Refund & Reversal Accounting** | Append-only reversal journal created upon transaction refund (leaving original payment journal immutable). | **DEBIT**: `MEMBER_RECEIVABLE`<br>**CREDIT**: `GROUP_BANK_ESCROW` |
-| **P5** | **Winner Declaration & Pot Allocation** | Pot clearing liability cleared into winner prize payable, organizer commission, and member dividend pool. | **DEBIT**: `CHIT_CYCLE_CLEARING` ($V$)<br>**CREDIT**: `PRIZE_PAYABLE` ($P$)<br>**CREDIT**: `COMM_INCOME` ($C$)<br>**CREDIT**: `DIV_PAYABLE` ($Div$) |
-| **P6** | **Winner Prize Payout Accounting** | Disburses prize cash from group bank escrow to winning member, clearing prize liability. | **DEBIT**: `MEMBER_PRIZE_PAYABLE`<br>**CREDIT**: `GROUP_BANK_ESCROW` |
+| **P4** | **Refund & Reversal Accounting** | Append-only reversal journal created upon transaction refund (leaving original payment journal immutable). | **DEBIT**: `MEMBER_RECEIVABLE`<br>**CREDI[...]
+| **P5** | **Winner Declaration & Pot Allocation** | Pot clearing liability cleared into winner prize payable, organizer commission, and member dividend pool. | **DEBIT**: `CHIT_CYCLE_CLEARING` ($[...]
+| **P6** | **Winner Prize Payout Accounting** | Disburses prize cash from group bank escrow to winning member, clearing prize liability. | **DEBIT**: `MEMBER_PRIZE_PAYABLE`<br>**CREDIT**: `GROUP_B[...]
 | **P7** | **Organizer Commission Payout** | Disburses organizer fee from group bank escrow, clearing commission liability. | **DEBIT**: `COMM_PAYABLE`<br>**CREDIT**: `GROUP_BANK_ESCROW` |
-| **P8** | **Dividend Allocation & Offset** | Distributes auction dividend pool to non-winning members (either via direct cash payout or installment offset). | **DEBIT**: `DIV_PAYABLE`<br>**CREDIT**: `MEMBER_RECEIVABLE` (Offset) / `BANK` (Cash) |
-| **P9** | **Full End-to-End Payment Pipeline** | Seamless member payment checkout (`PayNowModal`) $\rightarrow$ Transaction API $\rightarrow$ EventBus $\rightarrow$ Double-Entry Posting. | Full Lifecycle Verification |
-| **Collection Mgmt** | **Organizer Collection Control** | Per-cycle collection lifecycle state machine (`NOT_STARTED` $\rightarrow$ `OPEN` $\rightarrow$ `CLOSED`) with strict RBAC guards. | Authoritative Server Enforcement |
+| **P8** | **Dividend Allocation & Offset** | Distributes auction dividend pool to non-winning members (either via direct cash payout or installment offset). | **DEBIT**: `DIV_PAYABLE`<br>**CREDIT[...]
+| **P9** | **Full End-to-End Payment Pipeline** | Seamless member payment checkout (`PayNowModal`) $\rightarrow$ Transaction API $\rightarrow$ EventBus $\rightarrow$ Double-Entry Posting. | Full L[...]
+| **Collection Mgmt** | **Organizer Collection Control** | Per-cycle collection lifecycle state machine (`NOT_STARTED` $\rightarrow$ `OPEN` $\rightarrow$ `CLOSED`) with strict RBAC guards. | Autho[...]
 
 ---
 
@@ -118,7 +118,7 @@ DigiChit features an enterprise-grade, GAAP/Chit-Fund-compliant double-entry acc
 - Winner selection with tie-breaking and immediate double-entry pot allocation journal posting.
 
 ### 6. Payments & Mock Payment Gateway
-- Complete frontend payment flow: Member clicks "Pay Now" $ightarrow$ `PayNowModal` (UPI, Card, Net Banking, Simulator) $ightarrow$ `POST /api/v1/transactions/initiate` $ightarrow$ `POST /api/v1/transactions/verify` $ightarrow$ automatic UI refetch.
+- Complete frontend payment flow: Member clicks "Pay Now" $\rightarrow$ `PayNowModal` (UPI, Card, Net Banking, Simulator) $\rightarrow$ `POST /api/v1/transactions/initiate` $\rightarrow$ `POST /api/[...]
 - Dual single-entry and double-entry bookkeeping with idempotent retry safety.
 
 ### 7. Financial Reporting & Statements
@@ -245,7 +245,7 @@ DigiChit/
 
 ## 🧪 Running Tests
 
-The project includes a **consolidated double-entry accounting and financial test suite** verifying all invariants, scope protections, concurrency safety, balance equations, and collection state machine flows:
+The project includes a **consolidated double-entry accounting and financial test suite** verifying all invariants, scope protections, concurrency safety, balance equations, and collection state m[...]
 
 ```bash
 cd server
@@ -315,4 +315,6 @@ A health check endpoint is accessible at `GET /health`.
 ---
 
 ## 📄 License
-This project is proprietary and confidential. All rights reserved.
+This project is released under the MIT License. See the [LICENSE](./LICENSE) file for full terms and conditions.
+
+SPDX-License-Identifier: MIT
