@@ -7,7 +7,7 @@
 ## 📑 Table of Contents
 - [System Architecture](#system-architecture)
 - [Tech Stack](#tech-stack)
-- [Double-Entry Ledger Engine (P0 – P5)](#double-entry-ledger-engine-p0--p5)
+- [Double-Entry Ledger & Financial Engine (P0 – P9)](#double-entry-ledger--financial-engine-p0--p9)
 - [Key Features](#key-features)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
@@ -17,31 +17,31 @@
 - [Running Tests](#running-tests)
 - [API Reference](#api-reference)
 - [Security & Compliance](#security--compliance)
-- [Current Roadmap & State](#current-roadmap--state)
+- [Current State & Verification](#current-state--verification)
 
 ---
 
 ## 🏛️ System Architecture
 
-DigiChit follows a **modular, event-driven domain architecture**. Each backend domain module (`auth`, `kyc`, `chit-group`, `chit-cycle`, `auction`, `bid`, `installment`, `payment`, `ledger`, `statement`, etc.) is fully encapsulated with its own controllers, services, repositories, models, validators, and event listeners.
+DigiChit follows a **modular, event-driven domain architecture**. Each backend domain module (`auth`, `kyc`, `chit-group`, `chit-cycle`, `auction`, `bid`, `installment`, `payment`, `ledger`, `collection`, `statement`, etc.) is fully encapsulated with its own controllers, services, repositories, models, validators, and event listeners.
 
 Financial transactions are coordinated asynchronously via an internal **EventBus** that triggers immutable double-entry journal postings across isolated accounts.
 
 ```
-Frontend (React 19 + Tailwind v4)
+Frontend (React 19 + TypeScript + Vite)
          │
          ▼  (REST API / JWT Auth)
 Express API Gateway & Controllers
          │
          ▼
-Domain Services (Auction, Payment, Cycle, Installment)
+Domain Services (Auction, Payment, Cycle, Installment, Collection)
          │
-         ▼  (Domain Events: TRANSACTION_SUCCESS, AUCTION_WINNER_DECLARED, etc.)
+         ▼  (Domain Events: TRANSACTION_SUCCESS, AUCTION_WINNER_DECLARED, PRIZE_DISBURSED, etc.)
      EventBus
          │
          ▼
 LedgerEventListener ──► JournalPostingService ──► Immutable Double-Entry Journal
-                                                          (MongoDB)
+                                                           (MongoDB)
 ```
 
 ---
@@ -67,43 +67,50 @@ LedgerEventListener ──► JournalPostingService ──► Immutable Double-E
 
 ---
 
-## ⚖️ Double-Entry Ledger Engine (P0 – P5)
+## ⚖️ Double-Entry Ledger & Financial Engine (P0 – P9)
 
-DigiChit features an enterprise-grade, GAAP/Chit-Fund-compliant double-entry accounting core. All monetary entries are strictly calculated and stored in **integer paise** with immutable database protections.
+DigiChit features an enterprise-grade, GAAP/Chit-Fund-compliant double-entry accounting core. All monetary entries are strictly calculated and stored in **integer paise** (₹1 = 100 paise) with immutable database protections.
 
-| Sprint | Phase | Description | Accounting Invariant |
+| Sprint / Phase | Scope | Description | Accounting Invariant |
 |---|---|---|---|
-| **P0** | **Double-Entry Core Foundation** | Multi-line `JournalEntry` schema, immutability pre-hooks, line-level debit/credit balance validator. | $\sum \text{DEBITS} \equiv \sum \text{CREDITS} > 0$ |
-| **P1** | **Automatic Account Provisioning** | Deterministic generation of SYSTEM, GROUP, and MEMBER accounts (`GRP-{id}-BANK`, `GRP-{id}-CLEARING`, `GRP-{id}-MEM-{id}-RECEIVABLE`, `PRIZE_PAYABLE`, `COMM_INCOME`, etc.). | Zero Manual Account Setup |
+| **P0** | **Double-Entry Foundation** | Multi-line `JournalEntry` schema, immutability pre-hooks, line-level debit/credit balance validator. | $\sum \text{DEBITS} \equiv \sum \text{CREDITS} > 0$ |
+| **P1** | **Automatic Account Provisioning** | Deterministic generation of SYSTEM, GROUP, and MEMBER accounts (`GRP-{id}-BANK`, `GRP-{id}-CLEARING`, `GRP-{id}-MEM-{id}-RECEIVABLE`, `PRIZE_PAYABLE`, `COMM_INCOME`, `DIV_PAYABLE`, etc.). | Zero Manual Account Setup |
 | **P2** | **Installment Obligation Accounting** | Accrual journal created upon monthly cycle creation & installment generation. | **DEBIT**: `MEMBER_RECEIVABLE`<br>**CREDIT**: `CHIT_CYCLE_CLEARING` |
 | **P3** | **Payment Success Accounting** | Cash collection journal created upon verified member installment payment. | **DEBIT**: `GROUP_BANK_ESCROW`<br>**CREDIT**: `MEMBER_RECEIVABLE` |
 | **P4** | **Refund & Reversal Accounting** | Append-only reversal journal created upon transaction refund (leaving original payment journal immutable). | **DEBIT**: `MEMBER_RECEIVABLE`<br>**CREDIT**: `GROUP_BANK_ESCROW` |
 | **P5** | **Winner Declaration & Pot Allocation** | Pot clearing liability cleared into winner prize payable, organizer commission, and member dividend pool. | **DEBIT**: `CHIT_CYCLE_CLEARING` ($V$)<br>**CREDIT**: `PRIZE_PAYABLE` ($P$)<br>**CREDIT**: `COMM_INCOME` ($C$)<br>**CREDIT**: `DIV_PAYABLE` ($Div$) |
+| **P6** | **Winner Prize Payout Accounting** | Disburses prize cash from group bank escrow to winning member, clearing prize liability. | **DEBIT**: `MEMBER_PRIZE_PAYABLE`<br>**CREDIT**: `GROUP_BANK_ESCROW` |
+| **P7** | **Organizer Commission Payout** | Disburses organizer fee from group bank escrow, clearing commission liability. | **DEBIT**: `COMM_PAYABLE`<br>**CREDIT**: `GROUP_BANK_ESCROW` |
+| **P8** | **Dividend Allocation & Offset** | Distributes auction dividend pool to non-winning members (either via direct cash payout or installment offset). | **DEBIT**: `DIV_PAYABLE`<br>**CREDIT**: `MEMBER_RECEIVABLE` (Offset) / `BANK` (Cash) |
+| **P9** | **Full End-to-End Payment Pipeline** | Seamless member payment checkout (`PayNowModal`) $\rightarrow$ Transaction API $\rightarrow$ EventBus $\rightarrow$ Double-Entry Posting. | Full Lifecycle Verification |
+| **Collection Mgmt** | **Organizer Collection Control** | Per-cycle collection lifecycle state machine (`NOT_STARTED` $\rightarrow$ `OPEN` $\rightarrow$ `CLOSED`) with strict RBAC guards. | Authoritative Server Enforcement |
 
 ---
 
 ## ✨ Key Features
 
-### 1. Authentication & Role-Based Access Control
+### 1. Consolidated "Chit Details → Installments & Dues" UI
+- Single destination for all financial operations within a Chit Circle.
+- **Organizer Collection Management Panel**: Live cycle status tracking with one-click **[Open Collections]** and **[Close Collections]** action buttons backed by confirmation dialogs.
+- **Member Personal Dues**: Full-width cards with a 4-metric breakdown (Base Contribution, Accrued Late Fee, Paid Amount, Net Remaining) and live **[Pay Now]** triggers.
+- **Inline Table Operations**: Member inline payment checkout and Organizer fee waiving.
+
+### 2. Authentication & Role-Based Access Control
 - JWT-based authentication with secure cookie/header storage.
 - Email verification (with resend cooldowns) and forgot/reset password workflows.
 - Granular permissions for **User / Member**, **Organizer**, and **Admin**.
 - Automated detection and flagging of inactive accounts via scheduled cron tasks.
 
-### 2. KYC Compliance & Document Verification
+### 3. KYC Compliance & Document Verification
 - Multi-document upload (Govt ID, Address Proof, PAN) stored securely on Cloudinary.
 - **AES-256-CBC field-level encryption** for sensitive PII at rest.
 - Dedicated Admin KYC Review Queue with instant approve/reject capability.
 - KYC verification required before joining groups or placing auction bids.
 
-### 3. Chit Group & Membership Management
+### 4. Chit Group & Membership Management
 - Customizable financial configuration (commission %, monthly installment, member count, auction rules).
 - Public group discovery ("Forming" state) and private direct invite links (`/join/:id`).
 - Organizer membership review dashboard (approve, reject, or manually add members).
-
-### 4. Chit Cycles & Collections
-- Step-by-step cycle progression: Start Cycle $\rightarrow$ Open Collections $\rightarrow$ Conduct Auction $\rightarrow$ Declare Winner $\rightarrow$ Close Cycle.
-- Real-time collection tracking with member-by-member payment status.
 
 ### 5. Auctions & Real-Time Bidding
 - Dynamic percentage-based reverse auction bidding with minimum/maximum bid limits.
@@ -111,8 +118,8 @@ DigiChit features an enterprise-grade, GAAP/Chit-Fund-compliant double-entry acc
 - Winner selection with tie-breaking and immediate double-entry pot allocation journal posting.
 
 ### 6. Payments & Mock Payment Gateway
-- Complete frontend payment flow: Member clicks "Pay Now" $\rightarrow$ initiates payment $\rightarrow$ simulated mock gateway modal $\rightarrow$ backend verification.
-- Inbound payment reconciliation and refund handling with dual single-entry and double-entry bookkeeping.
+- Complete frontend payment flow: Member clicks "Pay Now" $ightarrow$ `PayNowModal` (UPI, Card, Net Banking, Simulator) $ightarrow$ `POST /api/v1/transactions/initiate` $ightarrow$ `POST /api/v1/transactions/verify` $ightarrow$ automatic UI refetch.
+- Dual single-entry and double-entry bookkeeping with idempotent retry safety.
 
 ### 7. Financial Reporting & Statements
 - Member personal statements, Organizer revenue summaries, and Group-level statements.
@@ -128,9 +135,13 @@ DigiChit/
 │   ├── src/
 │   │   ├── api/                # Typed Axios API clients
 │   │   ├── components/         # Modern UI components & Modals
+│   │   │   ├── auctions/       # Auction cards, tables, bidding
+│   │   │   ├── cycles/         # Cycle cards, status badges, timelines
+│   │   │   ├── installments/   # InstallmentTable, StatisticsCards, CollectionProgress
+│   │   │   └── payment/        # PayNowModal (Authoritative payment modal)
 │   │   ├── context/            # AuthContext, ToastContext
-│   │   ├── hooks/              # Custom hooks (useChitGroup, useBids, useInstallments)
-│   │   ├── pages/              # App Pages (Dashboard, Auctions, Payments, KYC, Admin)
+│   │   ├── hooks/              # Custom hooks (useChitGroup, useBids, useInstallments, useChitCycles)
+│   │   ├── pages/              # App Pages (Dashboard, ChitDetails, Auctions, Payments, KYC, Admin)
 │   │   └── types/              # Frontend TypeScript models & DTOs
 │   └── vite.config.ts
 │
@@ -143,7 +154,7 @@ DigiChit/
         │   ├── bid/            # Bidding logic & validation
         │   ├── chit-cycle/     # Cycle state machine
         │   ├── chit-group/     # Group schemas & financial config
-        │   ├── collection/     # Per-cycle collection windows
+        │   ├── collection/     # Per-cycle collection windows & controllers
         │   ├── installment/    # Installment generation & obligations
         │   ├── kyc/            # KYC document uploads & AES encryption
         │   ├── ledger/         # Double-Entry Core, Provisioning & Journals
@@ -151,9 +162,9 @@ DigiChit/
         │   │   ├── models/     # Account, JournalEntry, LedgerEntry
         │   │   ├── services/   # JournalPostingService, AccountProvisioningService
         │   │   ├── listeners/  # LedgerEventListener (Domain event hooks)
-        │   │   └── __tests__/  # P0 - P5 Consolidated Double-Entry Test Suites
+        │   │   └── __tests__/  # P0 - P9 Consolidated Double-Entry & Collection Test Suites
         │   ├── membership/     # Chit group enrollments
-        │   ├── payment/        # Transactions & Mock Gateway
+        │   ├── payment/        # Transactions & MockPaymentGateway
         │   ├── statement/      # Statement aggregation & export
         │   ├── support/        # In-app ticketing & contact forms
         │   └── user/           # Profiles & user settings
@@ -234,21 +245,26 @@ DigiChit/
 
 ## 🧪 Running Tests
 
-The project includes a **consolidated double-entry accounting test suite** verifying all invariants, scope protections, concurrency safety, and balance equations:
+The project includes a **consolidated double-entry accounting and financial test suite** verifying all invariants, scope protections, concurrency safety, balance equations, and collection state machine flows:
 
 ```bash
 cd server
 npx tsx src/modules/ledger/__tests__/runAllLedgerTests.ts
 ```
 
-### Test Coverage Summary:
+### Comprehensive Test Suite Breakdown:
 - **P0**: Core Double-Entry Foundation (12 / 12 tests)
 - **P1**: Automatic Account Provisioning (9 / 9 tests)
 - **P2**: Installment Obligation Accounting (6 / 6 tests)
 - **P3**: Payment Success Accounting (19 / 19 tests)
 - **P4**: Refund Reversal Accounting (19 / 19 tests)
 - **P5**: Winner Pot Allocation Accounting (30 / 30 tests)
-- **Total Ledger Suite**: **95 / 95 Tests Passing (100% Pass Rate)**
+- **P6**: Prize Payout Accounting (26 / 26 tests)
+- **P7**: Organizer Commission Payout Accounting (29 / 29 tests)
+- **P8**: Dividend Allocation & Installment Offset Accounting (32 / 32 tests)
+- **P9**: Full End-to-End Payment Pipeline (15 / 15 tests)
+- **Collection Management**: Organizer Collection Control & Member Payment Flow (16 / 16 tests)
+- **Total Financial Suite**: **213 / 213 Tests Passing (100% Pass Rate)**
 
 ---
 
@@ -264,11 +280,11 @@ All backend routes are mounted under `/api` (or `/api/v1` for payment transactio
 | `/api/user` | User Profile | Update Profile, Avatar Upload, Password Change |
 | `/api/organizer` | Organizer Onboarding | Applications, Approvals, Profile Management |
 | `/api/chit-groups` | Chit Groups | Create Group, Join via Link, Discovery |
-| `/api/chit-cycles` | Cycles | Start Cycle, Open/Close Collections, Record Winner |
+| `/api/chit-cycles` | Cycles & Collections | Start Cycle, Open/Close Collections, Record Winner |
 | `/api/auctions` | Auctions | Schedule Auction, Live Status, Declare Winner |
 | `/api/bids` | Bidding | Place Bid, Withdraw Bid, Bid History |
-| `/api/installments`| Installments | Query Dues, Update Installment Status |
-| `/api/v1/transactions`| Payments | Initiate Payment, Verify Webhook, Issue Refunds |
+| `/api/installments`| Installments | Query Dues, Generate Cycle Dues, Waive Late Fees |
+| `/api/v1/transactions`| Payments | Initiate Payment, Verify Payment, Issue Refunds |
 | `/api/collections` | Collections | Collection Window Status & Aggregates |
 | `/api/ledger` | General Ledger | Account Balance Aggregations, Journal Inquiries |
 | `/api/statements` | Statements | Member, Organizer & Group Statement Exports |
@@ -283,16 +299,18 @@ A health check endpoint is accessible at `GET /health`.
 - **Immutable Accounting**: MongoDB pre-hooks block `updateOne`, `findOneAndUpdate`, `deleteOne`, and `findOneAndDelete` on all posted `JournalEntry` documents.
 - **Zero Floating Point Math**: All ledger operations use integer paise (₹1 = 100 paise) to prevent precision loss.
 - **PII Encryption**: AES-256-CBC field encryption protects KYC Aadhaar/PAN fields in the database.
+- **Authoritative Server Valuation**: Member payments enforce server-side installment calculations, ignoring client-side amount payloads.
 - **Dual Bookkeeping**: Supports seamless backward compatibility with legacy single-entry records during the ledger migration period.
 
 ---
 
-## 🗺️ Current State & Roadmap
+## 🏁 Current State & Verification
 
-- ✅ **P0 – P5 Double-Entry Accounting Core**: Complete & verified (95/95 tests passing).
-- ✅ **Frontend Payment Integration**: Complete with simulated gateway and real-time status sync.
-- 🔄 **P6 Outbound Payout Engine**: Next phase (automated prize disbursement & commission withdrawal).
-- 🔄 **P7 Member Dividend Distribution**: Sub-ledger dividend credits to offset future installment dues.
+- ✅ **P0 – P8 Double-Entry Accounting Core**: Complete & verified across 213 tests.
+- ✅ **Organizer Collection Controls**: Live in Chit Details $\rightarrow$ Installments & Dues tab (`NOT_STARTED` $\rightarrow$ `OPEN` $\rightarrow$ `CLOSED`).
+- ✅ **Member Payment Checkout**: Full-width personal dues cards with live `PayNowModal` connected to real backend transaction APIs.
+- ✅ **Zero Dead Payment Modals**: Removed legacy placeholder components with 0 active references.
+- ✅ **100% Green TypeScript & Production Builds**: Clean builds across both client and server environments.
 
 ---
 
