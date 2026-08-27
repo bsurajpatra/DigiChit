@@ -20,5 +20,8 @@ export const config = {
     cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string,
     uploadBaseUrl: 'https://api.cloudinary.com/v1_1',
     resBaseUrl: 'https://res.cloudinary.com'
+  },
+  razorpay: {
+    keyId: (import.meta.env.VITE_RAZORPAY_KEY_ID as string) || ''
   }
 };

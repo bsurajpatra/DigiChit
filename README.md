@@ -201,6 +201,8 @@ DigiChit/
    JWT_SECRET=your_super_secret_jwt_key_here
    ENCRYPTION_KEY=32_byte_hex_string_for_kyc_aes_encryption
    FRONTEND_URL=http://localhost:5173
+RAZORPAY_KEY_ID=rzp_test_your_key_id
+RAZORPAY_KEY_SECRET=your_test_secret_here
 
    # Cloudinary (Media & KYC)
    CLOUDINARY_CLOUD_NAME=your_cloudinary_name
@@ -232,6 +234,7 @@ DigiChit/
    ```env
    VITE_API_URL=http://localhost:5000/api
    VITE_CLOUDINARY_CLOUD_NAME=your_cloudinary_name
+VITE_RAZORPAY_KEY_ID=rzp_test_your_key_id
    ```
 
 3. Start the Vite development server:

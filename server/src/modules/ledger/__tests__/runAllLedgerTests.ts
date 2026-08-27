@@ -11,6 +11,7 @@ import { runOrganizerCommissionPayoutTests } from './organizerCommissionPayoutJo
 import { runDividendAllocationTests } from './dividendAllocationJournal.test.js';
 import { runE2EPaymentFlowTests } from '@modules/payment/__tests__/e2ePaymentFlow.test.js';
 import { runCollectionManagementTests } from '@modules/collection/__tests__/collectionManagementFlow.test.js';
+import { runRazorpayGatewayTests } from '@modules/payment/__tests__/razorpayPaymentGateway.test.js';
 
 async function main() {
     console.log('\n======================================================');
@@ -64,6 +65,10 @@ async function main() {
         // 11. Run Collection Management Tests
         console.log('\n--- 11. COLLECTION MANAGEMENT: ORGANIZER & MEMBER FLOW ---');
         await runCollectionManagementTests();
+
+        // 12. Run Razorpay Test Gateway Tests
+        console.log('\n--- 12. RAZORPAY TEST GATEWAY & SIGNATURE VERIFICATION ---');
+        await runRazorpayGatewayTests();
 
         console.log('\n======================================================');
         console.log('  🎉 ALL FINANCIAL & COLLECTION SUITES (P0-P9 + COLLECTION MGMT) PASSED CLEANLY');

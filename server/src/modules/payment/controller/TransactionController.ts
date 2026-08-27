@@ -1,3 +1,4 @@
+import { config } from '@shared/config/env.js';
 import { AppError } from '@shared/errors/AppError.js';
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '@modules/auth/index.js';
@@ -13,7 +14,13 @@ export const initiatePayment = async (req: AuthRequest, res: Response, next: Nex
         res.status(201).json({
             success: true,
             message: 'Payment transaction initiated successfully',
-            data: { transaction }
+            data: {
+                transaction,
+                gatewayOrderId: transaction.gatewayOrderId,
+                amount: transaction.amount,
+                currency: transaction.currency,
+                keyId: transaction.paymentGateway === 'RAZORPAY' ? config.razorpay.keyId : undefined
+            }
         });
     } catch (error) {
         next(error);

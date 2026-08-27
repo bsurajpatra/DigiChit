@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { X, CreditCard, CheckCircle2, AlertCircle, Loader2, Smartphone, Building2, Zap, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '../../utils/currency';
-import { initiatePayment, verifyPayment, type TransactionRecord, type PaymentMethod } from '../../api/transaction.api';
+import { initiatePayment, verifyPayment, type TransactionRecord, type PaymentMethod, type PaymentGatewayProvider } from '../../api/transaction.api';
 import type { Installment } from '../../types/installment';
+import { loadRazorpayScript } from '../../utils/loadRazorpay';
+import { config } from '../../config/env';
+import { useAuth } from '../../context/AuthContext';
 
 interface PayNowModalProps {
     isOpen: boolean;
@@ -13,6 +16,15 @@ interface PayNowModalProps {
     onPaymentSuccess?: (transaction: TransactionRecord) => void;
 }
 
+interface PaymentOption {
+    id: PaymentMethod;
+    gateway: PaymentGatewayProvider;
+    label: string;
+    icon: any;
+    desc: string;
+    badge?: string;
+}
+
 export const PayNowModal = ({
     isOpen,
     installment,
@@ -20,7 +32,8 @@ export const PayNowModal = ({
     onClose,
     onPaymentSuccess
 }: PayNowModalProps) => {
-    const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('UPI');
+    const { user } = useAuth();
+    const [selectedMethodId, setSelectedMethodId] = useState<PaymentMethod>('CARD');
     const [step, setStep] = useState<'IDLE' | 'PROCESSING' | 'SUCCESS' | 'FAILED'>('IDLE');
     const [processingMessage, setProcessingMessage] = useState('Initiating payment gateway order...');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -31,6 +44,43 @@ export const PayNowModal = ({
     const baseAmount = installment.amount || 0;
     const lateFee = installment.lateFee || 0;
     const netAmount = baseAmount + lateFee;
+
+    const paymentMethods: PaymentOption[] = [
+        {
+            id: 'CARD',
+            gateway: 'RAZORPAY',
+            label: 'Razorpay Test Checkout',
+            icon: CreditCard,
+            desc: 'UPI, Debit/Credit Cards & Net Banking via Razorpay Test Gateway',
+            badge: 'Test Mode'
+        },
+        {
+            id: 'UPI',
+            gateway: 'RAZORPAY',
+            label: 'Razorpay UPI / QR',
+            icon: Smartphone,
+            desc: 'Google Pay, PhonePe, Paytm (Test UPI VPA)',
+            badge: 'Test Mode'
+        },
+        {
+            id: 'NET_BANKING',
+            gateway: 'RAZORPAY',
+            label: 'Razorpay Net Banking',
+            icon: Building2,
+            desc: 'HDFC, ICICI, SBI, Axis & all major Indian banks',
+            badge: 'Test Mode'
+        },
+        {
+            id: 'MOCK',
+            gateway: 'MOCK',
+            label: 'Instant Mock Simulator',
+            icon: Zap,
+            desc: 'Instant Local Mock Approval (Zero Gateway Delay)',
+            badge: 'Simulator'
+        }
+    ];
+
+    const selectedOption = paymentMethods.find((m) => m.id === selectedMethodId) || paymentMethods[0];
 
     const handleReset = () => {
         setStep('IDLE');
@@ -49,27 +99,114 @@ export const PayNowModal = ({
         setErrorMessage(null);
 
         try {
-            setProcessingMessage('Creating secure transaction order...');
-            const initiatedTxn = await initiatePayment({
-                installmentId: installment._id,
-                paymentMethod: selectedMethod,
-                paymentGateway: 'MOCK',
-                amount: netAmount,
-                currency: currency || 'INR'
-            });
+            if (selectedOption.gateway === 'RAZORPAY') {
+                // 1. Ensure Razorpay SDK is loaded
+                setProcessingMessage('Loading Razorpay Checkout SDK...');
+                const isLoaded = await loadRazorpayScript();
+                if (!isLoaded) {
+                    throw new Error('Failed to load Razorpay Checkout SDK. Please check your network connection.');
+                }
 
-            setProcessingMessage('Authorizing payment with gateway...');
-            const verifiedTxn = await verifyPayment({
-                transactionId: initiatedTxn._id,
-                gatewayOrderId: initiatedTxn.gatewayOrderId || '',
-                gatewayPaymentId: 'pay_mock_' + Date.now()
-            });
+                // 2. Initiate order on backend
+                setProcessingMessage('Creating secure Razorpay Test Order...');
+                const initiatedTxn = await initiatePayment({
+                    installmentId: installment._id,
+                    paymentMethod: selectedMethodId,
+                    paymentGateway: 'RAZORPAY',
+                    amount: netAmount,
+                    currency: currency || 'INR'
+                });
 
-            setCompletedTransaction(verifiedTxn);
-            setStep('SUCCESS');
+                const rzpKey = config.razorpay.keyId || (initiatedTxn as any).keyId;
 
-            if (onPaymentSuccess) {
-                onPaymentSuccess(verifiedTxn);
+                if (!initiatedTxn.gatewayOrderId) {
+                    throw new Error('Razorpay order ID was not generated by backend.');
+                }
+
+                // 3. Open Razorpay Checkout modal
+                setProcessingMessage('Opening Razorpay Checkout...');
+
+                const razorpayOptions = {
+                    key: rzpKey,
+                    amount: Math.round(netAmount * 100),
+                    currency: currency || 'INR',
+                    name: 'DigiChit',
+                    description: `Installment #${installment.installmentNumber} Contribution`,
+                    order_id: initiatedTxn.gatewayOrderId,
+                    handler: async (response: {
+                        razorpay_payment_id: string;
+                        razorpay_order_id: string;
+                        razorpay_signature: string;
+                    }) => {
+                        try {
+                            setProcessingMessage('Verifying payment signature with DigiChit server...');
+                            const verifiedTxn = await verifyPayment({
+                                transactionId: initiatedTxn._id,
+                                gatewayOrderId: response.razorpay_order_id,
+                                gatewayPaymentId: response.razorpay_payment_id,
+                                gatewaySignature: response.razorpay_signature
+                            });
+
+                            setCompletedTransaction(verifiedTxn);
+                            setStep('SUCCESS');
+
+                            if (onPaymentSuccess) {
+                                onPaymentSuccess(verifiedTxn);
+                            }
+                        } catch (verifyErr: any) {
+                            const msg = verifyErr.response?.data?.message || verifyErr.message || 'Signature verification failed';
+                            setErrorMessage(msg);
+                            setStep('FAILED');
+                        }
+                    },
+                    prefill: {
+                        name: user?.name || '',
+                        email: user?.email || '',
+                        contact: (user as any)?.phone || ''
+                    },
+                    theme: {
+                        color: '#059669' // Emerald-600 to match DigiChit theme
+                    },
+                    modal: {
+                        ondismiss: () => {
+                            // User intentionally closed the Razorpay popup without completing payment
+                            setStep('IDLE');
+                        }
+                    }
+                };
+
+                const rzpInstance = new (window as any).Razorpay(razorpayOptions);
+                rzpInstance.on('payment.failed', (response: any) => {
+                    const failMsg = response.error?.description || response.error?.reason || 'Payment was declined by gateway.';
+                    setErrorMessage(failMsg);
+                    setStep('FAILED');
+                });
+
+                rzpInstance.open();
+            } else {
+                // ─── MOCK GATEWAY SIMULATOR FLOW ───
+                setProcessingMessage('Creating secure transaction order...');
+                const initiatedTxn = await initiatePayment({
+                    installmentId: installment._id,
+                    paymentMethod: selectedMethodId,
+                    paymentGateway: 'MOCK',
+                    amount: netAmount,
+                    currency: currency || 'INR'
+                });
+
+                setProcessingMessage('Authorizing payment with mock simulator...');
+                const verifiedTxn = await verifyPayment({
+                    transactionId: initiatedTxn._id,
+                    gatewayOrderId: initiatedTxn.gatewayOrderId || '',
+                    gatewayPaymentId: 'pay_mock_' + Date.now()
+                });
+
+                setCompletedTransaction(verifiedTxn);
+                setStep('SUCCESS');
+
+                if (onPaymentSuccess) {
+                    onPaymentSuccess(verifiedTxn);
+                }
             }
         } catch (err: any) {
             const msg = err.response?.data?.message || err.message || 'Payment processing failed. Please try again.';
@@ -77,13 +214,6 @@ export const PayNowModal = ({
             setStep('FAILED');
         }
     };
-
-    const paymentMethods: { id: PaymentMethod; label: string; icon: any; desc: string }[] = [
-        { id: 'UPI', label: 'UPI / QR', icon: Smartphone, desc: 'Google Pay, PhonePe, Paytm, BHIM' },
-        { id: 'CARD', label: 'Debit / Credit Card', icon: CreditCard, desc: 'Visa, Mastercard, RuPay' },
-        { id: 'NET_BANKING', label: 'Net Banking', icon: Building2, desc: 'All Major Indian Banks' },
-        { id: 'MOCK', label: 'Instant Simulator', icon: Zap, desc: 'Mock Gateway Instant Approval' }
-    ];
 
     return (
         <AnimatePresence>
@@ -104,7 +234,7 @@ export const PayNowModal = ({
                 >
                     <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
                         <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center font-black shadow-xs`}>
+                            <div className="w-10 h-10 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center font-black shadow-xs">
                                 {step === 'SUCCESS' ? <CheckCircle2 className="w-5 h-5" /> : <CreditCard className="w-5 h-5" />}
                             </div>
                             <div>
@@ -112,7 +242,7 @@ export const PayNowModal = ({
                                     {step === 'SUCCESS' ? 'Payment Successful' : `Installment #${installment.installmentNumber} Payment`}
                                 </h3>
                                 <p className="text-xs text-slate-500">
-                                    {step === 'SUCCESS' ? 'Receipt generated & verified' : 'Secure Online Payment Gateway'}
+                                    {step === 'SUCCESS' ? 'Receipt generated & verified' : 'Secure Online Payment Checkout'}
                                 </p>
                             </div>
                         </div>
@@ -147,17 +277,17 @@ export const PayNowModal = ({
 
                             <div>
                                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
-                                    Select Payment Method
+                                    Select Payment Option
                                 </label>
                                 <div className="grid grid-cols-1 gap-2">
                                     {paymentMethods.map((m) => {
                                         const Icon = m.icon;
-                                        const isSelected = selectedMethod === m.id;
+                                        const isSelected = selectedMethodId === m.id;
                                         return (
                                             <button
                                                 key={m.id}
                                                 type="button"
-                                                onClick={() => setSelectedMethod(m.id)}
+                                                onClick={() => setSelectedMethodId(m.id)}
                                                 className={`
                                                     w-full p-3 rounded-2xl border text-left flex items-center gap-3 transition cursor-pointer
                                                     ${isSelected
@@ -170,11 +300,22 @@ export const PayNowModal = ({
                                                     <Icon className="w-4 h-4" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center justify-between">
+                                                    <div className="flex items-center justify-between gap-2">
                                                         <span className="text-xs font-bold text-slate-900">{m.label}</span>
-                                                        {isSelected && <span className="w-2 h-2 rounded-full bg-emerald-600" />}
+                                                        <div className="flex items-center gap-1.5">
+                                                            {m.badge && (
+                                                                <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md ${
+                                                                    m.badge === 'Test Mode'
+                                                                        ? 'bg-emerald-100 text-emerald-800'
+                                                                        : 'bg-slate-200 text-slate-700'
+                                                                }`}>
+                                                                    {m.badge}
+                                                                </span>
+                                                            )}
+                                                            {isSelected && <span className="w-2 h-2 rounded-full bg-emerald-600" />}
+                                                        </div>
                                                     </div>
-                                                    <p className="text-[10px] text-slate-400 truncate">{m.desc}</p>
+                                                    <p className="text-[10px] text-slate-400 truncate mt-0.5">{m.desc}</p>
                                                 </div>
                                             </button>
                                         );
@@ -184,7 +325,7 @@ export const PayNowModal = ({
 
                             <div className="flex items-center gap-2 p-2.5 bg-emerald-50/50 border border-emerald-100 rounded-xl text-[11px] text-emerald-800">
                                 <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                                <span>Secured with end-to-end 256-bit encrypted gateway verification</span>
+                                <span>Secured with cryptographic HMAC-SHA256 server verification</span>
                             </div>
 
                             <div className="pt-2 flex items-center gap-3">
@@ -218,7 +359,7 @@ export const PayNowModal = ({
                                 <p className="text-xs text-slate-500 font-medium">{processingMessage}</p>
                             </div>
                             <p className="text-[11px] text-slate-400 max-w-xs">
-                                Please do not refresh the page or click back while the payment is being verified.
+                                Please do not refresh the page or close the window while the transaction is being verified.
                             </p>
                         </div>
                     )}
@@ -251,8 +392,8 @@ export const PayNowModal = ({
                                     </div>
                                 )}
                                 <div className="flex justify-between text-slate-600">
-                                    <span>Payment Method:</span>
-                                    <span className="font-bold text-slate-900">{completedTransaction.paymentMethod}</span>
+                                    <span>Gateway:</span>
+                                    <span className="font-bold text-slate-900">{completedTransaction.paymentGateway || 'RAZORPAY'}</span>
                                 </div>
                             </div>
 
