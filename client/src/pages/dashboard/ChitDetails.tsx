@@ -242,10 +242,14 @@ export const ChitDetails = () => {
         return () => reset();
     }, [id, user?.kycStatus]);
 
-    // Auto-select first cycle for installments when cycles load
+    // Auto-select active or latest cycle when cycles load
     useEffect(() => {
-        if (cycles.length > 0 && !selectedCycleId) {
-            setSelectedCycleId(cycles[0]._id);
+        if (cycles.length > 0) {
+            const activeCycle = cycles.find(c => c.status === 'ACTIVE');
+            const defaultCycle = activeCycle || cycles[cycles.length - 1] || cycles[0];
+            if (!selectedCycleId || !cycles.some(c => c._id === selectedCycleId)) {
+                setSelectedCycleId(defaultCycle._id);
+            }
         }
     }, [cycles, selectedCycleId]);
 
@@ -433,6 +437,85 @@ export const ChitDetails = () => {
                             )}
                         </div>
                     </div>
+
+                    {/* Active Cycle & Live Auction Quick Card */}
+                    {(() => {
+                        const currentCycle = cycles.find(c => c.status === 'ACTIVE') || (cycles.length > 0 ? cycles[cycles.length - 1] : null);
+                        const currentAuction = liveAuction || (currentCycle ? auctions.find(a => {
+                            const cId = typeof a.cycleId === 'object' ? (a.cycleId as any)._id : a.cycleId;
+                            return cId === currentCycle._id;
+                        }) : null);
+
+                        if (!currentCycle) return null;
+
+                        return (
+                            <div className="bg-slate-900 text-white p-6 rounded-2xl border-none shadow-none flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                        <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                            Cycle #{currentCycle.cycleNumber} ({currentCycle.status})
+                                        </span>
+                                        {currentAuction && (
+                                            <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
+                                                currentAuction.status === 'OPEN' ? 'bg-emerald-500 text-white animate-pulse' : 'bg-slate-800 text-slate-300'
+                                            }`}>
+                                                Auction #{currentAuction.auctionNumber}: {currentAuction.status}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <h3 className="text-lg font-black text-white tracking-tight">
+                                        {currentAuction?.status === 'OPEN' 
+                                            ? '⚡ Live Auction In Progress — Place Your Bid Now'
+                                            : currentCycle.status === 'ACTIVE'
+                                                ? `Cycle #${currentCycle.cycleNumber} is Currently Active`
+                                                : `Cycle #${currentCycle.cycleNumber} Scheduled`}
+                                    </h3>
+                                    <p className="text-xs text-slate-400 font-medium">
+                                        {currentAuction?.status === 'OPEN'
+                                            ? `Bidding is open between ${currentAuction.minimumBidPercentage}% and ${currentAuction.maximumBidPercentage}%. All active members can submit competitive bids.`
+                                            : currentCycle.paymentCollection?.status === 'OPEN'
+                                                ? `Installment collections are OPEN for this cycle. Make your payment before the due date.`
+                                                : `Scheduled Start: ${format(new Date(currentCycle.scheduledStartDate), 'PPP')}`}
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-3 shrink-0">
+                                    {currentAuction?.status === 'OPEN' ? (
+                                        <button
+                                            onClick={() => {
+                                                setActiveTab('AUCTIONS');
+                                                setAuctionViewOrigin('LIST');
+                                                setSelectedBiddingRoomId(currentAuction._id);
+                                            }}
+                                            className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl transition cursor-pointer flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+                                        >
+                                            <Hammer className="w-4 h-4" />
+                                            <span>Enter Bidding Room</span>
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => setActiveTab('AUCTIONS')}
+                                            className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                                        >
+                                            <Hammer className="w-3.5 h-3.5 text-emerald-400" />
+                                            <span>View Auctions</span>
+                                        </button>
+                                    )}
+
+                                    <button
+                                        onClick={() => {
+                                            setActiveTab('INSTALLMENTS');
+                                            setSelectedCycleId(currentCycle._id);
+                                        }}
+                                        className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                                    >
+                                        <Wallet className="w-3.5 h-3.5 text-sky-400" />
+                                        <span>Installments & Dues</span>
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })()}
 
                     {/* 4 Financial Stat Cards — no borders, no shadows */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1119,13 +1202,25 @@ export const ChitDetails = () => {
                             </div>
 
                             {liveAuction && (
-                                <div className="p-6 bg-white rounded-2xl border-none space-y-3">
+                                <div className="p-6 bg-white rounded-2xl border-none space-y-4">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2 text-slate-900 font-bold text-xs uppercase tracking-wider">
                                             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping inline-block" />
                                             <span>Live Auction in Progress</span>
                                         </div>
-                                        <span className="text-xs font-bold text-slate-400">Auction #{liveAuction.auctionNumber}</span>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xs font-bold text-slate-400">Auction #{liveAuction.auctionNumber}</span>
+                                            <button
+                                                onClick={() => {
+                                                    setAuctionViewOrigin('LIST');
+                                                    setSelectedBiddingRoomId(liveAuction._id);
+                                                }}
+                                                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                                            >
+                                                <Hammer className="w-3.5 h-3.5" />
+                                                <span>Enter Bidding Room</span>
+                                            </button>
+                                        </div>
                                     </div>
                                     <CountdownTimer targetDate={liveAuction.scheduledEndTime || liveAuction.scheduledStartTime} />
                                 </div>
@@ -1155,8 +1250,15 @@ export const ChitDetails = () => {
                                         const a = auctions.find((auc) => auc._id === id);
                                         setAuctionWinnerModal({ isOpen: true, auctionId: id, auctionNumber: a?.auctionNumber || 0 });
                                     }}
-                                    onViewDetails={(id) => navigate(`/auctions/${id}`)}
-                                    onViewBids={(id) => navigate(`/auctions/${id}/bids`)}
+                                    onOpenBiddingRoom={(id) => {
+                                        setAuctionViewOrigin('LIST');
+                                        setSelectedBiddingRoomId(id);
+                                    }}
+                                    onViewDetails={(id) => setSelectedAuctionDetailId(id)}
+                                    onViewBids={(id) => {
+                                        setAuctionViewOrigin('LIST');
+                                        setSelectedBiddingRoomId(id);
+                                    }}
                                 />
                             )}
                         </>

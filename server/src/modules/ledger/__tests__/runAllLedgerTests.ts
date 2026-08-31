@@ -12,6 +12,7 @@ import { runDividendAllocationTests } from './dividendAllocationJournal.test.js'
 import { runE2EPaymentFlowTests } from '@modules/payment/__tests__/e2ePaymentFlow.test.js';
 import { runCollectionManagementTests } from '@modules/collection/__tests__/collectionManagementFlow.test.js';
 import { runRazorpayGatewayTests } from '@modules/payment/__tests__/razorpayPaymentGateway.test.js';
+import { runCycleIsolationTests } from '@modules/auction/__tests__/cycleIsolation.test.js';
 
 async function main() {
     console.log('\n======================================================');
@@ -69,6 +70,10 @@ async function main() {
         // 12. Run Razorpay Test Gateway Tests
         console.log('\n--- 12. RAZORPAY TEST GATEWAY & SIGNATURE VERIFICATION ---');
         await runRazorpayGatewayTests();
+
+        // 13. Run Per-Cycle Isolation Tests
+        console.log('\n--- 13. PER-CYCLE AUCTION & BIDDING ISOLATION VERIFICATION ---');
+        await runCycleIsolationTests();
 
         console.log('\n======================================================');
         console.log('  🎉 ALL FINANCIAL & COLLECTION SUITES (P0-P9 + COLLECTION MGMT) PASSED CLEANLY');

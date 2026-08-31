@@ -96,11 +96,15 @@ export const BidsPage = () => {
         );
     }
 
+    const currentUserId = user?.id || (user as any)?._id;
     const groupObj = typeof auction.groupId === 'object' ? auction.groupId : null;
-    const isOrganizer = user?.id === auction.organizerId || (groupObj && (user?.id === (groupObj as any).organizerId?._id || user?.id === (groupObj as any).organizerId)) || user?.role === 'ADMIN';
+    const orgId = typeof auction.organizerId === 'object' ? (auction.organizerId as any)?._id : auction.organizerId;
+    const groupOrgId = groupObj ? ((groupObj as any).organizerId?._id || (groupObj as any).organizerId) : null;
+
+    const isOrganizer = String(currentUserId) === String(orgId) || String(currentUserId) === String(groupOrgId) || user?.role === 'ADMIN' || user?.role === 'ORGANIZER';
     const isMember = groupMembers.some((m) => {
-        const uId = typeof m.userId === 'object' ? m.userId?._id : m.userId;
-        return uId === user?.id && ['APPROVED', 'ACTIVE_MEMBER', 'ACTIVE'].includes(m.status);
+        const uId = typeof m.userId === 'object' ? (m.userId?._id || (m.userId as any)?.id) : m.userId;
+        return String(uId) === String(currentUserId) && ['APPROVED', 'ACTIVE_MEMBER', 'ACTIVE'].includes(m.status);
     });
 
     const monthlyContribution = groupObj?.monthlyContribution || 0;
@@ -108,8 +112,8 @@ export const BidsPage = () => {
     const isAuctionOpen = auction.status === 'OPEN';
 
     const myUserBids = bids.filter((b) => {
-        const uId = typeof b.userId === 'object' ? b.userId._id : b.userId;
-        return uId === user?.id;
+        const uId = typeof b.userId === 'object' ? (b.userId?._id || (b.userId as any)?.id) : b.userId;
+        return String(uId) === String(currentUserId);
     });
 
     const handleFormSubmit = async (data: { bidPercentage: number; bidAmount: number; remarks?: string }) => {

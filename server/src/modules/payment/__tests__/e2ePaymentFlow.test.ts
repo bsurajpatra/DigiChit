@@ -298,12 +298,16 @@ export async function runE2EPaymentFlowTests() {
         }
     });
 
-    // Wait 100ms for asynchronous domain event bus processing
-    await new Promise((r) => setTimeout(r, 100));
-
-    // 7. Installment state update via PaymentEventListener
+    // 7. Installment state update via PaymentEventListener (poll up to 1500ms for async event bus)
     await assertSuccess('7. PaymentEventListener transitions Installment status to PAID with receipt info', async () => {
-        const updatedInst = await Installment.findById(instOpenA._id);
+        let updatedInst: any = null;
+        for (let i = 0; i < 30; i++) {
+            updatedInst = await Installment.findById(instOpenA._id);
+            if (updatedInst && updatedInst.paymentStatus === PaymentStatus.PAID) {
+                break;
+            }
+            await new Promise((r) => setTimeout(r, 50));
+        }
         if (!updatedInst) throw new Error('Installment not found');
         if (updatedInst.paymentStatus !== PaymentStatus.PAID) {
             throw new Error(`Expected PAID status, got: ${updatedInst.paymentStatus}`);

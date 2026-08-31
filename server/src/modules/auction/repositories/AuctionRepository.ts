@@ -106,6 +106,52 @@ export class AuctionRepository {
      * Finds all auctions for a group with optional status filtering.
      */
     public async findByGroup(groupId: string, status?: AuctionStatus): Promise<IAuction[]> {
+        // Self-Healing: Check if any cycles in this group are missing an Auction record
+        try {
+            if (mongoose.Types.ObjectId.isValid(groupId)) {
+                const groupObjId = new mongoose.Types.ObjectId(groupId);
+                const cycles = await ChitCycle.find({ groupId: groupObjId }).sort({ cycleNumber: 1 });
+                const group = await ChitGroup.findById(groupObjId);
+
+                if (group && cycles.length > 0) {
+                    for (const cycle of cycles) {
+                        const existingAuction = await Auction.findOne({ cycleId: cycle._id, isDeleted: false });
+                        if (!existingAuction) {
+                            const auctionStartTime = cycle.auctionDate || cycle.scheduledStartDate || new Date();
+                            const minBidPct = group.financialConfig?.commission?.value ?? group.commissionPercent ?? 0;
+                            let autoStatus = AuctionStatus.SCHEDULED;
+
+                            if (cycle.status === 'ACTIVE') {
+                                autoStatus = cycle.winnerMembershipId ? AuctionStatus.WINNER_DECLARED : AuctionStatus.OPEN;
+                            } else if (cycle.status === 'COMPLETED') {
+                                autoStatus = AuctionStatus.WINNER_DECLARED;
+                            } else if (cycle.status === 'CANCELLED') {
+                                autoStatus = AuctionStatus.CANCELLED;
+                            }
+
+                            await Auction.create({
+                                cycleId: cycle._id,
+                                groupId: group._id,
+                                organizerId: group.organizerId,
+                                auctionNumber: cycle.cycleNumber,
+                                scheduledStartTime: auctionStartTime,
+                                scheduledEndTime: cycle.scheduledEndDate || null,
+                                actualStartTime: cycle.actualStartDate || (autoStatus === AuctionStatus.OPEN ? new Date() : null),
+                                minimumBidPercentage: minBidPct,
+                                maximumBidPercentage: 50,
+                                status: autoStatus,
+                                winningMembershipId: cycle.winnerMembershipId || null,
+                                remarks: cycle.remarks || null,
+                                createdBy: group.organizerId
+                            });
+                        }
+                    }
+                }
+            }
+        } catch (syncErr) {
+            console.error('[AuctionRepository] Auto-sync missing cycle auctions error:', syncErr);
+        }
+
         const query: any = { groupId, isDeleted: false };
         if (status) {
             query.status = status;

@@ -18,6 +18,7 @@ interface AuctionTableProps {
     onCancel?: (auctionId: string) => void;
     onViewDetails?: (auctionId: string) => void;
     onViewBids?: (auctionId: string) => void;
+    onOpenBiddingRoom?: (auctionId: string) => void;
 }
 
 export const AuctionTable = ({
@@ -31,7 +32,8 @@ export const AuctionTable = ({
     onDeclareWinner,
     onCancel,
     onViewDetails,
-    onViewBids
+    onViewBids,
+    onOpenBiddingRoom
 }: AuctionTableProps) => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
@@ -214,7 +216,24 @@ export const AuctionTable = ({
 
                                         {/* Actions */}
                                         <td className="py-4 px-6">
-                                            <div className="flex items-center justify-start">
+                                            <div className="flex items-center justify-start gap-2">
+                                                {a.status === 'OPEN' && (
+                                                    <button
+                                                        onClick={() => {
+                                                            if (onOpenBiddingRoom) {
+                                                                onOpenBiddingRoom(a._id);
+                                                            } else if (onViewBids) {
+                                                                onViewBids(a._id);
+                                                            } else {
+                                                                navigate(`/auctions/${a._id}/bids`);
+                                                            }
+                                                        }}
+                                                        className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                                                    >
+                                                        <Hammer className="w-3.5 h-3.5" />
+                                                        <span>Bid Now</span>
+                                                    </button>
+                                                )}
                                                 <button
                                                     onClick={() => {
                                                         if (onViewDetails) {
@@ -223,10 +242,10 @@ export const AuctionTable = ({
                                                             navigate(`/auctions/${a._id}`);
                                                         }
                                                     }}
-                                                    className="px-4 py-2 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                                                    className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-xs"
                                                 >
                                                     <Eye className="w-3.5 h-3.5 text-emerald-400" />
-                                                    <span>View & Manage</span>
+                                                    <span>Details</span>
                                                 </button>
                                             </div>
                                         </td>

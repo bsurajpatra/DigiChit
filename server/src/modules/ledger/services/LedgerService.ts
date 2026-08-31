@@ -38,7 +38,7 @@ export class LedgerService {
             entryNumber,
             entryType: dto.entryType,
             referenceType: dto.referenceType,
-            referenceId: new mongoose.Types.ObjectId(dto.referenceId),
+            referenceId: (mongoose.Types.ObjectId.isValid(dto.referenceId) ? new mongoose.Types.ObjectId(dto.referenceId) : (dto.transactionId && mongoose.Types.ObjectId.isValid(dto.transactionId) ? new mongoose.Types.ObjectId(dto.transactionId) : new mongoose.Types.ObjectId())),
             transactionId: dto.transactionId ? new mongoose.Types.ObjectId(dto.transactionId) : null,
             memberId: new mongoose.Types.ObjectId(dto.memberId),
             organizerId: new mongoose.Types.ObjectId(dto.organizerId),

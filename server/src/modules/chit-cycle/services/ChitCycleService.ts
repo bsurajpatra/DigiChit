@@ -8,7 +8,7 @@ import { logAction } from '@shared/logger/auditLogger.js';
 import { eventBus } from '@shared/event-bus/EventBus.js';
 import { PaymentDomainEventType } from '@modules/payment/events/domainEvents.js';
 import { ICreateCycleInput, IRecordWinnerInput } from '../interfaces/IChitCycle.js';
-import Auction from '@modules/auction/models/Auction.js';
+import Auction, { AuctionStatus } from '@modules/auction/models/Auction.js';
 
 export class ChitCycleService {
     private repo: ChitCycleRepository;
@@ -68,6 +68,32 @@ export class ChitCycleService {
         });
 
         await this.repo.save(cycle);
+
+        // 4B. Auto-provision Auction for this cycle (Enforce 1:1 cycle-to-auction lifecycle)
+        try {
+            const existingAuction = await Auction.findOne({ cycleId: cycle._id, isDeleted: false });
+            if (!existingAuction) {
+                const auctionStartTime = cycle.auctionDate || cycle.scheduledStartDate || new Date();
+                const minBidPct = group.financialConfig?.commission?.value ?? group.commissionPercent ?? 0;
+                const maxBidPct = 50;
+
+                const auction = new Auction({
+                    cycleId: cycle._id,
+                    groupId: group._id,
+                    organizerId: group.organizerId,
+                    auctionNumber: cycle.cycleNumber,
+                    scheduledStartTime: auctionStartTime,
+                    scheduledEndTime: cycle.scheduledEndDate || null,
+                    minimumBidPercentage: minBidPct,
+                    maximumBidPercentage: maxBidPct,
+                    status: (AuctionStatus as any).SCHEDULED || 'SCHEDULED',
+                    createdBy: new mongoose.Types.ObjectId(actorId)
+                });
+                await auction.save();
+            }
+        } catch (auctionErr) {
+            console.error('[ChitCycleService] Failed to auto-provision auction for cycle:', auctionErr);
+        }
 
         // 5. Audit Log
         await logAction(actorId, actorRole, 'CHIT_CYCLE_CREATED', {
@@ -169,6 +195,35 @@ export class ChitCycleService {
         cycle.actualStartDate = actualStartDate ? new Date(actualStartDate) : new Date();
 
         await this.repo.save(cycle);
+
+        // Auto-transition associated Auction to OPEN
+        try {
+            let auction = await Auction.findOne({ cycleId: cycle._id, isDeleted: false });
+            if (!auction) {
+                const auctionStartTime = cycle.auctionDate || cycle.scheduledStartDate || cycle.actualStartDate || new Date();
+                const minBidPct = group.financialConfig?.commission?.value ?? group.commissionPercent ?? 0;
+                auction = new Auction({
+                    cycleId: cycle._id,
+                    groupId: group._id,
+                    organizerId: group.organizerId,
+                    auctionNumber: cycle.cycleNumber,
+                    scheduledStartTime: auctionStartTime,
+                    scheduledEndTime: cycle.scheduledEndDate || null,
+                    minimumBidPercentage: minBidPct,
+                    maximumBidPercentage: 50,
+                    status: (AuctionStatus as any).OPEN || 'OPEN',
+                    actualStartTime: cycle.actualStartDate,
+                    createdBy: new mongoose.Types.ObjectId(actorId)
+                });
+                await auction.save();
+            } else if (auction.status === (AuctionStatus as any).SCHEDULED || auction.status === 'SCHEDULED') {
+                auction.status = (AuctionStatus as any).OPEN || 'OPEN';
+                auction.actualStartTime = cycle.actualStartDate;
+                await auction.save();
+            }
+        } catch (auctionErr) {
+            console.error('[ChitCycleService] Failed to transition auction to OPEN:', auctionErr);
+        }
 
         await logAction(actorId, actorRole, 'CHIT_CYCLE_STARTED', {
             newValue: {

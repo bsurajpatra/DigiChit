@@ -73,9 +73,10 @@ export const EmbeddedBiddingRoom = ({ auctionId, user, onBack, backLabel = 'Back
     const monthlyContribution = groupObj?.monthlyContribution || 10000;
     const totalMembers = groupObj?.totalMembers || 10;
 
+    const currentUserId = user?.id || (user as any)?._id;
     const isMember = groupMembers.some((m) => {
-        const uId = typeof m.userId === 'object' ? m.userId._id : m.userId;
-        return uId === user?.id && ['APPROVED', 'ACTIVE_MEMBER'].includes(m.status);
+        const uId = typeof m.userId === 'object' ? (m.userId?._id || (m.userId as any)?.id) : m.userId;
+        return String(uId) === String(currentUserId) && ['APPROVED', 'ACTIVE_MEMBER', 'ACTIVE'].includes(m.status);
     });
 
     const handleFormSubmit = async (data: { bidPercentage: number; bidAmount: number; remarks?: string }) => {

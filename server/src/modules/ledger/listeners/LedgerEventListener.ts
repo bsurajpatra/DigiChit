@@ -1167,7 +1167,7 @@ export const initLedgerEventListeners = (): void => {
                             refundId: refundInfo.refundId || null,
                             reason: refundReason
                         },
-                        createdBy: txn.updatedBy ? txn.updatedBy.toString() : 'SYSTEM'
+                        createdBy: txn.updatedBy ? txn.updatedBy.toString() : (organizerIdStr || memberIdStr)
                     });
 
                     // Structured Audit Log
