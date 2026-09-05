@@ -1,5 +1,5 @@
 export { default as userRoutes } from './routes/user.routes.js';
-export { initInactivityCron } from './cron/inactivityCron.js';
+export { initInactivityCron, stopInactivityCron, isCronRunning } from './cron/inactivityCron.js';
 export {
     UserRole,
     AccountStatus,

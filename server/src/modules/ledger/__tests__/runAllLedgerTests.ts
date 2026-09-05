@@ -13,6 +13,7 @@ import { runE2EPaymentFlowTests } from '@modules/payment/__tests__/e2ePaymentFlo
 import { runCollectionManagementTests } from '@modules/collection/__tests__/collectionManagementFlow.test.js';
 import { runRazorpayGatewayTests } from '@modules/payment/__tests__/razorpayPaymentGateway.test.js';
 import { runCycleIsolationTests } from '@modules/auction/__tests__/cycleIsolation.test.js';
+import { runGracefulShutdownTests } from '@shared/shutdown/__tests__/gracefulShutdown.test.js';
 
 async function main() {
     console.log('\n======================================================');
@@ -74,6 +75,10 @@ async function main() {
         // 13. Run Per-Cycle Isolation Tests
         console.log('\n--- 13. PER-CYCLE AUCTION & BIDDING ISOLATION VERIFICATION ---');
         await runCycleIsolationTests();
+
+        // 14. Run Graceful Shutdown Tests
+        console.log('\n--- 14. PRODUCTION HARDENING: GRACEFUL SHUTDOWN VERIFICATION ---');
+        await runGracefulShutdownTests();
 
         console.log('\n======================================================');
         console.log('  🎉 ALL FINANCIAL & COLLECTION SUITES (P0-P9 + COLLECTION MGMT) PASSED CLEANLY');

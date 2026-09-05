@@ -26,6 +26,7 @@ export const config = {
     encryptionKey: process.env.ENCRYPTION_KEY as string,
     nodeEnv: process.env.NODE_ENV || 'development',
     frontendUrl: process.env.FRONTEND_URL as string,
+    shutdownTimeoutMs: parseInt(process.env.SHUTDOWN_TIMEOUT_MS || '10000', 10),
     cloudinary: {
         cloudName: process.env.CLOUDINARY_CLOUD_NAME as string,
         apiKey: process.env.CLOUDINARY_API_KEY as string,
