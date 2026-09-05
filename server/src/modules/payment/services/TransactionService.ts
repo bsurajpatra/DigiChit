@@ -1,3 +1,7 @@
+import { PaymentIdempotencyRepository } from '../repositories/PaymentIdempotencyRepository.js';
+import { PaymentIdempotencyStatus, IPaymentIdempotency } from '../models/PaymentIdempotency.js';
+import { generatePaymentFingerprint } from '../utils/idempotencyFingerprint.js';
+import { logger } from '@shared/logger/logger.js';
 import mongoose from 'mongoose';
 import { PaymentStatus } from '@modules/installment/models/Installment.js';
 import { PaymentCollectionStatus } from '@modules/chit-cycle/models/ChitCycle.js';
@@ -20,15 +24,172 @@ import { TransactionQueryDTO } from '../dto/TransactionQueryDTO.js';
 
 export class TransactionService {
     private repo: TransactionRepository;
+    private idempotencyRepo: PaymentIdempotencyRepository;
 
     constructor() {
         this.repo = new TransactionRepository();
+        this.idempotencyRepo = new PaymentIdempotencyRepository();
     }
 
     /**
-     * Initiates a payment order for a specific Installment obligation.
+     * Initiates a payment order for a specific Installment obligation with user-scoped idempotency.
      */
-    public async initiatePayment(actorId: string, dto: InitiatePaymentDTO): Promise<ITransaction> {
+    public async initiatePayment(actorId: string, dto: InitiatePaymentDTO, idempotencyKey?: string): Promise<ITransaction> {
+        // If idempotencyKey is provided, wrap in user-scoped idempotency workflow
+        if (idempotencyKey && idempotencyKey.trim().length > 0) {
+            const trimmedKey = idempotencyKey.trim();
+            const fingerprint = generatePaymentFingerprint({
+                installmentId: dto.installmentId,
+                paymentMethod: dto.paymentMethod,
+                paymentGateway: dto.paymentGateway
+            });
+
+            // 1. Attempt to insert IN_PROGRESS record
+            let idempotencyRecord: IPaymentIdempotency | null = null;
+            try {
+                idempotencyRecord = await this.idempotencyRepo.createInProgress(actorId, trimmedKey, fingerprint);
+            } catch (err: any) {
+                // Duplicate Key (E11000): An idempotency record already exists for this (userId, key)
+                if (err.code === 11000 || err.message?.includes('duplicate key') || err.name === 'MongoServerError') {
+                    const existing = await this.idempotencyRepo.findByUserAndKey(actorId, trimmedKey);
+                    if (!existing) {
+                        throw new AppError('Idempotency conflict detected', 409, 'IDEMPOTENCY_CONFLICT');
+                    }
+
+                    // A. Validate Request Fingerprint
+                    if (existing.requestFingerprint !== fingerprint) {
+                        logger.warn(`[PaymentIdempotency] Fingerprint mismatch for user ${actorId}, key ${trimmedKey}`);
+                        throw new AppError(
+                            'Idempotency-Key has already been used with different request parameters',
+                            409,
+                            'IDEMPOTENCY_CONFLICT'
+                        );
+                    }
+
+                    // B. If SUCCESS: return existing completed transaction
+                    if (existing.status === PaymentIdempotencyStatus.SUCCESS) {
+                        logger.info(`[PaymentIdempotency] Returning existing transaction for idempotency key ${trimmedKey}`);
+                        if (existing.transactionId) {
+                            const cachedTxn = await this.repo.findById(existing.transactionId.toString());
+                            if (cachedTxn) return cachedTxn;
+                        }
+                        // Fallback search if transactionId not directly linked
+                        const fallbackTxn = await this.repo.findByInstallmentAndStatus(dto.installmentId, [
+                            TransactionStatus.PENDING,
+                            TransactionStatus.SUCCESS
+                        ]);
+                        if (fallbackTxn.length > 0 && fallbackTxn[0]) {
+                            return fallbackTxn[0];
+                        }
+                    }
+
+                    // C. If IN_PROGRESS: Check if transaction already exists (e.g. crash recovery) or await resolution
+                    if (existing.status === PaymentIdempotencyStatus.IN_PROGRESS) {
+                        // Fast-path crash recovery: check if transaction was already persisted
+                        if (existing.transactionId) {
+                            const cachedTxn = await this.repo.findById(existing.transactionId.toString());
+                            if (cachedTxn) {
+                                await this.idempotencyRepo.markSuccess(existing._id, cachedTxn._id.toString());
+                                return cachedTxn;
+                            }
+                        }
+
+                        const immediateTxn = await this.repo.findByInstallmentAndStatus(dto.installmentId, [
+                            TransactionStatus.PENDING,
+                            TransactionStatus.SUCCESS
+                        ]);
+                        if (immediateTxn.length > 0 && immediateTxn[0]) {
+                            await this.idempotencyRepo.markSuccess(existing._id, immediateTxn[0]._id.toString(), {
+                                transactionNumber: immediateTxn[0].transactionNumber,
+                                gatewayOrderId: immediateTxn[0].gatewayOrderId
+                            });
+                            return immediateTxn[0];
+                        }
+
+                        logger.info(`[PaymentIdempotency] Concurrent request detected for key ${trimmedKey}. Awaiting resolution...`);
+                        const startWait = Date.now();
+                        const maxWaitMs = 10000; // 10s wait limit
+                        while (Date.now() - startWait < maxWaitMs) {
+                            await new Promise((r) => setTimeout(r, 100));
+                            const polled = await this.idempotencyRepo.findByUserAndKey(actorId, trimmedKey);
+                            if (polled?.status === PaymentIdempotencyStatus.SUCCESS) {
+                                if (polled.transactionId) {
+                                    const txn = await this.repo.findById(polled.transactionId.toString());
+                                    if (txn) return txn;
+                                }
+                                const fallbackTxn = await this.repo.findByInstallmentAndStatus(dto.installmentId, [
+                                    TransactionStatus.PENDING,
+                                    TransactionStatus.SUCCESS
+                                ]);
+                                if (fallbackTxn.length > 0 && fallbackTxn[0]) return fallbackTxn[0];
+                            }
+                            if (polled?.status === PaymentIdempotencyStatus.FAILED) {
+                                break;
+                            }
+
+                            // Also poll if transaction was created during concurrent execution
+                            const asyncTxn = await this.repo.findByInstallmentAndStatus(dto.installmentId, [
+                                TransactionStatus.PENDING,
+                                TransactionStatus.SUCCESS
+                            ]);
+                            if (asyncTxn.length > 0 && asyncTxn[0]) {
+                                await this.idempotencyRepo.markSuccess(existing._id, asyncTxn[0]._id.toString(), {
+                                    transactionNumber: asyncTxn[0].transactionNumber,
+                                    gatewayOrderId: asyncTxn[0].gatewayOrderId
+                                });
+                                return asyncTxn[0];
+                            }
+                        }
+
+                        // If timed out and no transaction exists, reset to in_progress to retry
+                        await this.idempotencyRepo.resetToInProgress(existing._id, fingerprint);
+                        idempotencyRecord = existing;
+                    }
+
+                    // D. If FAILED: allow retry by resetting to IN_PROGRESS
+                    if (existing.status === PaymentIdempotencyStatus.FAILED) {
+                        logger.info(`[PaymentIdempotency] Retrying previously failed payment initiation for key ${trimmedKey}`);
+                        await this.idempotencyRepo.resetToInProgress(existing._id, fingerprint);
+                        idempotencyRecord = existing;
+                    }
+                } else {
+                    throw err;
+                }
+            }
+
+            // 2. Execute Payment Initiation Flow
+            try {
+                const transaction = await this.executePaymentInitiation(actorId, dto);
+
+                // 3. Mark Idempotency as SUCCESS
+                if (idempotencyRecord) {
+                    await this.idempotencyRepo.markSuccess(idempotencyRecord._id, transaction._id.toString(), {
+                        transactionNumber: transaction.transactionNumber,
+                        gatewayOrderId: transaction.gatewayOrderId,
+                        amount: transaction.amount,
+                        currency: transaction.currency,
+                        status: transaction.status
+                    });
+                }
+
+                return transaction;
+            } catch (executionError: any) {
+                // 4. Mark Idempotency as FAILED
+                if (idempotencyRecord) {
+                    await this.idempotencyRepo.markFailed(idempotencyRecord._id, executionError.message || 'Payment initiation failed');
+                }
+                throw executionError;
+            }
+        }
+
+        // If no idempotency key provided (internal call), execute standard flow
+        return await this.executePaymentInitiation(actorId, dto);
+    }
+
+    /**
+     * Internal core payment initiation execution
+     */
+    private async executePaymentInitiation(actorId: string, dto: InitiatePaymentDTO): Promise<ITransaction> {
         const installment = await this.repo.findInstallmentById(dto.installmentId);
         if (!installment) {
             throw new AppError('Installment obligation not found', 404, 'INSTALLMENT_NOT_FOUND');

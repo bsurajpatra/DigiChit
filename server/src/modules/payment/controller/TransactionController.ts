@@ -9,7 +9,10 @@ const transactionService = new TransactionService();
 export const initiatePayment = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
         const actorId = req.user!.id;
-        const transaction = await transactionService.initiatePayment(actorId, req.body);
+        const rawKey = req.header('Idempotency-Key') || req.headers['idempotency-key'] || '';
+        const idempotencyKey = (typeof rawKey === 'string' ? rawKey : '').trim();
+
+        const transaction = await transactionService.initiatePayment(actorId, req.body, idempotencyKey);
 
         res.status(201).json({
             success: true,

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { X, CreditCard, CheckCircle2, AlertCircle, Loader2, Smartphone, Building2, Zap, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '../../utils/currency';
@@ -38,6 +38,17 @@ export const PayNowModal = ({
     const [processingMessage, setProcessingMessage] = useState('Initiating payment gateway order...');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [completedTransaction, setCompletedTransaction] = useState<TransactionRecord | null>(null);
+    const idempotencyKeyRef = useRef<string>('');
+
+    const getOrCreateIdempotencyKey = () => {
+        if (!idempotencyKeyRef.current) {
+            idempotencyKeyRef.current =
+                typeof crypto !== 'undefined' && crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : `idemp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        }
+        return idempotencyKeyRef.current;
+    };
 
     if (!isOpen) return null;
 
@@ -86,6 +97,7 @@ export const PayNowModal = ({
         setStep('IDLE');
         setErrorMessage(null);
         setCompletedTransaction(null);
+        idempotencyKeyRef.current = '';
     };
 
     const handleModalClose = () => {
@@ -109,13 +121,16 @@ export const PayNowModal = ({
 
                 // 2. Initiate order on backend
                 setProcessingMessage('Creating secure Razorpay Test Order...');
-                const initiatedTxn = await initiatePayment({
-                    installmentId: installment._id,
-                    paymentMethod: selectedMethodId,
-                    paymentGateway: 'RAZORPAY',
-                    amount: netAmount,
-                    currency: currency || 'INR'
-                });
+                const initiatedTxn = await initiatePayment(
+                    {
+                        installmentId: installment._id,
+                        paymentMethod: selectedMethodId,
+                        paymentGateway: 'RAZORPAY',
+                        amount: netAmount,
+                        currency: currency || 'INR'
+                    },
+                    getOrCreateIdempotencyKey()
+                );
 
                 const rzpKey = config.razorpay.keyId || (initiatedTxn as any).keyId;
 
@@ -186,13 +201,16 @@ export const PayNowModal = ({
             } else {
                 // ─── MOCK GATEWAY SIMULATOR FLOW ───
                 setProcessingMessage('Creating secure transaction order...');
-                const initiatedTxn = await initiatePayment({
-                    installmentId: installment._id,
-                    paymentMethod: selectedMethodId,
-                    paymentGateway: 'MOCK',
-                    amount: netAmount,
-                    currency: currency || 'INR'
-                });
+                const initiatedTxn = await initiatePayment(
+                    {
+                        installmentId: installment._id,
+                        paymentMethod: selectedMethodId,
+                        paymentGateway: 'MOCK',
+                        amount: netAmount,
+                        currency: currency || 'INR'
+                    },
+                    getOrCreateIdempotencyKey()
+                );
 
                 setProcessingMessage('Authorizing payment with mock simulator...');
                 const verifiedTxn = await verifyPayment({

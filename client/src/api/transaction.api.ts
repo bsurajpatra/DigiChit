@@ -83,8 +83,20 @@ export interface TransactionQueryParams {
     sortOrder?: 'asc' | 'desc';
 }
 
-export const initiatePayment = async (payload: InitiatePaymentPayload): Promise<TransactionRecord> => {
-    const res = await api.post('/transactions/initiate', payload);
+export const initiatePayment = async (
+    payload: InitiatePaymentPayload,
+    idempotencyKey?: string
+): Promise<TransactionRecord> => {
+    const key =
+        idempotencyKey ||
+        (typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `idemp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`);
+    const res = await api.post('/transactions/initiate', payload, {
+        headers: {
+            'Idempotency-Key': key
+        }
+    });
     return res.data.data.transaction;
 };
 

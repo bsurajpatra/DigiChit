@@ -3,6 +3,27 @@ import mongoose from 'mongoose';
 import { PaymentMethod, PaymentGatewayProvider, TransactionStatus } from '../models/Transaction.js';
 
 export const validateInitiatePayment = (req: Request, res: Response, next: NextFunction): void => {
+    // 1. Validate Idempotency-Key Header
+    const rawKey = req.header('Idempotency-Key') || req.headers['idempotency-key'];
+    if (!rawKey || typeof rawKey !== 'string' || rawKey.trim().length === 0) {
+        res.status(400).json({
+            success: false,
+            message: 'Idempotency-Key header is required for payment initiation',
+            code: 'MISSING_IDEMPOTENCY_KEY'
+        });
+        return;
+    }
+
+    const trimmedKey = rawKey.trim();
+    if (trimmedKey.length > 255) {
+        res.status(400).json({
+            success: false,
+            message: 'Idempotency-Key exceeds maximum allowed length of 255 characters',
+            code: 'INVALID_IDEMPOTENCY_KEY'
+        });
+        return;
+    }
+
     const { installmentId, amount, paymentMethod, paymentGateway } = req.body;
 
     if (!installmentId || !mongoose.Types.ObjectId.isValid(installmentId)) {
