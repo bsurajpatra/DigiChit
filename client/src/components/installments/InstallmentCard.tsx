@@ -55,7 +55,7 @@ export const InstallmentCard = ({ installment, currency, onDownloadReceipt, onPa
                                 {groupObj?.name ? groupObj.name : `Cycle #${cycleObj?.cycleNumber || installment.installmentNumber}`}
                             </h4>
                             <p className="text-[11px] font-medium text-slate-400">
-                                Installment #{installment.installmentNumber}
+                                Monthly Contribution #{installment.installmentNumber}
                             </p>
                         </div>
                     </div>
@@ -66,7 +66,7 @@ export const InstallmentCard = ({ installment, currency, onDownloadReceipt, onPa
                 {/* Financial Summary */}
                 <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100 text-xs mb-4">
                     <div>
-                        <span className="text-slate-400 font-medium block text-[10px] uppercase">Base Amount</span>
+                        <span className="text-slate-400 font-medium block text-[10px] uppercase">Monthly Contribution</span>
                         <span className="text-base font-black text-slate-900">{formatCurrency(installment.amount || 0, activeCurrency)}</span>
                     </div>
 
@@ -118,7 +118,7 @@ export const InstallmentCard = ({ installment, currency, onDownloadReceipt, onPa
                             className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
                         >
                             <CreditCard className="w-3.5 h-3.5" />
-                            <span>Pay Now ({formatCurrency(netAmount, activeCurrency)})</span>
+                            <span>Pay Monthly Due ({formatCurrency(netAmount, activeCurrency)})</span>
                         </button>
                     ) : (
                         <div className="w-full py-2.5 px-3 bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold rounded-xl text-center flex items-center justify-center gap-1.5">

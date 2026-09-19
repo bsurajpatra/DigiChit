@@ -1445,11 +1445,11 @@ export const ChitDetails = () => {
                                     <Coins className="w-4 h-4" />
                                     <span>Financial Collections & Dues</span>
                                 </div>
-                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Installments & Member Dues</h2>
+                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Monthly Dues & Contributions</h2>
                                 <p className="text-xs text-slate-500 mt-0.5">
                                     {isOrganizer
-                                        ? 'Manage payment collections, generate monthly dues, and track member payments.'
-                                        : 'View your monthly installment dues, payment status, and make online payments.'
+                                        ? 'Manage monthly collection cycles, view member dues, and track incoming contributions.'
+                                        : 'View your scheduled monthly contributions, dividend discounts, and complete online payments.'
                                     }
                                 </p>
                             </div>
@@ -1585,7 +1585,7 @@ export const ChitDetails = () => {
                                             <span>Member Contribution</span>
                                         </div>
                                         <h3 className="text-xl font-black text-slate-900 tracking-tight">
-                                            My Installment Dues ({myGroupInstallments.length})
+                                            My Monthly Dues ({myGroupInstallments.length})
                                         </h3>
                                     </div>
                                     {myPendingInstallments.length > 0 && (
@@ -1622,7 +1622,7 @@ export const ChitDetails = () => {
                                                         </div>
                                                         <div>
                                                             <div className="flex items-center gap-2">
-                                                                <h4 className="text-base font-black text-slate-900">Installment #{inst.installmentNumber}</h4>
+                                                                <h4 className="text-base font-black text-slate-900">Monthly Contribution #{inst.installmentNumber}</h4>
                                                                 <span className="text-xs font-bold text-slate-400">
                                                                     (Cycle #{typeof inst.cycleId === 'object' ? (inst.cycleId as any).cycleNumber : (cycles.find(c => c._id === inst.cycleId)?.cycleNumber || inst.installmentNumber)})
                                                                 </span>

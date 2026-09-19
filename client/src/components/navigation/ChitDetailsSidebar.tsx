@@ -174,7 +174,7 @@ export const ChitDetailsSidebar = ({
                     {navBtn(
                         'INSTALLMENTS',
                         <Coins className={`w-5 h-5 shrink-0 ${activeTab === 'INSTALLMENTS' ? 'text-emerald-600' : 'text-slate-400'}`} />,
-                        'Installments & Dues',
+                        'Monthly Dues & Contributions',
                     )}
 
                     {navBtn(

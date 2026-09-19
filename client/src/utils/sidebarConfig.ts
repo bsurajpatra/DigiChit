@@ -1,6 +1,6 @@
 import {
     UserCheck, Briefcase, UserCircle,
-    PlusCircle, FolderKanban, Search, Wallet, ShieldPlus, ShieldAlert, Inbox, MessageSquare, CreditCard, FileText, Coins
+    PlusCircle, FolderKanban, Search, Wallet, ShieldPlus, ShieldAlert, Inbox, MessageSquare, CreditCard, FileText
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -8,10 +8,11 @@ export type MenuItem = {
     label: string;
     path: string;
     icon: LucideIcon;
+    badge?: string | number;
     subItems?: MenuItem[];
 };
 
-export const getSidebarMenu = (role: string, organizerStatus: string, kycStatus?: string): MenuItem[] => {
+export const getSidebarMenu = (role: string, organizerStatus: string, kycStatus?: string, pendingDuesCount?: number): MenuItem[] => {
     if (role === 'ADMIN') {
         return [
             { label: 'KYC Approvals', path: '/admin/kyc', icon: UserCheck },
@@ -31,10 +32,14 @@ export const getSidebarMenu = (role: string, organizerStatus: string, kycStatus?
         baseItems.push({ label: 'Verify Identity', path: '/kyc/status', icon: UserCheck });
     }
 
-    const supportItem = { label: 'Support', path: '/support', icon: MessageSquare };
-    const paymentsItem = { label: 'Payments', path: '/payments', icon: CreditCard };
-    const memberStatementItem = { label: 'My Statement', path: '/my-statement', icon: FileText };
-    const organizerStatementItem = { label: 'Statements', path: '/organizer/statements', icon: FileText };
+    const supportItem: MenuItem = { label: 'Support & Help', path: '/support', icon: MessageSquare };
+    const paymentsItem: MenuItem = { 
+        label: 'Payments', 
+        path: '/payments', 
+        icon: CreditCard,
+        badge: pendingDuesCount && pendingDuesCount > 0 ? pendingDuesCount : undefined
+    };
+    const memberStatementItem: MenuItem = { label: 'My Statement', path: '/my-statement', icon: FileText };
 
     if (role === 'ORGANIZER') {
         return [
@@ -46,24 +51,29 @@ export const getSidebarMenu = (role: string, organizerStatus: string, kycStatus?
                     { label: 'Create Chit', path: '/organizer/create-chit', icon: PlusCircle },
                     { label: 'My Organized Chits', path: '/organizer/my-chits', icon: FolderKanban },
                     { label: 'Join Chit', path: '/join-chit', icon: Search },
-                    { label: 'My Chits', path: '/my-chits', icon: Wallet },
-                    { label: 'My Dues', path: '/my-installments', icon: Coins },
+                    { label: 'My Subscribed Chits', path: '/my-chits', icon: Wallet },
                 ]
             },
             ...baseItems,
             paymentsItem,
-            memberStatementItem,
-            organizerStatementItem,
-            { label: 'Profile', path: '/profile', icon: UserCircle },
+            {
+                label: 'Statements',
+                path: '#statements',
+                icon: FileText,
+                subItems: [
+                    { label: 'My Statement', path: '/my-statement', icon: FileText },
+                    { label: 'Circle Statements', path: '/organizer/statements', icon: FileText },
+                ]
+            },
+            { label: 'Profile Settings', path: '/profile', icon: UserCircle },
             supportItem
         ];
     }
 
-    // Default to USER
+    // Default to USER (Member)
     const chitsSubItems: MenuItem[] = [
         { label: 'Join Chit', path: '/join-chit', icon: Search },
         { label: 'My Chits', path: '/my-chits', icon: Wallet },
-        { label: 'My Dues', path: '/my-installments', icon: Coins },
     ];
 
     const baseMenu: MenuItem[] = [
@@ -81,7 +91,7 @@ export const getSidebarMenu = (role: string, organizerStatus: string, kycStatus?
 
     baseMenu.push(paymentsItem);
     baseMenu.push(memberStatementItem);
-    baseMenu.push({ label: 'Profile', path: '/profile', icon: UserCircle });
+    baseMenu.push({ label: 'Profile Settings', path: '/profile', icon: UserCircle });
     baseMenu.push(supportItem);
 
     return baseMenu;

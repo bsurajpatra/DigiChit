@@ -88,7 +88,7 @@ export const InstallmentTable = ({
                 <div>
                     <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                         <Coins className="w-5 h-5 text-emerald-600" />
-                        <span>Cycle Installments Log ({installments.length})</span>
+                        <span>Monthly Contributions Log ({installments.length})</span>
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
                         Track individual member payment obligations, direct payments, and late fees
@@ -143,7 +143,7 @@ export const InstallmentTable = ({
                     <thead>
                         <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-400">
                             <th className="py-3.5 px-6">Member</th>
-                            <th className="py-3.5 px-6">Base Dues</th>
+                            <th className="py-3.5 px-6">Monthly Contribution</th>
                             <th className="py-3.5 px-6">Due Date</th>
                             <th className="py-3.5 px-6">Late Fee</th>
                             <th className="py-3.5 px-6">Status</th>

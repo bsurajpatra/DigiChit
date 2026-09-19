@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useInstallments } from '../../hooks/useInstallments';
 import { LogOut, X, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSidebarMenu, type MenuItem } from '../../utils/sidebarConfig';
@@ -17,7 +18,9 @@ export const Sidebar = ({ isMobileOpen, setMobileOpen }: SidebarProps) => {
 
     if (!user) return null;
 
-    const menuItems = getSidebarMenu(user.role, user.organizerStatus, user.kycStatus);
+    const { installments } = useInstallments(undefined, undefined, user.role !== 'ADMIN');
+    const pendingDuesCount = installments.filter(i => (i.paymentStatus || i.status) === 'PENDING' || (i.paymentStatus || i.status) === 'OVERDUE').length;
+    const menuItems = getSidebarMenu(user.role, user.organizerStatus, user.kycStatus, pendingDuesCount);
 
     const [expandedApps, setExpandedApps] = useState<string[]>(['Chits']); // default expanded
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -135,11 +138,18 @@ export const Sidebar = ({ isMobileOpen, setMobileOpen }: SidebarProps) => {
                             ) : (
                                 <Link 
                                     to={item.path} 
-                                    className={navItemStyles(item.path)}
+                                    className={`${navItemStyles(item.path)} justify-between`}
                                     onClick={() => setMobileOpen(false)}
                                 >
-                                    <item.icon className="w-5 h-5 shrink-0" />
-                                    <span className="truncate">{item.label}</span>
+                                    <div className="flex items-center gap-3">
+                                        <item.icon className="w-5 h-5 shrink-0" />
+                                        <span className="truncate">{item.label}</span>
+                                    </div>
+                                    {item.badge !== undefined && (
+                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-600 text-white shrink-0 shadow-xs">
+                                            {item.badge}
+                                        </span>
+                                    )}
                                 </Link>
                             )}
                         </div>

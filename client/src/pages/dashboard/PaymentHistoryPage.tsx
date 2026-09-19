@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTransactions, useRefundPayment } from '../../hooks/useTransactions';
 import { useInstallments } from '../../hooks/useInstallments';
@@ -17,7 +18,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export const PaymentHistoryPage = () => {
     const { user } = useAuth();
-    const [mainTab, setMainTab] = useState<'DUES' | 'HISTORY'>('DUES');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const initialTab = searchParams.get('tab') === 'history' ? 'HISTORY' : 'DUES';
+    const [mainTab, setMainTab] = useState<'DUES' | 'HISTORY'>(initialTab);
+
+    useEffect(() => {
+        const tabParam = searchParams.get('tab');
+        if (tabParam === 'history') setMainTab('HISTORY');
+        else if (tabParam === 'dues') setMainTab('DUES');
+    }, [searchParams]);
     const [installmentFilterTab, setInstallmentFilterTab] = useState<'ALL' | InstallmentPaymentStatus>('ALL');
 
     // Transactions State
@@ -123,7 +132,7 @@ export const PaymentHistoryPage = () => {
             {/* Navigation Tabs (Pending Dues vs Transaction History) */}
             <div className="bg-white p-2 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-2">
                 <button
-                    onClick={() => setMainTab('DUES')}
+                    onClick={() => { setMainTab('DUES'); setSearchParams({ tab: 'dues' }); }}
                     className={`
                         flex-1 py-3 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer
                         ${mainTab === 'DUES'
@@ -142,7 +151,7 @@ export const PaymentHistoryPage = () => {
                 </button>
 
                 <button
-                    onClick={() => setMainTab('HISTORY')}
+                    onClick={() => { setMainTab('HISTORY'); setSearchParams({ tab: 'history' }); }}
                     className={`
                         flex-1 py-3 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer
                         ${mainTab === 'HISTORY'
