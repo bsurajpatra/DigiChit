@@ -6,6 +6,7 @@ import { logAction } from '@shared/logger/auditLogger.js';
 import { eventBus } from '@shared/event-bus/EventBus.js';
 import { PaymentDomainEventType } from '@modules/payment/events/domainEvents.js';
 import { CollectionRepository } from '../repositories/CollectionRepository.js';
+import { InstallmentService } from '@modules/installment/services/InstallmentService.js';
 
 export class CollectionService {
     private repo: CollectionRepository;
@@ -68,6 +69,14 @@ export class CollectionService {
         };
 
         await this.repo.saveCycle(cycle);
+
+        // Automatically ensure member installment obligations exist when collections open
+        try {
+            const installmentService = new InstallmentService();
+            await installmentService.generateInstallmentsForCycle(actorId, actorRole, cycleId);
+        } catch (instError: any) {
+            console.warn('[CollectionService] Auto-generation note on openCollections:', instError.message);
+        }
 
         // Domain Event
         eventBus.publish({

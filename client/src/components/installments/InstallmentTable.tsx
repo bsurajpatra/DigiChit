@@ -168,8 +168,11 @@ export const InstallmentTable = ({
                                 ));
                                 
                                 // Resolve cycle collection status
-                                const cycleObj = typeof inst.cycleId === 'object' ? inst.cycleId : cycles?.find(c => c._id === inst.cycleId);
-                                const collectionStatus = (cycleObj as any)?.paymentCollection?.status || 
+                                const cycleIdStr = typeof inst.cycleId === 'object' ? (inst.cycleId?._id || (inst.cycleId as any)?.id) : inst.cycleId;
+                                const fullCycle = cycles?.find(c => c._id === cycleIdStr);
+                                const cycleObj = fullCycle || (typeof inst.cycleId === 'object' ? inst.cycleId : null);
+                                const collectionStatus = fullCycle?.paymentCollection?.status ||
+                                    (cycleObj as any)?.paymentCollection?.status || 
                                     (cycleObj as any)?.paymentCollectionStatus || 
                                     defaultCollectionStatus || 
                                     'OPEN';

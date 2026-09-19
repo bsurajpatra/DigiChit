@@ -62,8 +62,8 @@ export class InstallmentRepository {
         return await Installment.findById(installmentId)
             .populate('userId', 'name email')
             .populate('membershipId')
-            .populate('cycleId', 'cycleNumber status scheduledStartDate')
-            .populate('groupId', 'name monthlyContribution');
+            .populate('cycleId', 'cycleNumber status scheduledStartDate paymentCollection')
+            .populate('groupId', 'name monthlyContribution financialConfig');
     }
 
     public async findByCycle(cycleId: string, status?: PaymentStatus, memberUserId?: string): Promise<IInstallment[]> {
@@ -77,7 +77,9 @@ export class InstallmentRepository {
         return await Installment.find(query)
             .sort({ installmentNumber: 1 })
             .populate('userId', 'name email')
-            .populate('membershipId');
+            .populate('membershipId')
+            .populate('cycleId', 'cycleNumber status scheduledStartDate paymentCollection')
+            .populate('groupId', 'name monthlyContribution financialConfig');
     }
 
     public async findByMember(membershipId: string): Promise<IInstallment[]> {

@@ -333,6 +333,8 @@ export const ChitDetails = () => {
                 await cancelCycle(cycleConfirmModal.cycleId);
             } else if (cycleConfirmModal.type === 'openCollections') {
                 await openCollections(cycleConfirmModal.cycleId);
+                await refetchCycles();
+                await refetchInstallments();
             } else if (cycleConfirmModal.type === 'closeCollections') {
                 await closeCollections(cycleConfirmModal.cycleId);
             }
@@ -1596,8 +1598,14 @@ export const ChitDetails = () => {
                                 {/* Full-Width Stack of Installment Cards */}
                                 <div className="space-y-4">
                                     {myGroupInstallments.map((inst) => {
-                                        const cycleObj = typeof inst.cycleId === 'object' ? inst.cycleId : cycles.find(c => c._id === inst.cycleId);
-                                        const colStatus = (cycleObj as any)?.paymentCollection?.status || (cycleObj as any)?.paymentCollectionStatus || 'NOT_STARTED';
+                                        const cycleIdStr = typeof inst.cycleId === 'object' ? (inst.cycleId?._id || (inst.cycleId as any)?.id) : inst.cycleId;
+                                        const fullCycle = cycles.find(c => c._id === cycleIdStr);
+                                        const cycleObj = fullCycle || (typeof inst.cycleId === 'object' ? inst.cycleId : null);
+                                        const colStatus = fullCycle?.paymentCollection?.status || 
+                                            (cycleObj as any)?.paymentCollection?.status || 
+                                            (cycleObj as any)?.paymentCollectionStatus || 
+                                            currentCollectionStatus || 
+                                            'OPEN';
                                         const isPaid = (inst.paymentStatus || inst.status) === 'PAID';
                                         const netPayable = (inst.amount || 0) + (inst.lateFee || 0) - (inst.paidAmount || 0);
 
@@ -1715,6 +1723,8 @@ export const ChitDetails = () => {
                         ) : (
                             <InstallmentTable
                                 installments={installments}
+                                cycles={cycles}
+                                defaultCollectionStatus={currentCollectionStatus}
                                 isOrganizer={isOrganizer}
                                 isAdmin={isAdmin}
                                 currentUserId={currentUserIdStr}

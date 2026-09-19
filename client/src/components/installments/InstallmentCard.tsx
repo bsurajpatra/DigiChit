@@ -31,7 +31,8 @@ export const InstallmentCard = ({ installment, currency, onDownloadReceipt, onPa
     const netAmount = (installment.amount || 0) + (installment.lateFee || 0);
     const isPaid = currentStatus === 'PAID';
 
-    const collectionStatus = (cycleObj as any)?.paymentCollection?.status || (cycleObj as any)?.paymentCollectionStatus || 'NOT_STARTED';
+    const explicitColStatus = (cycleObj as any)?.paymentCollection?.status || (cycleObj as any)?.paymentCollectionStatus || (installment as any)?.collectionStatus;
+    const collectionStatus = explicitColStatus || 'OPEN';
 
     return (
         <>

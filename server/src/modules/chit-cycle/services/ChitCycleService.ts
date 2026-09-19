@@ -9,6 +9,7 @@ import { eventBus } from '@shared/event-bus/EventBus.js';
 import { PaymentDomainEventType } from '@modules/payment/events/domainEvents.js';
 import { ICreateCycleInput, IRecordWinnerInput } from '../interfaces/IChitCycle.js';
 import Auction, { AuctionStatus } from '@modules/auction/models/Auction.js';
+import { InstallmentService } from '@modules/installment/services/InstallmentService.js';
 
 export class ChitCycleService {
     private repo: ChitCycleRepository;
@@ -488,6 +489,14 @@ export class ChitCycleService {
         };
 
         await this.repo.save(cycle);
+
+        // Automatically ensure member installment obligations exist when collections open
+        try {
+            const installmentService = new InstallmentService();
+            await installmentService.generateInstallmentsForCycle(actorId, actorRole, cycleId);
+        } catch (instError: any) {
+            console.warn('[ChitCycleService] Auto-generation note on openCollections:', instError.message);
+        }
 
         eventBus.publish({
             eventType: PaymentDomainEventType.COLLECTIONS_OPENED,
