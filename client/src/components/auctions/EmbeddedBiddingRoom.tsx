@@ -12,7 +12,8 @@ import { BidCard } from '../bids/BidCard';
 import { BidTable } from '../bids/BidTable';
 import { BidConfirmationModal } from '../bids/BidConfirmationModal';
 import { Loader } from '../ui/Loader';
-import { ArrowLeft, Hammer, RefreshCw, Info } from 'lucide-react';
+import { ArrowLeft, Hammer, RefreshCw, Info, Wifi, TrendingUp, Trophy, Sparkles } from 'lucide-react';
+import { formatCurrency } from '../../utils/currency';
 
 interface EmbeddedBiddingRoomProps {
     auctionId: string;
@@ -72,12 +73,17 @@ export const EmbeddedBiddingRoom = ({ auctionId, user, onBack, backLabel = 'Back
     const groupObj = typeof auction?.groupId === 'object' ? auction.groupId : null;
     const monthlyContribution = groupObj?.monthlyContribution || 10000;
     const totalMembers = groupObj?.totalMembers || 10;
+    const currency = (groupObj as any)?.financialConfig?.currency || 'INR';
 
     const currentUserId = user?.id || (user as any)?._id;
     const isMember = groupMembers.some((m) => {
         const uId = typeof m.userId === 'object' ? (m.userId?._id || (m.userId as any)?.id) : m.userId;
         return String(uId) === String(currentUserId) && ['APPROVED', 'ACTIVE_MEMBER', 'ACTIVE'].includes(m.status);
     });
+
+    // Calculate current highest discount bid
+    const validBids = bids.filter(b => b.status === 'SUBMITTED' || b.status === 'VALID' || b.status === 'WINNING');
+    const highestBidPercentage = validBids.length > 0 ? Math.max(...validBids.map(b => b.bidPercentage)) : undefined;
 
     const handleFormSubmit = async (data: { bidPercentage: number; bidAmount: number; remarks?: string }) => {
         if (!auctionId) return;
@@ -122,47 +128,74 @@ export const EmbeddedBiddingRoom = ({ auctionId, user, onBack, backLabel = 'Back
 
     return (
         <div className="space-y-6">
-            {/* Back Nav Button */}
-            <button
-                onClick={onBack}
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition cursor-pointer"
-            >
-                <ArrowLeft className="w-4 h-4 text-emerald-400" />
-                <span>{backLabel}</span>
-            </button>
+            {/* Top Navigation & Status Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-4">
+                <button
+                    onClick={onBack}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-xs active:scale-95"
+                >
+                    <ArrowLeft className="w-4 h-4 text-emerald-400" />
+                    <span>{backLabel}</span>
+                </button>
+
+                {/* Pulsing Connection Dot & Real-Time Sync Indicator */}
+                <div className="flex items-center gap-3">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200/80 rounded-full text-xs font-bold shadow-2xs">
+                        <span className="flex h-2 w-2 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
+                        </span>
+                        <span>Live Auction Room Connected</span>
+                    </div>
+
+                    <button
+                        onClick={refetchBids}
+                        disabled={bidsLoading}
+                        className="p-2 bg-white hover:bg-slate-100 text-slate-600 border border-slate-200/80 rounded-xl transition cursor-pointer disabled:opacity-50 shadow-2xs"
+                        title="Refresh Live Bids"
+                    >
+                        <RefreshCw className={`w-4 h-4 text-emerald-600 ${bidsLoading ? 'animate-spin' : ''}`} />
+                    </button>
+                </div>
+            </div>
 
             {bidsError && (
-                <div className="p-4 bg-rose-50 text-rose-700 text-xs font-bold rounded-xl border-none">
+                <div className="p-4 bg-rose-50 text-rose-700 text-xs font-bold rounded-xl border border-rose-200/60">
                     {bidsError}
                 </div>
             )}
 
             {/* Header Card */}
             <div className="bg-white p-6 rounded-2xl border-none shadow-none">
-                <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center font-black text-lg shrink-0">
+                        <div className="w-12 h-12 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center font-black text-lg shrink-0 shadow-xs">
                             <Hammer className="w-6 h-6" />
                         </div>
                         <div>
                             <div className="flex items-center gap-3">
-                                <h2 className="text-xl font-black text-slate-900">Auction #{auction.auctionNumber} Bidding Room</h2>
+                                <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                                    Month #{auction.auctionNumber} Live Bidding Room
+                                </h2>
                                 <AuctionStatusBadge status={auction.status} size="sm" />
                             </div>
-                            <p className="text-xs text-slate-400 mt-0.5">
-                                {groupObj?.name ? `Group: ${groupObj.name}` : 'Live Member Bidding System'}
+                            <p className="text-xs text-slate-400 font-medium mt-0.5">
+                                {groupObj?.name ? `Circle: ${groupObj.name}` : 'Live Member Bidding System'} • Total Pool: <strong className="text-slate-900 font-bold">{formatCurrency(monthlyContribution * totalMembers, currency)}</strong>
                             </p>
                         </div>
                     </div>
 
-                    <button
-                        onClick={refetchBids}
-                        disabled={bidsLoading}
-                        className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition cursor-pointer disabled:opacity-50"
-                        title="Refresh Bids"
-                    >
-                        <RefreshCw className={`w-4 h-4 text-emerald-400 ${bidsLoading ? 'animate-spin' : ''}`} />
-                    </button>
+                    {/* Quick Stats Pills */}
+                    <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+                        <span className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-xl">
+                            Allowed Range: {auction.minimumBidPercentage}% — {auction.maximumBidPercentage}%
+                        </span>
+                        {highestBidPercentage !== undefined && (
+                            <span className="px-3 py-1.5 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200/60">
+                                Current Best Discount: <strong className="text-emerald-950 font-black">{highestBidPercentage}%</strong>
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -181,57 +214,56 @@ export const EmbeddedBiddingRoom = ({ auctionId, user, onBack, backLabel = 'Back
                     winner={auction.winningMembershipId}
                     winningBidPercentage={auction.minimumBidPercentage}
                     remarks={auction.remarks}
+                    currency={currency}
                 />
             )}
 
             {/* Main Bidding Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                {/* Left Column: Member Bidding Card & Form */}
-                <div className="lg:col-span-1 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* Left Column: Member Bidding Card & Form (5 cols) */}
+                <div className="lg:col-span-5 space-y-6">
                     {isMember ? (
                         myActiveBid && !editingBid ? (
                             <BidCard
                                 bid={myActiveBid}
                                 isAuctionOpen={isAuctionOpen}
+                                currency={currency}
                                 onEdit={() => setEditingBid(myActiveBid)}
                                 onWithdraw={(id) => setConfirmModal({ isOpen: true, type: 'withdraw', bidId: id, bidPercentage: myActiveBid.bidPercentage, bidAmount: myActiveBid.bidAmount })}
                             />
                         ) : (
-                            <div className="bg-white p-6 rounded-2xl border-none shadow-none space-y-4">
-                                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                    <Hammer className="w-4 h-4 text-emerald-600" />
-                                    <span>{editingBid ? 'Modify Your Bid' : 'Place Your Bid'}</span>
-                                </h3>
-
-                                <BidForm
-                                    auctionId={auction._id}
-                                    auctionStatus={auction.status}
-                                    monthlyContribution={monthlyContribution}
-                                    totalMembers={totalMembers}
-                                    minBidPercentage={auction.minimumBidPercentage}
-                                    maxBidPercentage={auction.maximumBidPercentage}
-                                    existingBid={editingBid}
-                                    isLoading={!!actionLoading}
-                                    onSubmitBid={handleFormSubmit}
-                                />
-                            </div>
+                            <BidForm
+                                auctionId={auction._id}
+                                auctionStatus={auction.status}
+                                monthlyContribution={monthlyContribution}
+                                totalMembers={totalMembers}
+                                minBidPercentage={auction.minimumBidPercentage}
+                                maxBidPercentage={auction.maximumBidPercentage}
+                                currentBestBidPercentage={highestBidPercentage}
+                                currency={currency}
+                                existingBid={editingBid}
+                                isLoading={!!actionLoading}
+                                onSubmitBid={handleFormSubmit}
+                                onCancelEdit={editingBid ? () => setEditingBid(null) : undefined}
+                            />
                         )
                     ) : (
-                        <div className="p-5 bg-white rounded-2xl border-none text-xs text-slate-500 font-medium space-y-2">
+                        <div className="p-6 bg-white rounded-2xl border-none text-xs text-slate-500 font-medium space-y-2">
                             <div className="flex items-center gap-2 text-slate-900 font-bold">
                                 <Info className="w-4 h-4 text-emerald-600" />
                                 <span>Observer Mode</span>
                             </div>
-                            <p className="leading-relaxed">You are viewing this bidding room in observer mode. Only active circle members can submit bids.</p>
+                            <p className="leading-relaxed">You are viewing this bidding room in observer mode. Only active enrolled circle members can submit bids.</p>
                         </div>
                     )}
                 </div>
 
-                {/* Right Column: Live Bids Table */}
-                <div className="lg:col-span-3">
+                {/* Right Column: Live Bids Table (7 cols) */}
+                <div className="lg:col-span-7">
                     <BidTable
                         bids={bids}
                         auctionNumber={auction.auctionNumber}
+                        currency={currency}
                         isLoading={bidsLoading}
                     />
                 </div>
