@@ -47,6 +47,7 @@ import { CollectionProgress } from '../../components/installments/CollectionProg
 import { InstallmentTable } from '../../components/installments/InstallmentTable';
 import { PayNowModal } from '../../components/installments/PayNowModal';
 import { NeedHelpTab } from '../../components/help/NeedHelpTab';
+import { SmartActionCard } from '../../components/chits/SmartActionCard';
 
 interface Member {
     _id: string;
@@ -399,6 +400,31 @@ export const ChitDetails = () => {
     return (
         <div className="w-full pb-12 animate-in fade-in duration-500 space-y-6">
 
+            {/* ─── SMART ACTION CARD (Contextual Next Step) ─── */}
+            <SmartActionCard
+                group={group}
+                user={user}
+                myMembership={myMembership}
+                isOrganizer={isOrganizer}
+                isMyMembershipActive={isMyMembershipActive}
+                isMyMembershipRequested={isMyMembershipRequested}
+                cycles={cycles}
+                auctions={auctions}
+                installments={installments}
+                liveAuction={liveAuction}
+                onPayDue={(inst) => setSelectedPaymentInstallment(inst)}
+                onEnterBiddingRoom={(auctionId) => {
+                    setActiveTab('AUCTIONS');
+                    setAuctionViewOrigin('LIST');
+                    setSelectedBiddingRoomId(auctionId);
+                }}
+                onStartCycle={(cId, cNum) => setCycleConfirmModal({ isOpen: true, type: 'start', cycleId: cId, cycleNumber: cNum })}
+                onRecordWinner={(cId, cNum) => setCycleWinnerModal({ isOpen: true, cycleId: cId, cycleNumber: cNum })}
+                onOpenCollections={(cId, cNum) => setCycleConfirmModal({ isOpen: true, type: 'openCollections', cycleId: cId, cycleNumber: cNum })}
+                onNavigateTab={(tab) => setActiveTab(tab)}
+                onCopyShareLink={handleCopyShareLink}
+            />
+
             {/* ─── 1. OVERVIEW TAB ─── */}
             {activeTab === 'OVERVIEW' && (
                 <div className="bg-transparent p-0 border-none shadow-none space-y-6">
@@ -515,85 +541,6 @@ export const ChitDetails = () => {
                             )}
                         </div>
                     </div>
-
-                    {/* Active Cycle & Live Auction Quick Card */}
-                    {(() => {
-                        const currentCycle = cycles.find(c => c.status === 'ACTIVE') || (cycles.length > 0 ? cycles[cycles.length - 1] : null);
-                        const currentAuction = liveAuction || (currentCycle ? auctions.find(a => {
-                            const cId = typeof a.cycleId === 'object' ? (a.cycleId as any)._id : a.cycleId;
-                            return cId === currentCycle._id;
-                        }) : null);
-
-                        if (!currentCycle) return null;
-
-                        return (
-                            <div className="bg-slate-900 text-white p-6 rounded-2xl border-none shadow-none flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                                <div className="space-y-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                            Cycle #{currentCycle.cycleNumber} ({currentCycle.status})
-                                        </span>
-                                        {currentAuction && (
-                                            <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
-                                                currentAuction.status === 'OPEN' ? 'bg-emerald-500 text-white animate-pulse' : 'bg-slate-800 text-slate-300'
-                                            }`}>
-                                                Auction #{currentAuction.auctionNumber}: {currentAuction.status}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <h3 className="text-lg font-black text-white tracking-tight">
-                                        {currentAuction?.status === 'OPEN' 
-                                            ? '⚡ Live Auction In Progress — Place Your Bid Now'
-                                            : currentCycle.status === 'ACTIVE'
-                                                ? `Cycle #${currentCycle.cycleNumber} is Currently Active`
-                                                : `Cycle #${currentCycle.cycleNumber} Scheduled`}
-                                    </h3>
-                                    <p className="text-xs text-slate-400 font-medium">
-                                        {currentAuction?.status === 'OPEN'
-                                            ? `Bidding is open between ${currentAuction.minimumBidPercentage}% and ${currentAuction.maximumBidPercentage}%. All active members can submit competitive bids.`
-                                            : currentCycle.paymentCollection?.status === 'OPEN'
-                                                ? `Installment collections are OPEN for this cycle. Make your payment before the due date.`
-                                                : `Scheduled Start: ${format(new Date(currentCycle.scheduledStartDate), 'PPP')}`}
-                                    </p>
-                                </div>
-
-                                <div className="flex flex-wrap items-center gap-3 shrink-0">
-                                    {currentAuction?.status === 'OPEN' ? (
-                                        <button
-                                            onClick={() => {
-                                                setActiveTab('AUCTIONS');
-                                                setAuctionViewOrigin('LIST');
-                                                setSelectedBiddingRoomId(currentAuction._id);
-                                            }}
-                                            className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl transition cursor-pointer flex items-center gap-2 shadow-lg shadow-emerald-500/20"
-                                        >
-                                            <Hammer className="w-4 h-4" />
-                                            <span>Enter Bidding Room</span>
-                                        </button>
-                                    ) : (
-                                        <button
-                                            onClick={() => setActiveTab('AUCTIONS')}
-                                            className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition cursor-pointer flex items-center gap-1.5"
-                                        >
-                                            <Hammer className="w-3.5 h-3.5 text-emerald-400" />
-                                            <span>View Auctions</span>
-                                        </button>
-                                    )}
-
-                                    <button
-                                        onClick={() => {
-                                            setActiveTab('INSTALLMENTS');
-                                            setSelectedCycleId(currentCycle._id);
-                                        }}
-                                        className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition cursor-pointer flex items-center gap-1.5"
-                                    >
-                                        <Wallet className="w-3.5 h-3.5 text-sky-400" />
-                                        <span>Installments & Dues</span>
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })()}
 
                     {/* 4 Financial Stat Cards — no borders, no shadows */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
